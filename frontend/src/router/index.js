@@ -21,6 +21,12 @@ const routes = [
     name: 'Diagnose',
     component: () => import('../views/Diagnose.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/users',
+    name: 'UserManage',
+    component: () => import('../views/UserManage.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
