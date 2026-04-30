@@ -33,6 +33,12 @@ const routes = [
     name: 'AuditLog',
     component: () => import('../views/AuditLog.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/command-guard',
+    name: 'CommandGuard',
+    component: () => import('../views/CommandGuard.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

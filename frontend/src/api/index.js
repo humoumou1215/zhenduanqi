@@ -85,3 +85,19 @@ export function getRoles() {
 export function getAuditLogs(params) {
   return api.get('/audit-logs', { params })
 }
+
+export function getGuardRules() {
+  return api.get('/command-guard/rules')
+}
+
+export function createGuardRule(data) {
+  return api.post('/command-guard/rules', data)
+}
+
+export function updateGuardRule(id, data) {
+  return api.put(`/command-guard/rules/${id}`, data)
+}
+
+export function deleteGuardRule(id) {
+  return api.delete(`/command-guard/rules/${id}`)
+}
