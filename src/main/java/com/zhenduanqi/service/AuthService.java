@@ -106,7 +106,12 @@ public class AuthService {
 
     public String getUserRole(String username) {
         return userRepository.findByUsername(username)
-                .map(user -> "ADMIN")
+                .map(user -> {
+                    if (user.getRoles() == null || user.getRoles().isEmpty()) {
+                        return "READONLY";
+                    }
+                    return user.getRoles().iterator().next().getRoleCode();
+                })
                 .orElse("READONLY");
     }
 }

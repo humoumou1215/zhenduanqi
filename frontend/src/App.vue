@@ -13,6 +13,7 @@
       >
         <el-menu-item index="/diagnose" style="color: white;">执行诊断</el-menu-item>
         <el-menu-item index="/servers" v-if="userStore.role === 'ADMIN'" style="color: white;">服务器管理</el-menu-item>
+        <el-menu-item index="/users" v-if="userStore.role === 'ADMIN'" style="color: white;">用户管理</el-menu-item>
       </el-menu>
       <div style="margin-left: 16px; display: flex; align-items: center; gap: 8px;">
         <el-tag size="small" :type="roleTagType" effect="dark">{{ userStore.role }}</el-tag>
