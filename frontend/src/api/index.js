@@ -61,23 +61,3 @@ export function getServerStatus(id) {
 export function executeCommand(serverId, command) {
   return api.post('/execute', { serverId, command })
 }
-
-export function getUsers() {
-  return api.get('/users')
-}
-
-export function createUser(data) {
-  return api.post('/users', data)
-}
-
-export function updateUser(id, data) {
-  return api.put(`/users/${id}`, data)
-}
-
-export function resetPassword(id, newPassword) {
-  return api.put(`/users/${id}/reset-password`, { newPassword })
-}
-
-export function getRoles() {
-  return api.get('/roles')
-}
