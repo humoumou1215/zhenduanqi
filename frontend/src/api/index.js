@@ -1,9 +1,38 @@
 import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
 const api = axios.create({
   baseURL: '/api',
-  timeout: 60000
+  timeout: 60000,
+  withCredentials: true
 })
+
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      const userStore = null
+      import('../stores/user').then(({ useUserStore }) => {
+        const store = useUserStore()
+        store.isLoggedIn = false
+      })
+      window.location.hash = '#/login'
+    }
+    return Promise.reject(error)
+  }
+)
+
+export function loginApi(username, password) {
+  return api.post('/auth/login', { username, password })
+}
+
+export function logoutApi() {
+  return api.post('/auth/logout')
+}
+
+export function fetchMe() {
+  return api.get('/auth/me')
+}
 
 export function getServers() {
   return api.get('/servers')
