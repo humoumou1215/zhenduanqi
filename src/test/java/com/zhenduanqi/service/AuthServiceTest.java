@@ -4,6 +4,7 @@ import com.zhenduanqi.config.JwtUtil;
 import com.zhenduanqi.config.LoginRateLimiter;
 import com.zhenduanqi.config.TokenBlacklist;
 import com.zhenduanqi.dto.LoginResponse;
+import com.zhenduanqi.entity.SysRole;
 import com.zhenduanqi.entity.SysUser;
 import com.zhenduanqi.repository.SysUserRepository;
 import jakarta.servlet.http.Cookie;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -52,12 +54,16 @@ public class AuthServiceTest {
     void login_withValidCredentials_returnsLoginResponseAndSetsCookie() {
         String password = "Abcd1234";
         String hashed = passwordEncoder.encode(password);
+        SysRole adminRole = new SysRole();
+        adminRole.setRoleCode("ADMIN");
+        adminRole.setRoleName("管理员");
         SysUser user = new SysUser();
         user.setId(1L);
         user.setUsername("admin");
         user.setPassword(hashed);
         user.setRealName("管理员");
         user.setStatus("ACTIVE");
+        user.setRoles(Set.of(adminRole));
 
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
 
