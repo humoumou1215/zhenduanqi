@@ -2,6 +2,7 @@ package com.zhenduanqi.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "sys_user")
@@ -34,6 +35,12 @@ public class SysUser {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "sys_user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<SysRole> roles;
 
     @PrePersist
     protected void onCreate() {
@@ -116,5 +123,13 @@ public class SysUser {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Set<SysRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<SysRole> roles) {
+        this.roles = roles;
     }
 }
