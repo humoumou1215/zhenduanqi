@@ -81,3 +81,7 @@ export function resetPassword(id, newPassword) {
 export function getRoles() {
   return api.get('/roles')
 }
+
+export function getAuditLogs(params) {
+  return api.get('/audit-logs', { params })
+}

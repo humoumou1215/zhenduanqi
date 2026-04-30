@@ -27,6 +27,12 @@ const routes = [
     name: 'UserManage',
     component: () => import('../views/UserManage.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/audit-logs',
+    name: 'AuditLog',
+    component: () => import('../views/AuditLog.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
