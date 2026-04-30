@@ -50,4 +50,55 @@
       <div v-if="result.error" style="color: #f56c6c; margin-bottom: 12px; white-space: pre-wrap;">{{ result.error }}</div>
 
       <div v-for="(r, i) in result.results" :key="i">
-        <pre
+        <pre style="background: #f5f7fa; padding: 12px; border-radius: 4px; font-size: 13px; line-height: 1.6; overflow-x: auto;">{{ r }}</pre>
+      </div>
+
+      <el-collapse v-if="result.rawResponse" style="margin-top: 12px;">
+        <el-collapse-item title="原始响应" v-show="expandRaw">
+          <pre style="background: #f5f7fa; padding: 12px; border-radius: 4px; font-size: 12px; max-height: 300px; overflow: auto;">{{ result.rawResponse }}</pre>
+        </el-collapse-item>
+      </el-collapse>
+    </el-card>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useServerStore } from '../stores/servers'
+import { executeCommand } from '../api'
+
+const store = useServerStore()
+const result = ref(null)
+const executing = ref(false)
+const expandRaw = ref(false)
+const form = ref({ serverId: '', command: '' })
+
+const isSuccess = computed(() => result.value?.state === 'succeeded')
+
+onMounted(() => {
+  store.fetchServers()
+})
+
+async function handleExecute() {
+  executing.value = true
+  expandRaw.value = false
+  try {
+    const res = await executeCommand(form.value.serverId, form.value.command)
+    result.value = res.data
+  } catch (e) {
+    result.value = {
+      state: 'failed',
+      error: e.response?.data?.error || e.message || '请求失败',
+      results: [],
+      rawResponse: null
+    }
+  } finally {
+    executing.value = false
+  }
+}
+
+function clearResult() {
+  result.value = null
+  expandRaw.value = false
+}
+</script>

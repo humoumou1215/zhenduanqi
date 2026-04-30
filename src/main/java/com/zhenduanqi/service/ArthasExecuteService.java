@@ -7,6 +7,7 @@ import com.zhenduanqi.model.ServerInfo;
 import com.zhenduanqi.repository.ArthasServerRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -52,15 +53,19 @@ public class ArthasExecuteService {
                     serverInfo.setHttpPort(entity.getHttpPort());
                     serverInfo.setToken(entity.getToken());
                     boolean connected = arthasClient.checkConnection(serverInfo);
-                    return Map.of(
-                            "exists", true,
-                            "id", entity.getId(),
-                            "name", entity.getName(),
-                            "host", entity.getHost(),
-                            "port", entity.getHttpPort(),
-                            "connected", connected
-                    );
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("exists", true);
+                    m.put("id", entity.getId());
+                    m.put("name", entity.getName());
+                    m.put("host", entity.getHost());
+                    m.put("port", entity.getHttpPort());
+                    m.put("connected", connected);
+                    return m;
                 })
-                .orElseGet(() -> Map.of("exists", false));
+                .orElseGet(() -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("exists", false);
+                    return m;
+                });
     }
 }
