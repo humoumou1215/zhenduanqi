@@ -15,6 +15,7 @@ public class ExecuteResponse {
         resp.setState(arthasResponse.getState());
         resp.setResults(arthasResponse.getResults());
         resp.setError(arthasResponse.getError());
+        resp.setRawResponse(arthasResponse.getRawResponse());
         return resp;
     }
 

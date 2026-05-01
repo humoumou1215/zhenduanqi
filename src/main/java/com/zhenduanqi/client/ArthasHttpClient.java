@@ -46,8 +46,13 @@ public class ArthasHttpClient {
 
             if (httpResponse.statusCode() != 200) {
                 response.setState("failed");
-                response.setError("HTTP " + httpResponse.statusCode() + ": " + httpResponse.body());
-                log.error("Arthas API returned status {}: {}", httpResponse.statusCode(), httpResponse.body());
+                String errorBody = httpResponse.body();
+                String errorMessage = errorBody != null && !errorBody.isEmpty() 
+                        ? errorBody 
+                        : getHttpErrorMessage(httpResponse.statusCode());
+                response.setError("HTTP " + httpResponse.statusCode() + ": " + errorMessage);
+                response.setRawResponse(errorBody);
+                log.error("Arthas API returned status {}: {}", httpResponse.statusCode(), errorBody);
                 return response;
             }
 
@@ -248,5 +253,19 @@ public class ArthasHttpClient {
             log.warn("Connection check failed for {}: {}", server.getName(), e.getMessage());
             return false;
         }
+    }
+
+    private String getHttpErrorMessage(int statusCode) {
+        return switch (statusCode) {
+            case 400 -> "请求格式错误";
+            case 401 -> "未授权，请检查 Token";
+            case 403 -> "权限不足";
+            case 404 -> "API 地址不存在";
+            case 500 -> "Arthas 服务内部错误";
+            case 502 -> "Arthas 服务不可用或未启动";
+            case 503 -> "Arthas 服务暂时不可用";
+            case 504 -> "Arthas 服务响应超时";
+            default -> "未知错误";
+        };
     }
 }

@@ -20,4 +20,9 @@ public class ExecuteRequest {
     public void setCommand(String command) {
         this.command = command;
     }
+
+    @Override
+    public String toString() {
+        return "ExecuteRequest{serverId='" + serverId + "', command='" + command + "'}";
+    }
 }
