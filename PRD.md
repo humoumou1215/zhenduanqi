@@ -134,6 +134,7 @@ public ResponseEntity<?> login(@RequestBody LoginRequest request, ...) {
 **实现细节：**
 - 使用 Jackson ObjectMapper 序列化请求参数为 JSON
 - 从 DTO 对象中自动提取 `command` 和 `serverId` 字段
+- 从 DTO 对象中自动提取 `username` 字段（用于登录场景，当 request attribute 中无 username 时）
 - 使用正则表达式匹配并脱敏敏感字段（password、token）
 - 支持嵌套 JSON 结构的参数序列化
 
