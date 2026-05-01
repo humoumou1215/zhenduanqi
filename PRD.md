@@ -214,26 +214,26 @@ public void doFilter(ServletRequest request, ServletResponse response, FilterCha
 
 **各组件日志埋点规范：**
 
-| 组件 | 级别 | 日志内容 |
-|------|------|----------|
-| AuthService | INFO | 登录成功、登录失败（含原因：密码错误/账户锁定/IP限流）、登出 |
-| AuthService | WARN | 账户锁定触发 |
-| AuthInterceptor | DEBUG | 认证通过 |
-| AuthInterceptor | WARN | Token 缺失/无效/已吊销 |
-| RoleAspect | WARN | 权限不足（含用户角色和所需角色） |
-| AuditLogAspect | DEBUG | 审计日志写入成功 |
-| AuditLogAspect | ERROR | 审计日志写入失败 |
-| CommandGuardService | INFO | 规则加载/重载（含规则数量） |
-| CommandGuardService | WARN | 命令被拦截（含命令原文和匹配规则） |
-| ArthasExecuteService | INFO | 命令执行开始（含 serverId、命令摘要） |
-| ArthasExecuteService | INFO | 命令执行完成（含结果状态、耗时） |
-| ArthasHttpClient | INFO | Arthas API 请求（含服务器名、命令） |
-| ArthasHttpClient | WARN | 连接检测失败 |
-| ArthasSessionService | INFO | 会话创建/关闭/超时清理 |
-| ArthasSessionService | WARN | 孤儿会话检测与清理 |
-| JwtUtil | WARN | Token 校验异常（不输出 Token 原文） |
-| ArthasServerService | INFO | 服务器 CRUD 操作 |
-| UserService | INFO | 用户 CRUD 操作、密码重置 |
+| 组件 | 级别 | 日志内容 | 状态 |
+|------|------|----------|------|
+| AuthService | INFO | 登录成功、登录失败（含原因：密码错误/账户锁定/IP限流）、登出 | ✅ 已实现 |
+| AuthService | WARN | 账户锁定触发 | ✅ 已实现 |
+| AuthInterceptor | DEBUG | 认证通过 | ✅ 已实现 |
+| AuthInterceptor | WARN | Token 缺失/无效/已吊销 | ✅ 已实现 |
+| RoleAspect | WARN | 权限不足（含用户角色和所需角色） | ✅ 已实现 |
+| AuditLogAspect | DEBUG | 审计日志写入成功 | ✅ 已实现 |
+| AuditLogAspect | ERROR | 审计日志写入失败 | ✅ 已实现 |
+| CommandGuardService | INFO | 规则加载/重载（含规则数量） | ✅ 已实现 |
+| CommandGuardService | WARN | 命令被拦截（含命令原文和匹配规则） | ✅ 已实现 |
+| ArthasExecuteService | INFO | 命令执行开始（含 serverId、命令摘要） | ✅ 已实现 |
+| ArthasExecuteService | INFO | 命令执行完成（含结果状态、耗时） | ✅ 已实现 |
+| ArthasHttpClient | INFO | Arthas API 请求（含服务器名、命令） | ✅ 已实现 |
+| ArthasHttpClient | WARN | 连接检测失败 | ✅ 已实现 |
+| ArthasSessionService | INFO | 会话创建/关闭/超时清理 | TODO 待P2实现 |
+| ArthasSessionService | WARN | 孤儿会话检测与清理 | TODO 待P2实现 |
+| JwtUtil | WARN | Token 校验异常（不输出 Token 原文） | ✅ 已实现 |
+| ArthasServerService | INFO | 服务器 CRUD 操作 | ✅ 已实现 |
+| UserService | INFO | 用户 CRUD 操作、密码重置 | ✅ 已实现 |
 
 **日志级别规范：**
 
@@ -918,7 +918,8 @@ zhenduanqi/
 | **AuthInterceptor** | JWT 拦截器、白名单路径跳过 | P0 |
 | **SensitiveDataConverter** | Logback 脱敏 Converter，验证 password/token/Authorization 字段替换正确性 | P0 |
 | **MdcFilter** | MDC 注入和清理、认证失败场景、登录请求 | P0 |
-| **AuthService 日志** | Logback ListAppender 捕获日志，验证级别和内容 | P0 |
+| **AuthService 日志** | Logback ListAppender 捕获日志，验证级别和内容 | P0 | ✅ 已实现 |
+| **各组件日志埋点测试** | AuthInterceptor/RoleAspect/CommandGuardService/JwtUtil/ArthasServerService/UserService 日志验证 | P0 | ✅ 已实现 |
 | **SceneService** | 场景步骤编排、命令模板占位符处理 | P1 |
 | **前端渲染器** | 各 type 渲染组件的输入输出 | P1 |
 | **前端 extract_rules** | JSONPath 变量提取逻辑 | P1 |

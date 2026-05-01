@@ -9,6 +9,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -20,6 +22,8 @@ import java.util.stream.Collectors;
 @Aspect
 @Component
 public class RoleAspect {
+
+    private static final Logger log = LoggerFactory.getLogger(RoleAspect.class);
 
     private final SysUserRepository userRepository;
 
@@ -58,6 +62,7 @@ public class RoleAspect {
 
         boolean hasRole = Arrays.stream(allowedRoles).anyMatch(userRoles::contains);
         if (!hasRole) {
+            log.warn("权限不足: username={}, userRoles={}, requiredRoles={}", username, userRoles, Arrays.toString(allowedRoles));
             attrs.getResponse().setStatus(403);
             attrs.getResponse().getWriter().write("{\"error\":\"权限不足\"}");
             return null;
