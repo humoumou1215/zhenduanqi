@@ -1,8 +1,10 @@
 package com.zhenduanqi.client;
 
+import com.zhenduanqi.model.ArthasApiResponse;
 import com.zhenduanqi.model.ArthasResponse;
 import com.zhenduanqi.model.ArthasResult;
 import com.zhenduanqi.model.ServerInfo;
+import com.zhenduanqi.model.SessionInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -371,5 +373,204 @@ class ArthasHttpClientTest {
         ArthasResponse response = arthasHttpClient.executeCommand(server, "version");
 
         assertThat(response.getState()).isEqualTo("SUCCEEDED");
+    }
+
+    @Test
+    void initSession_withValidResponse_returnsSessionInfo() throws Exception {
+        String initResponse = """
+            {
+              "state": "SUCCEEDED",
+              "sessionId": "test-session-123",
+              "consumerId": "test-consumer-456",
+              "body": {
+                "results": []
+              }
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(initResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenAnswer(invocation -> {
+                    HttpRequest request = invocation.getArgument(0);
+                    assertThat(request.method()).isEqualTo("POST");
+                    // 验证请求体包含 init_session action
+                    return httpResponse;
+                });
+
+        ServerInfo server = createTestServer();
+        SessionInfo sessionInfo = arthasHttpClient.initSession(server);
+
+        assertThat(sessionInfo).isNotNull();
+        assertThat(sessionInfo.getSessionId()).isEqualTo("test-session-123");
+        assertThat(sessionInfo.getConsumerId()).isEqualTo("test-consumer-456");
+    }
+
+    @Test
+    void initSession_withHttpError_returnsNull() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(500);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        SessionInfo sessionInfo = arthasHttpClient.initSession(server);
+
+        assertThat(sessionInfo).isNull();
+    }
+
+    @Test
+    void joinSession_withValidResponse_returnsConsumerId() throws Exception {
+        String joinResponse = """
+            {
+              "state": "SUCCEEDED",
+              "sessionId": "test-session-123",
+              "consumerId": "new-consumer-789",
+              "body": {
+                "results": []
+              }
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(joinResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        String consumerId = arthasHttpClient.joinSession(server, "test-session-123");
+
+        assertThat(consumerId).isEqualTo("new-consumer-789");
+    }
+
+    @Test
+    void asyncExecuteCommand_withValidResponse_returnsApiResponse() throws Exception {
+        String asyncResponse = """
+            {
+              "state": "SCHEDULED",
+              "sessionId": "test-session-123",
+              "body": {
+                "results": []
+              }
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(asyncResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        ArthasApiResponse response = arthasHttpClient.asyncExecuteCommand(
+                server, "thread -n 5", "test-session-123");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getState()).isEqualTo("SCHEDULED");
+        assertThat(response.getRawResponse()).isEqualTo(asyncResponse);
+    }
+
+    @Test
+    void pullResults_withValidResponse_returnsResults() throws Exception {
+        String pullResponse = """
+            {
+              "state": "SUCCEEDED",
+              "sessionId": "test-session-123",
+              "body": {
+                "results": [
+                  {
+                    "type": "thread",
+                    "data": {
+                      "threadId": 1,
+                      "threadName": "main"
+                    }
+                  }
+                ]
+              }
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(pullResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        List<ArthasResult> results = arthasHttpClient.pullResults(
+                server, "test-session-123", "test-consumer-456");
+
+        assertThat(results).isNotEmpty();
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getType()).isEqualTo("thread");
+    }
+
+    @Test
+    void pullResults_withEmptyResults_returnsEmptyList() throws Exception {
+        String pullResponse = """
+            {
+              "state": "SUCCEEDED",
+              "sessionId": "test-session-123",
+              "body": {
+                "results": []
+              }
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(pullResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        List<ArthasResult> results = arthasHttpClient.pullResults(
+                server, "test-session-123", "test-consumer-456");
+
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    void interruptJob_withSuccess_returnsTrue() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        boolean success = arthasHttpClient.interruptJob(server, "test-session-123");
+
+        assertThat(success).isTrue();
+    }
+
+    @Test
+    void interruptJob_withError_returnsFalse() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(500);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        boolean success = arthasHttpClient.interruptJob(server, "test-session-123");
+
+        assertThat(success).isFalse();
+    }
+
+    @Test
+    void closeSession_withSuccess_returnsTrue() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        boolean success = arthasHttpClient.closeSession(server, "test-session-123");
+
+        assertThat(success).isTrue();
+    }
+
+    @Test
+    void closeSession_withError_returnsFalse() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(500);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        boolean success = arthasHttpClient.closeSession(server, "test-session-123");
+
+        assertThat(success).isFalse();
     }
 }

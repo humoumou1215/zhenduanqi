@@ -5,6 +5,7 @@ import com.zhenduanqi.model.ArthasApiResponse;
 import com.zhenduanqi.model.ArthasResponse;
 import com.zhenduanqi.model.ArthasResult;
 import com.zhenduanqi.model.ServerInfo;
+import com.zhenduanqi.model.SessionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -193,5 +194,219 @@ public class ArthasHttpClient {
             case 504 -> "Arthas 服务响应超时";
             default -> "未知错误";
         };
+    }
+
+    public SessionInfo initSession(ServerInfo server) {
+        try {
+            String apiUrl = server.getApiUrl();
+            String jsonBody = "{\"action\":\"init_session\"}";
+
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .header("Content-Type", "application/json")
+                    .timeout(TIMEOUT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            addAuthorizationHeader(requestBuilder, server);
+
+            HttpRequest request = requestBuilder.build();
+
+            log.info("Initializing session on {}", server.getName());
+            HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (httpResponse.statusCode() != 200) {
+                log.error("Failed to init session, status: {}", httpResponse.statusCode());
+                return null;
+            }
+
+            String body = httpResponse.body();
+            ArthasApiResponse apiResponse = objectMapper.readValue(body, ArthasApiResponse.class);
+
+            if (apiResponse.getSessionId() != null && apiResponse.getConsumerId() != null) {
+                return new SessionInfo(apiResponse.getSessionId(), apiResponse.getConsumerId());
+            }
+
+            log.error("Session init response missing sessionId or consumerId: {}", body);
+            return null;
+
+        } catch (Exception e) {
+            log.error("Failed to init session", e);
+            return null;
+        }
+    }
+
+    public String joinSession(ServerInfo server, String sessionId) {
+        try {
+            String apiUrl = server.getApiUrl();
+            String jsonBody = String.format("{\"action\":\"join_session\",\"sessionId\":\"%s\"}", sessionId);
+
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .header("Content-Type", "application/json")
+                    .timeout(TIMEOUT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            addAuthorizationHeader(requestBuilder, server);
+
+            HttpRequest request = requestBuilder.build();
+
+            log.info("Joining session {} on {}", sessionId, server.getName());
+            HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (httpResponse.statusCode() != 200) {
+                log.error("Failed to join session, status: {}", httpResponse.statusCode());
+                return null;
+            }
+
+            String body = httpResponse.body();
+            ArthasApiResponse apiResponse = objectMapper.readValue(body, ArthasApiResponse.class);
+
+            if (apiResponse.getConsumerId() != null) {
+                return apiResponse.getConsumerId();
+            }
+
+            log.error("Join session response missing consumerId: {}", body);
+            return null;
+
+        } catch (Exception e) {
+            log.error("Failed to join session", e);
+            return null;
+        }
+    }
+
+    public ArthasApiResponse asyncExecuteCommand(ServerInfo server, String command, String sessionId) {
+        try {
+            String apiUrl = server.getApiUrl();
+            String jsonBody = String.format(
+                    "{\"action\":\"async_exec\",\"command\":\"%s\",\"sessionId\":\"%s\"}",
+                    escapeJson(command), sessionId);
+
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .header("Content-Type", "application/json")
+                    .timeout(TIMEOUT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            addAuthorizationHeader(requestBuilder, server);
+
+            HttpRequest request = requestBuilder.build();
+
+            log.info("Async executing command on {} session {}: {}", server.getName(), sessionId, command);
+            HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            String body = httpResponse.body();
+
+            if (httpResponse.statusCode() != 200) {
+                ArthasApiResponse errorResponse = new ArthasApiResponse();
+                errorResponse.setState("failed");
+                errorResponse.setRawResponse(body);
+                return errorResponse;
+            }
+
+            ArthasApiResponse apiResponse = objectMapper.readValue(body, ArthasApiResponse.class);
+            apiResponse.setRawResponse(body);
+            return apiResponse;
+
+        } catch (Exception e) {
+            log.error("Failed to async execute command", e);
+            ArthasApiResponse errorResponse = new ArthasApiResponse();
+            errorResponse.setState("failed");
+            errorResponse.setRawResponse("Exception: " + e.getMessage());
+            return errorResponse;
+        }
+    }
+
+    public List<ArthasResult> pullResults(ServerInfo server, String sessionId, String consumerId) {
+        try {
+            String apiUrl = server.getApiUrl();
+            String jsonBody = String.format(
+                    "{\"action\":\"pull_results\",\"sessionId\":\"%s\",\"consumerId\":\"%s\"}",
+                    sessionId, consumerId);
+
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .header("Content-Type", "application/json")
+                    .timeout(TIMEOUT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            addAuthorizationHeader(requestBuilder, server);
+
+            HttpRequest request = requestBuilder.build();
+
+            log.debug("Pulling results for session {} consumer {}", sessionId, consumerId);
+            HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (httpResponse.statusCode() != 200) {
+                log.error("Failed to pull results, status: {}", httpResponse.statusCode());
+                return new ArrayList<>();
+            }
+
+            String body = httpResponse.body();
+            ArthasApiResponse apiResponse = objectMapper.readValue(body, ArthasApiResponse.class);
+
+            if (apiResponse.getBody() != null && apiResponse.getBody().getResults() != null) {
+                return apiResponse.getBody().getResults();
+            }
+
+            return new ArrayList<>();
+
+        } catch (Exception e) {
+            log.error("Failed to pull results", e);
+            return new ArrayList<>();
+        }
+    }
+
+    public boolean interruptJob(ServerInfo server, String sessionId) {
+        try {
+            String apiUrl = server.getApiUrl();
+            String jsonBody = String.format(
+                    "{\"action\":\"interrupt_job\",\"sessionId\":\"%s\"}", sessionId);
+
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .header("Content-Type", "application/json")
+                    .timeout(TIMEOUT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            addAuthorizationHeader(requestBuilder, server);
+
+            HttpRequest request = requestBuilder.build();
+
+            log.info("Interrupting job on session {}", sessionId);
+            HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            return httpResponse.statusCode() == 200;
+
+        } catch (Exception e) {
+            log.error("Failed to interrupt job", e);
+            return false;
+        }
+    }
+
+    public boolean closeSession(ServerInfo server, String sessionId) {
+        try {
+            String apiUrl = server.getApiUrl();
+            String jsonBody = String.format(
+                    "{\"action\":\"close_session\",\"sessionId\":\"%s\"}", sessionId);
+
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .header("Content-Type", "application/json")
+                    .timeout(TIMEOUT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            addAuthorizationHeader(requestBuilder, server);
+
+            HttpRequest request = requestBuilder.build();
+
+            log.info("Closing session {}", sessionId);
+            HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            return httpResponse.statusCode() == 200;
+
+        } catch (Exception e) {
+            log.error("Failed to close session", e);
+            return false;
+        }
     }
 }
