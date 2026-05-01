@@ -54,6 +54,7 @@ public class ArthasApiResponse {
 
     public static class Body {
         private List<ArthasResult> results;
+        private Integer jobId;
 
         public Body() {
         }
@@ -64,6 +65,14 @@ public class ArthasApiResponse {
 
         public void setResults(List<ArthasResult> results) {
             this.results = results;
+        }
+
+        public Integer getJobId() {
+            return jobId;
+        }
+
+        public void setJobId(Integer jobId) {
+            this.jobId = jobId;
         }
     }
 }
