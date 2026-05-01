@@ -27,6 +27,8 @@ class ArthasExecuteServiceLoggingTest {
     private ArthasServerRepository serverRepository;
     @Mock
     private CommandGuardRuleRepository ruleRepository;
+    @Mock
+    private ArthasServerService serverService;
 
     private ArthasExecuteService executeService;
     private CommandGuardService guardService;
@@ -35,7 +37,7 @@ class ArthasExecuteServiceLoggingTest {
     void setUp() {
         guardService = new CommandGuardService(ruleRepository);
         ArthasHttpClient arthasClient = new ArthasHttpClient();
-        executeService = new ArthasExecuteService(serverRepository, arthasClient, guardService);
+        executeService = new ArthasExecuteService(serverRepository, serverService, arthasClient, guardService);
     }
 
     private ListAppender<ILoggingEvent> createListAppender() {

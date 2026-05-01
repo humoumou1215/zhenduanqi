@@ -578,8 +578,18 @@ CREATE TABLE arthas_session (
 
 **改动点：**
 1. 所有 CRUD 操作增加 `@RequireRole(ADMIN)` 权限注解
-2. 服务器 Token 使用加密存储（非明文，不在数据库中以明文形式存放 token 列）
+2. 服务器 Token 使用 AES-256-GCM 加密存储，数据库中仅保存加密后的密文 ✅ 已实现
 3. `ArthasServerDTO.fromEntity()` 继续保持不返回 Token 的策略
+4. 加密密钥通过 `arthas.server.token-secret` 配置项管理，生产环境应使用环境变量或密钥管理服务 ✅ 已实现
+
+**Token 加密方案：**
+- 算法：AES/GCM/NoPadding（认证加密，防篡改）
+- IV：每次加密随机生成 12 字节 IV，前置于密文
+- 编码：Base64 编码后存储到 `arthas_server.token` 字段
+- 密钥：16 字节，从 `application.yml` 的 `arthas.server.token-secret` 读取
+- 写入加密：`ArthasServerService.create()` / `update()` 时自动加密
+- 读取解密：`ArthasServerService.findDecryptedTokenById()` 方法解密后供执行引擎使用
+- API 返回：`ArthasServerDTO.fromEntity()` 不返回 Token 字段，前端无法获取
 
 ### 数据库全量 Schema
 
@@ -808,7 +818,9 @@ zhenduanqi/
     │   │   ├── MdcFilter.java                # MDC 请求链路追踪 Filter
     │   │   ├── AuthInterceptor.java         # JWT 拦截器
     │   │   ├── WebMvcConfig.java            # 注册拦截器
-    │   │   └── SecurityConfig.java          # 密码编码器 Bean
+    │   │   ├── SecurityConfig.java          # 密码编码器 Bean
+    │   │   ├── TokenEncryptionUtil.java     # AES-GCM Token 加密工具
+    │   │   └── TokenEncryptionConfig.java   # Token 加密 Bean 配置
     │   ├── annotation/
     │   │   ├── RequireRole.java             # 权限注解
     │   │   └── AuditLog.java                # 审计日志注解
@@ -876,6 +888,7 @@ zhenduanqi/
 - ✅ 应用运行时日志：logback-spring.xml 配置 + MDC 请求链路追踪 + 敏感字段脱敏 + 各组件日志埋点
 - ✅ ArthasHttpClient 改造：Jackson 解析 Arthas JSON 响应，透传结构化数据
 - ✅ 现有服务器管理 + 命令执行接口增加权限校验
+- ✅ 服务器 Token 加密存储（AES-256-GCM）
 - ✅ 前端登录页 + 路由守卫 + 角色按钮控制
 
 ### 第二阶段（P1）：场景模板引擎 — 基础版
@@ -913,6 +926,7 @@ zhenduanqi/
 | **CommandGuardService** | 正则黑白名单匹配逻辑、优先级校验、系统命令豁免 | P0 |
 | **ArthasHttpClient** | Mock HTTP 服务，验证 Jackson 解析、请求构造、响应解析、超时处理 | P0 |
 | **ArthasExecuteService** | Mock Repository + Client + Guard，验证执行链路 | P0 |
+| **TokenEncryptionUtil** | AES-GCM 加密/解密、随机 IV、空字符串处理 | P0 | ✅ 已实现 |
 | **AuditLogAspect** | AOP 切面日志记录正确性 | P0 |
 | **RoleAspect** | @RequireRole 注解拦截逻辑 | P0 |
 | **AuthInterceptor** | JWT 拦截器、白名单路径跳过 | P0 |

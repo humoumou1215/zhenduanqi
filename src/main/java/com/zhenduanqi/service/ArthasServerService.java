@@ -1,5 +1,6 @@
 package com.zhenduanqi.service;
 
+import com.zhenduanqi.config.TokenEncryptionUtil;
 import com.zhenduanqi.dto.ArthasServerDTO;
 import com.zhenduanqi.entity.ArthasServerEntity;
 import com.zhenduanqi.repository.ArthasServerRepository;
@@ -17,9 +18,11 @@ public class ArthasServerService {
     private static final Logger log = LoggerFactory.getLogger(ArthasServerService.class);
 
     private final ArthasServerRepository repository;
+    private final TokenEncryptionUtil encryptionUtil;
 
-    public ArthasServerService(ArthasServerRepository repository) {
+    public ArthasServerService(ArthasServerRepository repository, TokenEncryptionUtil encryptionUtil) {
         this.repository = repository;
+        this.encryptionUtil = encryptionUtil;
     }
 
     public List<ArthasServerDTO> findAll() {
@@ -36,8 +39,16 @@ public class ArthasServerService {
         return repository.findById(id);
     }
 
+    public Optional<String> findDecryptedTokenById(String id) {
+        return repository.findById(id)
+                .map(entity -> encryptionUtil.decrypt(entity.getToken()));
+    }
+
     public ArthasServerDTO create(ArthasServerDTO dto) {
         ArthasServerEntity entity = dto.toEntity();
+        if (entity.getToken() != null) {
+            entity.setToken(encryptionUtil.encrypt(entity.getToken()));
+        }
         LocalDateTime now = LocalDateTime.now();
         entity.setCreatedAt(now);
         entity.setUpdatedAt(now);
@@ -53,7 +64,7 @@ public class ArthasServerService {
         existing.setHost(dto.getHost());
         existing.setHttpPort(dto.getHttpPort());
         if (dto.getToken() != null && !dto.getToken().isBlank()) {
-            existing.setToken(dto.getToken());
+            existing.setToken(encryptionUtil.encrypt(dto.getToken()));
         }
         existing.setUpdatedAt(LocalDateTime.now());
         ArthasServerEntity saved = repository.save(existing);

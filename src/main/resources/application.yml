@@ -27,6 +27,8 @@ arthas:
   auth:
     jwt-secret: zhenduanqi-dev-secret-key-change-in-production-32chars
     jwt-expiration-ms: 7200000
+  server:
+    token-secret: zhenduanqi-token-secret-change-in-production
 
 logging:
   level:
