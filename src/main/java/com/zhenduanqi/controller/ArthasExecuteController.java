@@ -1,6 +1,7 @@
 package com.zhenduanqi.controller;
 
 import com.zhenduanqi.annotation.AuditLog;
+import com.zhenduanqi.annotation.RequireRole;
 import com.zhenduanqi.dto.ExecuteRequest;
 import com.zhenduanqi.dto.ExecuteResponse;
 import com.zhenduanqi.service.ArthasExecuteService;
@@ -20,6 +21,7 @@ public class ArthasExecuteController {
     }
 
     @PostMapping("/execute")
+    @RequireRole({"OPERATOR", "ADMIN"})
     @AuditLog(action = "执行诊断命令")
     public ResponseEntity<ExecuteResponse> execute(@RequestBody ExecuteRequest request) {
         ExecuteResponse response = executeService.execute(request.getServerId(), request.getCommand());

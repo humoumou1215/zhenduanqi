@@ -26,6 +26,7 @@
 
         <el-form-item>
           <el-button
+            v-if="userStore.role === 'OPERATOR' || userStore.role === 'ADMIN'"
             type="primary"
             @click="handleExecute"
             :loading="executing"
@@ -101,9 +102,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useServerStore } from '../stores/servers';
+import { useUserStore } from '../stores/user';
 import { executeCommand } from '../api';
 
 const store = useServerStore();
+const userStore = useUserStore();
 const result = ref(null);
 const executing = ref(false);
 const expandRaw = ref(false);
