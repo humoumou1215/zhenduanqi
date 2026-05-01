@@ -8,6 +8,8 @@ import com.zhenduanqi.entity.SysUser;
 import com.zhenduanqi.repository.SysUserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,8 @@ import java.time.LocalDateTime;
 
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final SysUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -36,20 +40,24 @@ public class AuthService {
 
     public LoginResponse login(String username, String password, String ip, HttpServletResponse response) {
         if (rateLimiter.isBlocked(ip)) {
+            log.info("登录失败: IP限流, username={}, ip={}", username, ip);
             throw new RuntimeException("登录尝试过于频繁，请稍后再试");
         }
 
         SysUser user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
                     rateLimiter.recordFailure(ip);
+                    log.info("登录失败: 用户不存在, username={}, ip={}", username, ip);
                     return new RuntimeException("用户名或密码错误");
                 });
 
         if (!"ACTIVE".equals(user.getStatus())) {
+            log.info("登录失败: 账户已禁用, username={}", username);
             throw new RuntimeException("账户已被禁用");
         }
 
         if (user.getLockUntil() != null && LocalDateTime.now().isBefore(user.getLockUntil())) {
+            log.info("登录失败: 账户已锁定, username={}, lockUntil={}", username, user.getLockUntil());
             throw new RuntimeException("账户已被锁定，请在 " + user.getLockUntil() + " 后重试");
         }
 
@@ -59,6 +67,9 @@ public class AuthService {
             if (user.getFailCount() >= 5) {
                 user.setLockUntil(LocalDateTime.now().plusMinutes(15));
                 user.setFailCount(0);
+                log.warn("账户锁定: username={}, ip={}", username, ip);
+            } else {
+                log.info("登录失败: 密码错误, username={}, ip={}, failCount={}", username, ip, user.getFailCount());
             }
             userRepository.save(user);
             throw new RuntimeException("用户名或密码错误");
@@ -76,6 +87,7 @@ public class AuthService {
         cookie.setMaxAge(7200);
         response.addCookie(cookie);
 
+        log.info("登录成功: username={}, ip={}", username, ip);
         return new LoginResponse(username, getUserRole(username), user.getRealName());
     }
 
@@ -88,6 +100,7 @@ public class AuthService {
         cookie.setPath("/api");
         cookie.setMaxAge(0);
         response.addCookie(cookie);
+        log.info("登出成功");
     }
 
     public String validateToken(String token) {

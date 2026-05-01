@@ -6,6 +6,8 @@ import com.zhenduanqi.entity.SysRole;
 import com.zhenduanqi.entity.SysUser;
 import com.zhenduanqi.repository.SysRoleRepository;
 import com.zhenduanqi.repository.SysUserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final SysUserRepository userRepository;
     private final SysRoleRepository roleRepository;
@@ -55,6 +59,7 @@ public class UserService {
         }
 
         SysUser saved = userRepository.save(user);
+        log.info("用户创建: username={}", saved.getUsername());
         return toResponse(saved);
     }
 
@@ -70,7 +75,9 @@ public class UserService {
                     .collect(Collectors.toSet());
             user.setRoles(roles);
         }
-        return toResponse(userRepository.save(user));
+        SysUser saved = userRepository.save(user);
+        log.info("用户更新: id={}, username={}", id, user.getUsername());
+        return toResponse(saved);
     }
 
     public void resetPassword(Long id, String newPassword) {
@@ -81,6 +88,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+        log.info("密码重置: id={}, username={}", id, user.getUsername());
     }
 
     private UserResponse toResponse(SysUser user) {

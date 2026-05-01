@@ -3,6 +3,8 @@ package com.zhenduanqi.service;
 import com.zhenduanqi.dto.ArthasServerDTO;
 import com.zhenduanqi.entity.ArthasServerEntity;
 import com.zhenduanqi.repository.ArthasServerRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,6 +13,8 @@ import java.util.Optional;
 
 @Service
 public class ArthasServerService {
+
+    private static final Logger log = LoggerFactory.getLogger(ArthasServerService.class);
 
     private final ArthasServerRepository repository;
 
@@ -38,6 +42,7 @@ public class ArthasServerService {
         entity.setCreatedAt(now);
         entity.setUpdatedAt(now);
         ArthasServerEntity saved = repository.save(entity);
+        log.info("服务器创建: id={}, name={}", saved.getId(), saved.getName());
         return ArthasServerDTO.fromEntity(saved);
     }
 
@@ -52,6 +57,7 @@ public class ArthasServerService {
         }
         existing.setUpdatedAt(LocalDateTime.now());
         ArthasServerEntity saved = repository.save(existing);
+        log.info("服务器更新: id={}, name={}", saved.getId(), saved.getName());
         return ArthasServerDTO.fromEntity(saved);
     }
 
@@ -60,5 +66,6 @@ public class ArthasServerService {
             throw new RuntimeException("服务器不存在: " + id);
         }
         repository.deleteById(id);
+        log.info("服务器删除: id={}", id);
     }
 }
