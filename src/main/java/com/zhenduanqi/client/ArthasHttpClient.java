@@ -1,6 +1,9 @@
 package com.zhenduanqi.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zhenduanqi.model.ArthasApiResponse;
 import com.zhenduanqi.model.ArthasResponse;
+import com.zhenduanqi.model.ArthasResult;
 import com.zhenduanqi.model.ServerInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,19 +14,26 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class ArthasHttpClient {
 
     private static final Logger log = LoggerFactory.getLogger(ArthasHttpClient.class);
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final HttpClient httpClient;
 
     public ArthasHttpClient() {
-        this.httpClient = HttpClient.newBuilder()
+        this(HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
-                .build();
+                .build());
+    }
+
+    public ArthasHttpClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
     public ArthasResponse executeCommand(ServerInfo server, String command) {
@@ -44,25 +54,21 @@ public class ArthasHttpClient {
             log.info("Executing command on {}: {}", server.getName(), command);
             HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            String body = httpResponse.body();
+            response.setRawResponse(body);
+            log.debug("Arthas raw response: {}", body);
+
             if (httpResponse.statusCode() != 200) {
                 response.setState("failed");
-                String errorBody = httpResponse.body();
-                String errorMessage = errorBody != null && !errorBody.isEmpty() 
-                        ? errorBody 
+                String errorMessage = body != null && !body.isEmpty() 
+                        ? body 
                         : getHttpErrorMessage(httpResponse.statusCode());
                 response.setError("HTTP " + httpResponse.statusCode() + ": " + errorMessage);
-                response.setRawResponse(errorBody != null && !errorBody.isEmpty() 
-                        ? errorBody 
-                        : "HTTP " + httpResponse.statusCode() + ": " + errorMessage);
-                log.error("Arthas API returned status {}: {}", httpResponse.statusCode(), errorBody);
+                log.error("Arthas API returned status {}: {}", httpResponse.statusCode(), body);
                 return response;
             }
 
-            String body = httpResponse.body();
-            log.debug("Arthas raw response: {}", body);
-
-            parseStreamingResponse(body, response);
-            response.setRawResponse(body);
+            parseResponseWithJackson(body, response);
 
         } catch (java.net.ConnectException e) {
             response.setState("failed");
@@ -87,145 +93,42 @@ public class ArthasHttpClient {
         return response;
     }
 
-    private void parseStreamingResponse(String body, ArthasResponse response) {
-        String[] lines = body.split("\n");
-        StringBuilder resultBuilder = new StringBuilder();
-
-        for (String line : lines) {
-            line = line.trim();
-            if (line.isEmpty()) {
-                continue;
-            }
-
-            try {
-                if (line.contains("\"type\":\"status\"")) {
-                    String status = extractJsonValue(line, "content");
-                    if (status != null) {
-                        response.setState(status);
-                    }
-                } else if (line.contains("\"type\":\"result\"")) {
-                    String content = extractResultContent(line);
-                    if (content != null && !content.isEmpty()) {
-                        if (resultBuilder.length() > 0) {
-                            resultBuilder.append("\n");
-                        }
-                        resultBuilder.append(content);
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("Failed to parse response line: {}", line, e);
-            }
-        }
-
-        if (resultBuilder.length() > 0) {
-            response.getResults().add(resultBuilder.toString());
-        }
-
-        if (response.getState() == null) {
-            if (body.contains("\"success\":true") || body.contains("succeeded")) {
-                response.setState("succeeded");
-            } else if (body.contains("\"success\":false") || body.contains("failed")) {
-                response.setState("failed");
-                response.setError(body);
-            } else {
-                response.setState("succeeded");
-                response.getResults().add(body);
-            }
-        }
-    }
-
-    private String extractResultContent(String jsonLine) {
+    private void parseResponseWithJackson(String body, ArthasResponse response) {
         try {
-            int contentStart = jsonLine.indexOf("\"content\":");
-            if (contentStart < 0) {
-                return null;
-            }
-
-            String afterContent = jsonLine.substring(contentStart + "\"content\":".length());
-            String trimmed = afterContent.trim();
-
-            if (trimmed.startsWith("\"")) {
-                if (trimmed.length() > 1) {
-                    int endQuote = trimmed.indexOf("\"", 1);
-                    if (endQuote > 0) {
-                        return trimmed.substring(1, endQuote);
-                    }
-                    return trimmed.substring(1);
-                }
-                return "";
-            }
-
-            if (trimmed.startsWith("{")) {
-                int braceDepth = 0;
-                int contentObjEnd = -1;
-                for (int i = 0; i < trimmed.length(); i++) {
-                    char c = trimmed.charAt(i);
-                    if (c == '{') {
-                        braceDepth++;
-                    } else if (c == '}') {
-                        braceDepth--;
-                        if (braceDepth == 0) {
-                            contentObjEnd = i + 1;
-                            break;
-                        }
+            ArthasApiResponse apiResponse = objectMapper.readValue(body, ArthasApiResponse.class);
+            
+            response.setState(apiResponse.getState());
+            
+            if (apiResponse.getBody() != null && apiResponse.getBody().getResults() != null) {
+                response.setStructuredResults(apiResponse.getBody().getResults());
+                
+                List<String> textResults = new ArrayList<>();
+                for (ArthasResult result : apiResponse.getBody().getResults()) {
+                    try {
+                        textResults.add(objectMapper.writeValueAsString(result));
+                    } catch (Exception e) {
+                        log.warn("Failed to serialize result to string", e);
                     }
                 }
-                if (contentObjEnd > 0) {
-                    String contentObj = trimmed.substring(0, contentObjEnd);
-                    String resultValue = extractJsonValue(contentObj, "result");
-                    if (resultValue != null) {
-                        return resultValue;
-                    }
-                    return contentObj;
-                }
+                response.setResults(textResults);
             }
-
-            return trimmed;
+            
         } catch (Exception e) {
-            log.warn("Failed to extract result content from: {}", jsonLine, e);
-            return null;
+            log.warn("Failed to parse structured JSON, falling back to raw text", e);
+            fallbackToRawText(body, response);
         }
     }
 
-    private String extractJsonValue(String json, String key) {
-        String searchKey = "\"" + key + "\":";
-        int keyStart = json.indexOf(searchKey);
-        if (keyStart < 0) {
-            return null;
-        }
-
-        int valueStart = keyStart + searchKey.length();
-        String afterKey = json.substring(valueStart).trim();
-
-        if (afterKey.startsWith("\"")) {
-            int endQuote = afterKey.indexOf("\"", 1);
-            if (endQuote > 0) {
-                return afterKey.substring(1, endQuote);
-            }
-            return afterKey.substring(1);
-        }
-
-        if (afterKey.startsWith("true")) {
-            return "true";
-        }
-        if (afterKey.startsWith("false")) {
-            return "false";
-        }
-
-        int commaIndex = afterKey.indexOf(",");
-        int braceIndex = afterKey.indexOf("}");
-        int endIndex;
-        if (commaIndex > 0 && braceIndex > 0) {
-            endIndex = Math.min(commaIndex, braceIndex);
-        } else if (commaIndex > 0) {
-            endIndex = commaIndex;
-        } else if (braceIndex > 0) {
-            endIndex = braceIndex;
+    private void fallbackToRawText(String body, ArthasResponse response) {
+        if (body.contains("\"success\":true") || body.contains("succeeded") || body.contains("SUCCEEDED")) {
+            response.setState("succeeded");
+        } else if (body.contains("\"success\":false") || body.contains("failed") || body.contains("FAILED")) {
+            response.setState("failed");
+            response.setError(body);
         } else {
-            endIndex = afterKey.length();
+            response.setState("succeeded");
         }
-
-        return afterKey.substring(0, endIndex).trim();
+        response.getResults().add(body);
     }
 
     private String escapeJson(String input) {

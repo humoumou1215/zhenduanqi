@@ -7,6 +7,7 @@ public class ArthasResponse {
 
     private String state;
     private List<String> results = new ArrayList<>();
+    private List<ArthasResult> structuredResults = new ArrayList<>();
     private String error;
     private String rawResponse;
 
@@ -26,6 +27,14 @@ public class ArthasResponse {
         this.results = results;
     }
 
+    public List<ArthasResult> getStructuredResults() {
+        return structuredResults;
+    }
+
+    public void setStructuredResults(List<ArthasResult> structuredResults) {
+        this.structuredResults = structuredResults;
+    }
+
     public String getError() {
         return error;
     }
@@ -43,6 +52,6 @@ public class ArthasResponse {
     }
 
     public boolean isSuccess() {
-        return "succeeded".equals(state);
+        return "succeeded".equalsIgnoreCase(state) || "SUCCEEDED".equals(state);
     }
 }
