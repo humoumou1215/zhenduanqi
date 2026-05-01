@@ -21,6 +21,7 @@ spring:
     init:
       mode: always
       continue-on-error: true
+      encoding: UTF-8
 
 arthas:
   auth:
