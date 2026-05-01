@@ -600,6 +600,16 @@ CREATE TABLE arthas_session (
 - HTTP Basic Auth：优先使用此方式，符合 Arthas 官方规范
 - Token 认证：保留向后兼容，仅在未提供用户名密码时使用
 
+**认证优先级：**
+1. 如果提供了 username 和 password，使用 HTTP Basic Auth（`Authorization: Basic base64(username:password)`）
+2. 否则，如果提供了 token，使用 Bearer Token 认证（`Authorization: Bearer token`）
+3. 都未提供则不添加认证头
+
+**实现细节：**
+- `ArthasHttpClient.addAuthorizationHeader()` 方法负责根据 ServerInfo 中的认证信息添加正确的 Authorization 头
+- `ArthasServerService.findServerInfoById()` 方法统一处理认证信息的解密和组装
+- 前端服务器管理界面区分显示 Basic Auth 字段（用户名、密码）和旧版 Token 字段（标记为已废弃）
+
 **加密方案（适用于密码和 Token）：**
 - 算法：AES/GCM/NoPadding（认证加密，防篡改）
 - IV：每次加密随机生成 12 字节 IV，前置于密文
