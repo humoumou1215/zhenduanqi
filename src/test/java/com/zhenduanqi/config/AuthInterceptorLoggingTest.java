@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class AuthInterceptorLoggingTest {
@@ -49,7 +49,7 @@ class AuthInterceptorLoggingTest {
         SysUser adminUser = new SysUser();
         adminUser.setUsername("admin");
         adminUser.setRoles(Set.of(adminRole));
-        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+        lenient().when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
     }
 
     private ListAppender<ILoggingEvent> createListAppender() {
