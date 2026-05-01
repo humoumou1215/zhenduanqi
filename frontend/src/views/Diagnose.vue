@@ -2,10 +2,10 @@
   <div>
     <h3>执行诊断命令</h3>
 
-    <el-card style="margin-bottom: 16px;">
+    <el-card style="margin-bottom: 16px">
       <el-form :model="form" label-width="100px">
         <el-form-item label="目标服务器">
-          <el-select v-model="form.serverId" placeholder="请选择服务器" style="width: 300px;">
+          <el-select v-model="form.serverId" placeholder="请选择服务器" style="width: 300px">
             <el-option
               v-for="s in store.list"
               :key="s.id"
@@ -25,7 +25,12 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" @click="handleExecute" :loading="executing" :disabled="!form.serverId || !form.command.trim()">
+          <el-button
+            type="primary"
+            @click="handleExecute"
+            :loading="executing"
+            :disabled="!form.serverId || !form.command.trim()"
+          >
             执行
           </el-button>
           <el-button @click="clearResult">清空结果</el-button>
@@ -33,13 +38,23 @@
       </el-form>
     </el-card>
 
-    <el-card v-if="result" :style="{ borderLeft: isSuccess ? '4px solid #67c23a' : '4px solid #f56c6c' }">
+    <el-card
+      v-if="result"
+      :style="{ borderLeft: isSuccess ? '4px solid #67c23a' : '4px solid #f56c6c' }"
+    >
       <template #header>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center">
           <span>
             执行结果
-            <el-tag v-if="result.state === 'succeeded'" type="success" size="small" style="margin-left: 8px;">成功</el-tag>
-            <el-tag v-else type="danger" size="small" style="margin-left: 8px;">失败</el-tag>
+            <el-tag
+              v-if="result.state === 'succeeded'"
+              type="success"
+              size="small"
+              style="margin-left: 8px"
+            >
+              成功
+            </el-tag>
+            <el-tag v-else type="danger" size="small" style="margin-left: 8px">失败</el-tag>
           </span>
           <el-button size="small" @click="expandRaw = !expandRaw">
             {{ expandRaw ? '收起原始响应' : '查看原始响应' }}
@@ -47,15 +62,37 @@
         </div>
       </template>
 
-      <div v-if="result.error" style="color: #f56c6c; margin-bottom: 12px; white-space: pre-wrap;">{{ result.error }}</div>
-
-      <div v-for="(r, i) in result.results" :key="i">
-        <pre style="background: #f5f7fa; padding: 12px; border-radius: 4px; font-size: 13px; line-height: 1.6; overflow-x: auto;">{{ r }}</pre>
+      <div v-if="result.error" style="color: #f56c6c; margin-bottom: 12px; white-space: pre-wrap">
+        {{ result.error }}
       </div>
 
-      <el-collapse v-if="result.rawResponse" style="margin-top: 12px;">
+      <div v-for="(r, i) in result.results" :key="i">
+        <pre
+          style="
+            background: #f5f7fa;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+          "
+          >{{ r }}</pre
+        >
+      </div>
+
+      <el-collapse v-if="result.rawResponse" style="margin-top: 12px">
         <el-collapse-item title="原始响应" v-show="expandRaw">
-          <pre style="background: #f5f7fa; padding: 12px; border-radius: 4px; font-size: 12px; max-height: 300px; overflow: auto;">{{ result.rawResponse }}</pre>
+          <pre
+            style="
+              background: #f5f7fa;
+              padding: 12px;
+              border-radius: 4px;
+              font-size: 12px;
+              max-height: 300px;
+              overflow: auto;
+            "
+            >{{ result.rawResponse }}</pre
+          >
         </el-collapse-item>
       </el-collapse>
     </el-card>
@@ -63,42 +100,42 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useServerStore } from '../stores/servers'
-import { executeCommand } from '../api'
+import { ref, computed, onMounted } from 'vue';
+import { useServerStore } from '../stores/servers';
+import { executeCommand } from '../api';
 
-const store = useServerStore()
-const result = ref(null)
-const executing = ref(false)
-const expandRaw = ref(false)
-const form = ref({ serverId: '', command: '' })
+const store = useServerStore();
+const result = ref(null);
+const executing = ref(false);
+const expandRaw = ref(false);
+const form = ref({ serverId: '', command: '' });
 
-const isSuccess = computed(() => result.value?.state === 'succeeded')
+const isSuccess = computed(() => result.value?.state === 'succeeded');
 
 onMounted(() => {
-  store.fetchServers()
-})
+  store.fetchServers();
+});
 
 async function handleExecute() {
-  executing.value = true
-  expandRaw.value = false
+  executing.value = true;
+  expandRaw.value = false;
   try {
-    const res = await executeCommand(form.value.serverId, form.value.command)
-    result.value = res.data
+    const res = await executeCommand(form.value.serverId, form.value.command);
+    result.value = res.data;
   } catch (e) {
     result.value = {
       state: 'failed',
       error: e.response?.data?.error || e.message || '请求失败',
       results: [],
-      rawResponse: null
-    }
+      rawResponse: null,
+    };
   } finally {
-    executing.value = false
+    executing.value = false;
   }
 }
 
 function clearResult() {
-  result.value = null
-  expandRaw.value = false
+  result.value = null;
+  expandRaw.value = false;
 }
 </script>

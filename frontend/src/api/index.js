@@ -1,103 +1,103 @@
-import axios from 'axios'
-import { ElMessage } from 'element-plus'
+import axios from 'axios';
+import { ElMessage } from 'element-plus';
 
 const api = axios.create({
   baseURL: '/api',
   timeout: 60000,
-  withCredentials: true
-})
+  withCredentials: true,
+});
 
 api.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     if (error.response?.status === 401) {
-      const userStore = null
+      const userStore = null;
       import('../stores/user').then(({ useUserStore }) => {
-        const store = useUserStore()
-        store.isLoggedIn = false
-      })
-      window.location.hash = '#/login'
+        const store = useUserStore();
+        store.isLoggedIn = false;
+      });
+      window.location.hash = '#/login';
     }
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
 export function loginApi(username, password) {
-  return api.post('/auth/login', { username, password })
+  return api.post('/auth/login', { username, password });
 }
 
 export function logoutApi() {
-  return api.post('/auth/logout')
+  return api.post('/auth/logout');
 }
 
 export function fetchMe() {
-  return api.get('/auth/me')
+  return api.get('/auth/me');
 }
 
 export function getServers() {
-  return api.get('/servers')
+  return api.get('/servers');
 }
 
 export function getServerById(id) {
-  return api.get(`/servers/${id}`)
+  return api.get(`/servers/${id}`);
 }
 
 export function createServer(data) {
-  return api.post('/servers', data)
+  return api.post('/servers', data);
 }
 
 export function updateServer(id, data) {
-  return api.put(`/servers/${id}`, data)
+  return api.put(`/servers/${id}`, data);
 }
 
 export function deleteServer(id) {
-  return api.delete(`/servers/${id}`)
+  return api.delete(`/servers/${id}`);
 }
 
 export function getServerStatus(id) {
-  return api.get(`/servers/${id}/status`)
+  return api.get(`/servers/${id}/status`);
 }
 
 export function executeCommand(serverId, command) {
-  return api.post('/execute', { serverId, command })
+  return api.post('/execute', { serverId, command });
 }
 
 export function getUsers() {
-  return api.get('/users')
+  return api.get('/users');
 }
 
 export function createUser(data) {
-  return api.post('/users', data)
+  return api.post('/users', data);
 }
 
 export function updateUser(id, data) {
-  return api.put(`/users/${id}`, data)
+  return api.put(`/users/${id}`, data);
 }
 
 export function resetPassword(id, newPassword) {
-  return api.put(`/users/${id}/reset-password`, { newPassword })
+  return api.put(`/users/${id}/reset-password`, { newPassword });
 }
 
 export function getRoles() {
-  return api.get('/roles')
+  return api.get('/roles');
 }
 
 export function getAuditLogs(params) {
-  return api.get('/audit-logs', { params })
+  return api.get('/audit-logs', { params });
 }
 
 export function getGuardRules() {
-  return api.get('/command-guard/rules')
+  return api.get('/command-guard/rules');
 }
 
 export function createGuardRule(data) {
-  return api.post('/command-guard/rules', data)
+  return api.post('/command-guard/rules', data);
 }
 
 export function updateGuardRule(id, data) {
-  return api.put(`/command-guard/rules/${id}`, data)
+  return api.put(`/command-guard/rules/${id}`, data);
 }
 
 export function deleteGuardRule(id) {
-  return api.delete(`/command-guard/rules/${id}`)
+  return api.delete(`/command-guard/rules/${id}`);
 }

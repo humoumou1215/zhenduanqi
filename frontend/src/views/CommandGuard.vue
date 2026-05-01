@@ -1,6 +1,13 @@
 <template>
   <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      "
+    >
       <h3>高危命令规则管理</h3>
       <el-button type="primary" @click="openDialog()">新增规则</el-button>
     </div>
@@ -8,7 +15,9 @@
     <el-table :data="rules" v-loading="loading" stripe style="width: 100%">
       <el-table-column label="类型" width="100">
         <template #default="{ row }">
-          <el-tag :type="row.ruleType === 'BLACKLIST' ? 'danger' : 'success'" size="small">{{ row.ruleType === 'BLACKLIST' ? '黑名单' : '白名单' }}</el-tag>
+          <el-tag :type="row.ruleType === 'BLACKLIST' ? 'danger' : 'success'" size="small">
+            {{ row.ruleType === 'BLACKLIST' ? '黑名单' : '白名单' }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="pattern" label="正则表达式" min-width="250" />
@@ -50,62 +59,85 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { getGuardRules, createGuardRule, updateGuardRule, deleteGuardRule } from '../api'
+import { ref, onMounted } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { getGuardRules, createGuardRule, updateGuardRule, deleteGuardRule } from '../api';
 
-const rules = ref([])
-const loading = ref(false)
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const saving = ref(false)
-const editingId = ref(null)
-const form = ref({ ruleType: 'BLACKLIST', pattern: '', description: '' })
+const rules = ref([]);
+const loading = ref(false);
+const dialogVisible = ref(false);
+const isEdit = ref(false);
+const saving = ref(false);
+const editingId = ref(null);
+const form = ref({ ruleType: 'BLACKLIST', pattern: '', description: '' });
 
-onMounted(() => fetchRules())
+onMounted(() => fetchRules());
 
 async function fetchRules() {
-  loading.value = true
-  try { const res = await getGuardRules(); rules.value = res.data } finally { loading.value = false }
+  loading.value = true;
+  try {
+    const res = await getGuardRules();
+    rules.value = res.data;
+  } finally {
+    loading.value = false;
+  }
 }
 
 function openDialog(row) {
   if (row) {
-    isEdit.value = true; editingId.value = row.id
-    form.value = { ruleType: row.ruleType, pattern: row.pattern, description: row.description || '' }
+    isEdit.value = true;
+    editingId.value = row.id;
+    form.value = {
+      ruleType: row.ruleType,
+      pattern: row.pattern,
+      description: row.description || '',
+    };
   } else {
-    isEdit.value = false; editingId.value = null
-    form.value = { ruleType: 'BLACKLIST', pattern: '', description: '' }
+    isEdit.value = false;
+    editingId.value = null;
+    form.value = { ruleType: 'BLACKLIST', pattern: '', description: '' };
   }
-  dialogVisible.value = true
+  dialogVisible.value = true;
 }
 
 async function handleSave() {
-  saving.value = true
+  saving.value = true;
   try {
     if (isEdit.value) {
-      await updateGuardRule(editingId.value, form.value)
-      ElMessage.success('更新成功')
+      await updateGuardRule(editingId.value, form.value);
+      ElMessage.success('更新成功');
     } else {
-      await createGuardRule(form.value)
-      ElMessage.success('添加成功')
+      await createGuardRule(form.value);
+      ElMessage.success('添加成功');
     }
-    dialogVisible.value = false; await fetchRules()
-  } catch (e) { ElMessage.error(e.response?.data?.error || '操作失败') } finally { saving.value = false }
+    dialogVisible.value = false;
+    await fetchRules();
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || '操作失败');
+  } finally {
+    saving.value = false;
+  }
 }
 
 async function handleDelete(id) {
   try {
-    await ElMessageBox.confirm('确定要删除该规则吗？', '确认')
-    await deleteGuardRule(id)
-    ElMessage.success('删除成功')
-    await fetchRules()
+    await ElMessageBox.confirm('确定要删除该规则吗？', '确认');
+    await deleteGuardRule(id);
+    ElMessage.success('删除成功');
+    await fetchRules();
   } catch {}
 }
 
 async function toggleRule(row) {
   try {
-    await updateGuardRule(row.id, { ruleType: row.ruleType, pattern: row.pattern, description: row.description, enabled: row.enabled })
-  } catch { row.enabled = !row.enabled }
+    await updateGuardRule(row.id, {
+      ruleType: row.ruleType,
+      pattern: row.pattern,
+      description: row.description,
+      enabled: row.enabled,
+    });
+  } catch {
+    row.enabled = !row.enabled;
+  }
 }
 </script>

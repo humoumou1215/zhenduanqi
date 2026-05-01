@@ -1,6 +1,13 @@
 <template>
   <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      "
+    >
       <h3>服务器管理</h3>
       <el-button type="primary" @click="openDialog()">添加服务器</el-button>
     </div>
@@ -40,7 +47,12 @@
           <el-input-number v-model="form.httpPort" :min="1" :max="65535" />
         </el-form-item>
         <el-form-item label="Token">
-          <el-input v-model="form.token" type="password" placeholder="Arthas HTTP API Token" show-password />
+          <el-input
+            v-model="form.token"
+            type="password"
+            placeholder="Arthas HTTP API Token"
+            show-password
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -52,79 +64,79 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { useServerStore } from '../stores/servers'
-import { createServer, updateServer, deleteServer, getServerStatus } from '../api'
+import { ref, onMounted, reactive } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { useServerStore } from '../stores/servers';
+import { createServer, updateServer, deleteServer, getServerStatus } from '../api';
 
-const store = useServerStore()
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const saving = ref(false)
-const editingId = ref('')
-const statusMap = reactive({})
+const store = useServerStore();
+const dialogVisible = ref(false);
+const isEdit = ref(false);
+const saving = ref(false);
+const editingId = ref('');
+const statusMap = reactive({});
 
 const defaultForm = () => ({
   id: '',
   name: '',
   host: '',
   httpPort: 8563,
-  token: ''
-})
-const form = ref(defaultForm())
+  token: '',
+});
+const form = ref(defaultForm());
 
 onMounted(async () => {
-  await store.fetchServers()
-  store.list.forEach(s => checkStatus(s.id))
-})
+  await store.fetchServers();
+  store.list.forEach((s) => checkStatus(s.id));
+});
 
 async function checkStatus(id) {
   try {
-    const res = await getServerStatus(id)
-    statusMap[id] = res.data
+    const res = await getServerStatus(id);
+    statusMap[id] = res.data;
   } catch {
-    statusMap[id] = { connected: false }
+    statusMap[id] = { connected: false };
   }
 }
 
 function openDialog(row) {
   if (row) {
-    isEdit.value = true
-    editingId.value = row.id
-    form.value = { id: row.id, name: row.name, host: row.host, httpPort: row.httpPort, token: '' }
+    isEdit.value = true;
+    editingId.value = row.id;
+    form.value = { id: row.id, name: row.name, host: row.host, httpPort: row.httpPort, token: '' };
   } else {
-    isEdit.value = false
-    editingId.value = ''
-    form.value = defaultForm()
+    isEdit.value = false;
+    editingId.value = '';
+    form.value = defaultForm();
   }
-  dialogVisible.value = true
+  dialogVisible.value = true;
 }
 
 async function handleSave() {
-  saving.value = true
+  saving.value = true;
   try {
     if (isEdit.value) {
-      await updateServer(editingId.value, form.value)
-      ElMessage.success('更新成功')
+      await updateServer(editingId.value, form.value);
+      ElMessage.success('更新成功');
     } else {
-      await createServer(form.value)
-      ElMessage.success('创建成功')
+      await createServer(form.value);
+      ElMessage.success('创建成功');
     }
-    dialogVisible.value = false
-    await store.fetchServers()
+    dialogVisible.value = false;
+    await store.fetchServers();
   } catch (e) {
-    ElMessage.error(e.response?.data?.message || '操作失败')
+    ElMessage.error(e.response?.data?.message || '操作失败');
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
 async function handleDelete(id) {
   try {
-    await ElMessageBox.confirm('确定要删除该服务器吗？', '确认')
-    await deleteServer(id)
-    ElMessage.success('删除成功')
-    await store.fetchServers()
+    await ElMessageBox.confirm('确定要删除该服务器吗？', '确认');
+    await deleteServer(id);
+    ElMessage.success('删除成功');
+    await store.fetchServers();
   } catch {
     // cancelled
   }
