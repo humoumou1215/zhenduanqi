@@ -51,7 +51,9 @@ public class ArthasHttpClient {
                         ? errorBody 
                         : getHttpErrorMessage(httpResponse.statusCode());
                 response.setError("HTTP " + httpResponse.statusCode() + ": " + errorMessage);
-                response.setRawResponse(errorBody);
+                response.setRawResponse(errorBody != null && !errorBody.isEmpty() 
+                        ? errorBody 
+                        : "HTTP " + httpResponse.statusCode() + ": " + errorMessage);
                 log.error("Arthas API returned status {}: {}", httpResponse.statusCode(), errorBody);
                 return response;
             }
@@ -65,16 +67,20 @@ public class ArthasHttpClient {
         } catch (java.net.ConnectException e) {
             response.setState("failed");
             response.setError("无法连接到服务器: " + e.getMessage());
+            response.setRawResponse("连接错误: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             log.error("Connection failed: {}", e.getMessage());
         } catch (java.net.http.HttpConnectTimeoutException e) {
             response.setState("failed");
             response.setError("连接超时: " + e.getMessage());
+            response.setRawResponse("连接超时: " + e.getMessage());
         } catch (java.net.http.HttpTimeoutException e) {
             response.setState("failed");
             response.setError("请求超时: " + e.getMessage());
+            response.setRawResponse("请求超时: " + e.getMessage());
         } catch (Exception e) {
             response.setState("failed");
             response.setError("请求异常: " + e.getMessage());
+            response.setRawResponse("请求异常: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             log.error("Arthas API request failed", e);
         }
 
