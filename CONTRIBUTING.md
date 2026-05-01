@@ -62,6 +62,50 @@ feat(command-guard): 集成CommandGuard到ArthasExecuteService
 - ✅ 添加必要的注释（复杂逻辑）
 - ✅ 保持方法简洁（单一职责）
 
+## Pre-commit Hooks
+
+项目已配置 Git pre-commit hooks，在每次提交时自动执行代码检查。
+
+### 检查内容
+
+**Java 后端**：
+- ✅ Maven 编译检查
+- ✅ 确保代码无编译错误
+
+**Vue 前端**：
+- ✅ Prettier 格式化检查（如果已安装）
+- ⚠️ 格式不符会警告但不阻止提交
+
+### 手动格式化
+
+**前端代码格式化**：
+```bash
+cd frontend
+npm run format        # 格式化所有代码
+npm run format:check  # 检查格式
+```
+
+**后端代码格式化**：
+- 使用 IDE 的代码格式化功能
+- 遵循 Java 编码规范
+
+### 跳过 Pre-commit Hooks
+
+如果需要临时跳过检查（不推荐）：
+```bash
+git commit --no-verify -m "your message"
+```
+
+### 安装前端依赖
+
+首次克隆项目后，需要安装前端依赖：
+```bash
+cd frontend
+npm install
+```
+
+这将安装 Prettier 等开发工具。
+
 ## 环境要求
 
 - **Java**: 17
