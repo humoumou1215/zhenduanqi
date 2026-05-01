@@ -591,6 +591,51 @@ CREATE TABLE arthas_session (
 - 读取解密：`ArthasServerService.findDecryptedTokenById()` 方法解密后供执行引擎使用
 - API 返回：`ArthasServerDTO.fromEntity()` 不返回 Token 字段，前端无法获取
 
+### 部署策略 (Render 免费层)
+
+**目标：** PR 合并到 main 后自动部署到 Render 免费层，供调试使用。
+
+**部署平台：** Render (https://render.com)
+
+| 配置项 | 方案 |
+|--------|------|
+| 部署方式 | Render 原生 GitHub 集成，监听 main 分支变更自动部署 |
+| 配置文件 | `render.yaml`（Render Blueprint，版本控制） |
+| 运行计划 | Free（750 小时/月，15 分钟无流量后休眠，冷启动约 30 秒） |
+| 数据库 | H2 内存模式（每次部署/重启后数据重置为 import.sql 初始状态） |
+| Spring Profile | `render`（H2 内存模式、生产级日志、环境变量覆盖敏感配置） |
+
+**`render` Profile 配置要点：**
+
+| 配置项 | 值 | 说明 |
+|--------|-----|------|
+| `spring.datasource.url` | `jdbc:h2:mem:zhenduanqi` | 内存模式，重启后数据清空 |
+| `spring.h2.console.enabled` | `false` | 禁用 H2 控制台，避免公网暴露 |
+| `server.port` | `${PORT:8080}` | Render 通过 PORT 环境变量指定端口 |
+| `arthas.auth.jwt-secret` | `${JWT_SECRET}` | 环境变量注入，Render 自动生成随机值 |
+| `arthas.server.token-secret` | `${TOKEN_SECRET}` | 环境变量注入，Render 自动生成随机值 |
+| 日志级别 | root=WARN, com.zhenduanqi=INFO | 生产级日志，仅控制台输出 |
+
+**Render 环境变量：**
+
+| 变量名 | 来源 | 说明 |
+|--------|------|------|
+| `JWT_SECRET` | Render `generateValue: true` | 自动生成随机密钥 |
+| `TOKEN_SECRET` | Render `generateValue: true` | 自动生成随机密钥 |
+| `JWT_EXPIRATION_MS` | 固定值 `7200000` | Token 有效期 2 小时 |
+| `PORT` | Render 自动注入 | 服务监听端口 |
+
+**部署流程：**
+```
+PR 合并到 main → Render 检测到变更 → mvn package -DskipTests → java -jar target/zhenduanqi-1.0.0.jar --spring.profiles.active=render → 健康检查通过 → 上线
+```
+
+**限制与注意事项：**
+- 免费实例 15 分钟无流量后休眠，首次访问冷启动约 30 秒
+- 每次部署/重启后数据库重置（H2 内存模式）
+- 不适合生产环境使用，仅用于调试
+- 750 小时/月运行时间限制（足够 1 个实例 24/7 运行）
+
 ### 数据库全量 Schema
 
 ```sql
@@ -779,6 +824,7 @@ CREATE TABLE arthas_session (
 zhenduanqi/
 ├── pom.xml
 ├── PRD.md
+├── render.yaml                              # Render Blueprint 部署配置
 ├── frontend/                        # Vue 3 前端
 │   ├── package.json
 │   ├── vite.config.js
@@ -873,6 +919,7 @@ zhenduanqi/
     │       └── ArthasResult.java              # 单个 result 模型（type + data）
     └── resources/
         ├── application.yml
+        ├── application-render.yml             # Render 专用 Profile 配置
         ├── logback-spring.xml
         └── import.sql                         # 初始化数据（admin + 角色 + 默认规则 + 8个预置场景）
 ```

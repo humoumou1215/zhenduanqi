@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: zhenduanqi
+    runtime: java
+    plan: free
+    buildCommand: mvn package -DskipTests
+    startCommand: java -jar target/zhenduanqi-1.0.0.jar --spring.profiles.active=render
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: TOKEN_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION_MS
+        value: "7200000"

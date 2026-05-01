@@ -40,4 +40,11 @@
         <logger name="com.zhenduanqi" level="INFO"/>
     </springProfile>
 
+    <springProfile name="render">
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <logger name="com.zhenduanqi" level="INFO"/>
+    </springProfile>
+
 </configuration>
