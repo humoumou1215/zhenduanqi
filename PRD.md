@@ -1012,7 +1012,7 @@ zhenduanqi/
 | **AuthService 日志** | Logback ListAppender 捕获日志，验证级别和内容 | P0 | ✅ 已实现 |
 | **各组件日志埋点测试** | AuthInterceptor/RoleAspect/CommandGuardService/JwtUtil/ArthasServerService/UserService 日志验证 | P0 | ✅ 已实现 |
 | **SceneService** | 场景步骤编排、命令模板占位符处理 | P1 |
-| **前端渲染器** | 各 type 渲染组件的输入输出 | P1 |
+| **前端渲染器** | 各 type 渲染组件的输入输出 | P1 | ✅ 已实现 |
 | **前端 extract_rules** | JSONPath 变量提取逻辑 | P1 |
 | **ArthasSessionService** | 会话创建/关闭、L1-L4 安全机制、孤儿清理 | P2 |
 | **ArthasHttpClient 异步** | async_exec/pull_results/interrupt_job | P2 |
