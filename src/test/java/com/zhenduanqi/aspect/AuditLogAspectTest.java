@@ -4,7 +4,9 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.zhenduanqi.dto.ExecuteRequest;
 import com.zhenduanqi.dto.ExecuteResponse;
+import com.zhenduanqi.dto.LoginRequest;
 import com.zhenduanqi.entity.SysAuditLog;
 import com.zhenduanqi.repository.AuditLogRepository;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -94,6 +96,55 @@ class AuditLogAspectTest {
 
     @com.zhenduanqi.annotation.AuditLog(action = "EXECUTE_COMMAND")
     public String dummyDiagnoseMethod() { return ""; }
+
+    @com.zhenduanqi.annotation.AuditLog(action = "执行诊断命令")
+    public void executeMethodWithDTO(ExecuteRequest request) {}
+
+    @com.zhenduanqi.annotation.AuditLog(action = "LOGIN")
+    public void loginMethodWithDTO(LoginRequest request) {}
+
+    @Test
+    void executeRequest_extractsCommandAndServerId() throws Throwable {
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(
+                AuditLogAspectTest.class.getDeclaredMethod("executeMethodWithDTO", ExecuteRequest.class));
+        ExecuteRequest req = new ExecuteRequest();
+        req.setServerId("server-123");
+        req.setCommand("thread -n 5");
+        when(joinPoint.getArgs()).thenReturn(new Object[]{req});
+        when(joinPoint.proceed()).thenReturn("success");
+
+        aspect.logAround(joinPoint);
+
+        ArgumentCaptor<SysAuditLog> captor = ArgumentCaptor.forClass(SysAuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+        SysAuditLog log = captor.getValue();
+        assertThat(log.getCommand()).isEqualTo("thread -n 5");
+        assertThat(log.getTarget()).isEqualTo("server-123");
+    }
+
+    @Test
+    void loginRequest_masksPasswordInParams() throws Throwable {
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(
+                AuditLogAspectTest.class.getDeclaredMethod("loginMethodWithDTO", LoginRequest.class));
+        LoginRequest req = new LoginRequest();
+        req.setUsername("zhangsan");
+        req.setPassword("mysecret123");
+        when(joinPoint.getArgs()).thenReturn(new Object[]{req});
+        when(joinPoint.proceed()).thenReturn("success");
+
+        aspect.logAround(joinPoint);
+
+        ArgumentCaptor<SysAuditLog> captor = ArgumentCaptor.forClass(SysAuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+        SysAuditLog log = captor.getValue();
+        assertThat(log.getParams()).contains("password");
+        assertThat(log.getParams()).contains("******");
+        assertThat(log.getParams()).doesNotContain("mysecret123");
+        assertThat(log.getParams()).contains("username");
+        assertThat(log.getParams()).contains("zhangsan");
+    }
 
     @Test
     void executeResponse_succeeded_recordsSuccess() throws Throwable {

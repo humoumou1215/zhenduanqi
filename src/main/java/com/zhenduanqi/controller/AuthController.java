@@ -1,5 +1,6 @@
 package com.zhenduanqi.controller;
 
+import com.zhenduanqi.annotation.AuditLog;
 import com.zhenduanqi.dto.LoginRequest;
 import com.zhenduanqi.dto.LoginResponse;
 import com.zhenduanqi.service.AuthService;
@@ -22,6 +23,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @AuditLog(action = "LOGIN")
     public ResponseEntity<?> login(@RequestBody LoginRequest request,
                                    HttpServletRequest servletRequest,
                                    HttpServletResponse servletResponse) {
@@ -36,6 +38,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @AuditLog(action = "LOGOUT")
     public ResponseEntity<Void> logout(HttpServletRequest request,
                                        HttpServletResponse response) {
         String token = extractTokenFromCookie(request);
