@@ -99,4 +99,49 @@ class ArthasExecuteServiceTest {
         assertThat(response.getState()).isEqualTo("success");
         verify(arthasClient).executeCommand(any(), eq("jad --source-only com.example.Class"));
     }
+
+    @Test
+    void executeSystemCommand_bypassesGuardAndExecutes() {
+        ArthasServerEntity server = createTestServer();
+
+        when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
+
+        ArthasResponse arthasResponse = new ArthasResponse();
+        arthasResponse.setState("succeeded");
+        when(arthasClient.executeCommand(any(), eq("reset"))).thenReturn(arthasResponse);
+
+        var response = executeService.executeSystemCommand("server1", "reset");
+
+        assertThat(response.getState()).isEqualTo("succeeded");
+        verify(commandGuardService, never()).check(any());
+        verify(arthasClient).executeCommand(any(), eq("reset"));
+    }
+
+    @Test
+    void executeSystemCommand_dangerousCommand_bypassesGuard() {
+        ArthasServerEntity server = createTestServer();
+
+        when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
+
+        ArthasResponse arthasResponse = new ArthasResponse();
+        arthasResponse.setState("succeeded");
+        when(arthasClient.executeCommand(any(), eq("ognl -x 1"))).thenReturn(arthasResponse);
+
+        var response = executeService.executeSystemCommand("server1", "ognl -x 1");
+
+        assertThat(response.getState()).isEqualTo("succeeded");
+        verify(commandGuardService, never()).check(any());
+        verify(arthasClient).executeCommand(any(), eq("ognl -x 1"));
+    }
+
+    @Test
+    void executeSystemCommand_serverNotFound_returnsFailed() {
+        when(serverRepository.findById("nonexistent")).thenReturn(Optional.empty());
+
+        var response = executeService.executeSystemCommand("nonexistent", "version");
+
+        assertThat(response.getState()).isEqualTo("failed");
+        assertThat(response.getError()).contains("未找到服务器");
+        verify(arthasClient, never()).executeCommand(any(), any());
+    }
 }

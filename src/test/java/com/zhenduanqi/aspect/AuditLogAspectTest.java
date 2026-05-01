@@ -1,5 +1,9 @@
 package com.zhenduanqi.aspect;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.zhenduanqi.dto.ExecuteResponse;
 import com.zhenduanqi.entity.SysAuditLog;
 import com.zhenduanqi.repository.AuditLogRepository;
@@ -11,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -135,7 +140,7 @@ class AuditLogAspectTest {
     }
 
     @Test
-    void executeResponse_blocked_recordsFailed() throws Throwable {
+    void executeResponse_blocked_recordsBlocked() throws Throwable {
         when(joinPoint.getSignature()).thenReturn(signature);
         when(signature.getMethod()).thenReturn(
                 AuditLogAspectTest.class.getDeclaredMethod("dummyDiagnoseMethod"));
@@ -151,7 +156,65 @@ class AuditLogAspectTest {
         ArgumentCaptor<SysAuditLog> captor = ArgumentCaptor.forClass(SysAuditLog.class);
         verify(auditLogRepository).save(captor.capture());
         SysAuditLog log = captor.getValue();
-        assertThat(log.getResult()).isEqualTo("FAILED");
+        assertThat(log.getResult()).isEqualTo("BLOCKED");
         assertThat(log.getResultDetail()).contains("state='blocked'");
+    }
+
+    private ListAppender<ILoggingEvent> createListAppender() {
+        LoggerContext ctx = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger logger = ctx.getLogger(AuditLogAspect.class);
+        logger.setLevel(Level.DEBUG);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        return appender;
+    }
+
+    private void removeAppender(ListAppender<ILoggingEvent> appender) {
+        LoggerContext ctx = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger logger = ctx.getLogger(AuditLogAspect.class);
+        logger.detachAppender(appender);
+        logger.setLevel(null);
+    }
+
+    @Test
+    void successPath_logsDebug() throws Throwable {
+        ListAppender<ILoggingEvent> appender = createListAppender();
+        try {
+            when(joinPoint.getSignature()).thenReturn(signature);
+            when(signature.getMethod()).thenReturn(
+                    AuditLogAspectTest.class.getDeclaredMethod("dummyDiagnoseMethod"));
+            when(joinPoint.getArgs()).thenReturn(new Object[]{"cmd1", "server-1"});
+            when(joinPoint.proceed()).thenReturn("success");
+
+            aspect.logAround(joinPoint);
+
+            List<ILoggingEvent> events = appender.list;
+            assertThat(events.stream().anyMatch(e ->
+                    e.getLevel() == Level.DEBUG && e.getFormattedMessage().contains("审计日志写入成功"))).isTrue();
+        } finally {
+            removeAppender(appender);
+        }
+    }
+
+    @Test
+    void failurePath_logsError() throws Throwable {
+        ListAppender<ILoggingEvent> appender = createListAppender();
+        try {
+            when(joinPoint.getSignature()).thenReturn(signature);
+            when(signature.getMethod()).thenReturn(
+                    AuditLogAspectTest.class.getDeclaredMethod("dummyDiagnoseMethod"));
+            when(joinPoint.getArgs()).thenReturn(new Object[]{"cmd1", "server-1"});
+            when(joinPoint.proceed()).thenThrow(new RuntimeException("连接失败"));
+
+            assertThatThrownBy(() -> aspect.logAround(joinPoint))
+                    .isInstanceOf(RuntimeException.class);
+
+            List<ILoggingEvent> events = appender.list;
+            assertThat(events.stream().anyMatch(e ->
+                    e.getLevel() == Level.ERROR && e.getFormattedMessage().contains("审计日志写入失败"))).isTrue();
+        } finally {
+            removeAppender(appender);
+        }
     }
 }

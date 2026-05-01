@@ -9,6 +9,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -19,6 +21,8 @@ import java.util.Arrays;
 @Aspect
 @Component
 public class AuditLogAspect {
+
+    private static final Logger log = LoggerFactory.getLogger(AuditLogAspect.class);
 
     private final AuditLogRepository auditLogRepository;
 
@@ -31,23 +35,23 @@ public class AuditLogAspect {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         AuditLog annotation = signature.getMethod().getAnnotation(AuditLog.class);
 
-        SysAuditLog log = new SysAuditLog();
-        log.setAction(annotation.action());
+        SysAuditLog auditEntry = new SysAuditLog();
+        auditEntry.setAction(annotation.action());
 
         ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attrs != null) {
             HttpServletRequest req = attrs.getRequest();
-            log.setUsername((String) req.getAttribute("username"));
-            log.setUserIp(req.getRemoteAddr());
+            auditEntry.setUsername((String) req.getAttribute("username"));
+            auditEntry.setUserIp(req.getRemoteAddr());
 
             Object[] args = joinPoint.getArgs();
             if (args != null) {
                 for (Object arg : args) {
                     if (arg instanceof String) {
-                        if (log.getCommand() == null) {
-                            log.setCommand((String) arg);
-                        } else if (log.getTarget() == null) {
-                            log.setTarget((String) arg);
+                        if (auditEntry.getCommand() == null) {
+                            auditEntry.setCommand((String) arg);
+                        } else if (auditEntry.getTarget() == null) {
+                            auditEntry.setTarget((String) arg);
                         }
                     } else if (arg != null) {
                         String argStr = arg.toString();
@@ -55,8 +59,8 @@ public class AuditLogAspect {
                             try {
                                 String serverId = extractField(argStr, "serverId");
                                 String command = extractField(argStr, "command");
-                                if (serverId != null) log.setTarget(serverId);
-                                if (command != null) log.setCommand(command);
+                                if (serverId != null) auditEntry.setTarget(serverId);
+                                if (command != null) auditEntry.setCommand(command);
                             } catch (Exception e) {
                                 // ignore parse errors
                             }
@@ -68,7 +72,7 @@ public class AuditLogAspect {
                 for (String field : annotation.maskFields()) {
                     masked = masked.replaceAll(field + "=\\S+", field + "=******");
                 }
-                log.setParams(masked);
+                auditEntry.setParams(masked);
             }
         }
 
@@ -76,20 +80,28 @@ public class AuditLogAspect {
         try {
             Object result = joinPoint.proceed();
             ExecuteResponse execResp = extractExecuteResponse(result);
-            if (execResp != null && !"succeeded".equals(execResp.getState())) {
-                log.setResult("FAILED");
+            if (execResp != null) {
+                if ("blocked".equals(execResp.getState())) {
+                    auditEntry.setResult("BLOCKED");
+                } else if (!"succeeded".equals(execResp.getState())) {
+                    auditEntry.setResult("FAILED");
+                } else {
+                    auditEntry.setResult("SUCCESS");
+                }
             } else {
-                log.setResult("SUCCESS");
+                auditEntry.setResult("SUCCESS");
             }
-            log.setResultDetail(result != null ? result.toString() : null);
+            auditEntry.setResultDetail(result != null ? result.toString() : null);
+            log.debug("审计日志写入成功: action={}, user={}, result={}", auditEntry.getAction(), auditEntry.getUsername(), auditEntry.getResult());
             return result;
         } catch (Exception e) {
-            log.setResult("FAILED");
-            log.setResultDetail(e.getMessage());
+            auditEntry.setResult("FAILED");
+            auditEntry.setResultDetail(e.getMessage());
+            log.error("审计日志写入失败: action={}, user={}, error={}", auditEntry.getAction(), auditEntry.getUsername(), e.getMessage());
             throw e;
         } finally {
-            log.setDurationMs(System.currentTimeMillis() - start);
-            auditLogRepository.save(log);
+            auditEntry.setDurationMs(System.currentTimeMillis() - start);
+            auditLogRepository.save(auditEntry);
         }
     }
 
