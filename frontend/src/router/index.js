@@ -8,18 +8,30 @@ const routes = [
   },
   {
     path: '/',
-    redirect: '/diagnose',
+    redirect: '/scenes',
   },
   {
-    path: '/servers',
-    name: 'ServerList',
-    component: () => import('../views/ServerList.vue'),
+    path: '/scenes',
+    name: 'SceneList',
+    component: () => import('../views/SceneList.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/scenes/:id/diagnose',
+    name: 'SceneDiagnose',
+    component: () => import('../views/SceneDiagnose.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/diagnose',
     name: 'Diagnose',
     component: () => import('../views/Diagnose.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/servers',
+    name: 'ServerList',
+    component: () => import('../views/ServerList.vue'),
     meta: { requiresAuth: true },
   },
   {

@@ -968,15 +968,15 @@ zhenduanqi/
 - ✅ 服务器 Token 加密存储（AES-256-GCM）
 - ✅ 前端登录页 + 路由守卫 + 角色按钮控制
 
-### 第二阶段（P1）：场景模板引擎 — 基础版 ✅ 已完成后端部分
+### 第二阶段（P1）：场景模板引擎 — 基础版 ✅ 已完成
 目标：实现一次性命令场景的诊断向导
 - ✅ 场景/步骤 CRUD 管理（含新增字段：category、business_scenario、continuous、maxExecTime、extract_rules）
 - ✅ 8 个预置场景（场景1-5 为一次性命令，场景6-8 为连续命令暂用 exec + -n 限制）
-- 场景列表页（按分类卡片展示 + 业务场景检索）
-- 场景诊断页（步骤列表 + 手动执行 + 结果渲染）
-- 前端渲染器：thread、memory、status、enhancer + 降级文本
-- 半自动变量填充（extract_rules + jsonpath-plus）
-- 前端 diagnose store（步骤状态管理、变量缓存）
+- ✅ 场景列表页（按分类卡片展示 + 业务场景检索）
+- ✅ 场景诊断页（步骤列表 + 手动执行 + 结果渲染）
+- ✅ 前端渲染器：thread、memory、status、enhancer + 降级文本
+- ✅ 半自动变量填充（extract_rules + jsonpath-plus）
+- ✅ 前端 diagnose store（步骤状态管理、变量缓存）
 
 ### 第三阶段（P2）：场景模板引擎 — 异步版
 目标：实现连续输出命令场景的诊断 + 会话安全管控
