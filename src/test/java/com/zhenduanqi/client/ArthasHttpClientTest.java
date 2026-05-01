@@ -372,4 +372,43 @@ class ArthasHttpClientTest {
 
         assertThat(response.getState()).isEqualTo("SUCCEEDED");
     }
+
+    @Test
+    void httpBasicAuth_401Error_showsClearErrorMessage() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(401);
+        when(httpResponse.body()).thenReturn("");
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = new ServerInfo();
+        server.setId("server1");
+        server.setName("Test Server");
+        server.setHost("localhost");
+        server.setHttpPort(8563);
+        server.setUsername("arthas");
+        server.setPassword("wrong_password");
+        ArthasResponse response = arthasHttpClient.executeCommand(server, "version");
+
+        assertThat(response.getState()).isEqualTo("failed");
+        assertThat(response.getError()).contains("用户名或密码");
+    }
+
+    @Test
+    void bearerToken_401Error_showsTokenHint() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(401);
+        when(httpResponse.body()).thenReturn("");
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = new ServerInfo();
+        server.setId("server1");
+        server.setName("Test Server");
+        server.setHost("localhost");
+        server.setHttpPort(8563);
+        server.setToken("wrong-token");
+        ArthasResponse response = arthasHttpClient.executeCommand(server, "version");
+
+        assertThat(response.getState()).isEqualTo("failed");
+        assertThat(response.getError()).contains("Token");
+    }
 }

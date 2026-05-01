@@ -607,8 +607,14 @@ CREATE TABLE arthas_session (
 
 **实现细节：**
 - `ArthasHttpClient.addAuthorizationHeader()` 方法负责根据 ServerInfo 中的认证信息添加正确的 Authorization 头
+- `ArthasHttpClient.getHttpErrorMessage()` 方法根据认证类型返回不同的 401 错误提示
 - `ArthasServerService.findServerInfoById()` 方法统一处理认证信息的解密和组装
 - 前端服务器管理界面区分显示 Basic Auth 字段（用户名、密码）和旧版 Token 字段（标记为已废弃）
+
+**错误提示改进（Issue #50）：**
+- HTTP Basic Auth 认证失败时：`HTTP 401: 未授权，用户名或密码错误`
+- Token 认证失败时：`HTTP 401: 未授权，Token 无效`
+- 无认证信息时：`HTTP 401: 未授权，请检查认证信息`
 
 **加密方案（适用于密码和 Token）：**
 - 算法：AES/GCM/NoPadding（认证加密，防篡改）
