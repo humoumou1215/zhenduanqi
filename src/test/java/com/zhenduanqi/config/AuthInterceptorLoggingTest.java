@@ -4,6 +4,8 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.zhenduanqi.entity.SysRole;
+import com.zhenduanqi.entity.SysUser;
 import com.zhenduanqi.repository.SysUserRepository;
 import com.zhenduanqi.service.AuthService;
 import jakarta.servlet.http.Cookie;
@@ -18,8 +20,11 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthInterceptorLoggingTest {
@@ -36,7 +41,7 @@ class AuthInterceptorLoggingTest {
         TokenBlacklist tokenBlacklist = new TokenBlacklist();
         LoginRateLimiter rateLimiter = new LoginRateLimiter();
         AuthService authService = new AuthService(userRepository, new BCryptPasswordEncoder(), jwtUtil, tokenBlacklist, rateLimiter);
-        interceptor = new AuthInterceptor(authService);
+        interceptor = new AuthInterceptor(authService, userRepository);
     }
 
     private ListAppender<ILoggingEvent> createListAppender() {
@@ -58,6 +63,13 @@ class AuthInterceptorLoggingTest {
 
     @Test
     void preHandle_authPassed_logsDebug() throws Exception {
+        SysRole adminRole = new SysRole();
+        adminRole.setRoleCode("ADMIN");
+        SysUser user = new SysUser();
+        user.setUsername("admin");
+        user.setRoles(Set.of(adminRole));
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
+
         ListAppender<ILoggingEvent> appender = createListAppender();
         try {
             String validToken = jwtUtil.generateToken("admin");
@@ -73,6 +85,8 @@ class AuthInterceptorLoggingTest {
                     e.getLevel() == Level.DEBUG && e.getFormattedMessage().contains("认证通过"))).isTrue();
             assertThat(events.stream().anyMatch(e ->
                     e.getFormattedMessage().contains("admin"))).isTrue();
+            assertThat(events.stream().anyMatch(e ->
+                    e.getFormattedMessage().contains("ADMIN"))).isTrue();
         } finally {
             removeAppender(appender);
         }

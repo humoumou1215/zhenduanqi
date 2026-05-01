@@ -87,12 +87,12 @@ Set-Cookie: zhenduanqi_token=xxxx; HttpOnly; SameSite=Strict; Path=/api; Max-Age
 
 ### 权限模块 (RBAC)
 
-采用**拦截器粗粒度 + 注解细粒度**双层校验：
+采用 **拦截器粗粒度 + 注解细粒度** 双层校验，同时优化数据库查询次数：
 
 **拦截器层（粗粒度）：**
 - `POST /api/auth/login` → 公开，不校验
 - `/api/**` → 必须已认证（存在有效的 JWT Token）
-- 拦截器负责：Token 解析、校验、设置 `SecurityContext`
+- 拦截器负责：Token 解析、校验、查询用户角色、设置 `username` 和 `userRoles` 到 request attribute
 
 **注解层（细粒度）：**
 ```java
@@ -100,6 +100,15 @@ Set-Cookie: zhenduanqi_token=xxxx; HttpOnly; SameSite=Strict; Path=/api; Max-Age
 @RequireRole({OPERATOR, ADMIN})        // 操作员和管理员
 // 不加注解 → 任何已认证用户可访问
 ```
+
+**性能优化：**
+- **原有问题：** AuthInterceptor 和 RoleAspect 分别查询数据库，每次请求两次 DB 访问
+- **优化方案：** AuthInterceptor 一次性查询用户角色，放入 request attribute，RoleAspect 直接读取无需再次查库
+- **效果：** 每个请求减少一次数据库查询，提升高频 API 性能
+- **实现：**
+  1. AuthInterceptor 注入 SysUserRepository，认证通过后查询用户并提取角色
+  2. 将 `username` 和 `userRoles` (Set<String>) 放入 request attribute
+  3. RoleAspect 不再依赖 SysUserRepository，直接从 request attribute 读取角色进行校验
 
 **角色定义：**
 | 角色 | 编码 | 权限范围 |
