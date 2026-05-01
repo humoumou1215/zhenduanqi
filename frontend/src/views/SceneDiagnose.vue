@@ -41,6 +41,7 @@
                 步骤 {{ index + 1 }}
               </el-tag>
               <span style="font-weight: 600">{{ step.title || '步骤 ' + (index + 1) }}</span>
+              <el-tag v-if="step.continuous" type="warning" size="small">连续输出</el-tag>
             </div>
             <div v-if="stepStates[index]?.state === 'completed'" style="color: #67c23a">
               <el-icon><CircleCheck /></el-icon>
@@ -68,6 +69,7 @@
             >
               <template #append>
                 <el-button
+                  v-if="!step.continuous"
                   :loading="stepStates[index]?.state === 'executing'"
                   :disabled="!diagnoseStore.selectedServerId || stepStates[index]?.state === 'executing'"
                   @click="handleExecute(index)"
@@ -75,6 +77,24 @@
                   <el-icon v-if="!stepStates[index]?.state"><VideoPlay /></el-icon>
                   执行
                 </el-button>
+                <template v-else>
+                  <el-button
+                    v-if="stepStates[index]?.state !== 'executing'"
+                    :disabled="!diagnoseStore.selectedServerId"
+                    @click="handleExecuteAsync(index)"
+                  >
+                    <el-icon><VideoPlay /></el-icon>
+                    执行
+                  </el-button>
+                  <el-button
+                    v-else
+                    type="danger"
+                    @click="handleStopAsync(index)"
+                  >
+                    <el-icon><VideoPause /></el-icon>
+                    停止
+                  </el-button>
+                </template>
               </template>
             </el-input>
             <div v-if="hasPlaceholder(step.command) && stepStates[index]?.state !== 'completed'" class="placeholder-hint">
@@ -139,13 +159,20 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
-  ArrowLeft, VideoPlay, CircleCheck, Loading, InfoFilled, Warning, Check
+  ArrowLeft, VideoPlay, VideoPause, CircleCheck, Loading, InfoFilled, Warning, Check
 } from '@element-plus/icons-vue';
-import { executeCommand, getServerById } from '../api';
+import { 
+  executeCommand, 
+  getServerById, 
+  createSession, 
+  pullSessionResults, 
+  interruptSessionJob, 
+  closeSession 
+} from '../api';
 import { useDiagnoseStore } from '../stores/diagnose';
 import { useServerStore } from '../stores/servers';
 import { getRenderer } from '../components/ResultRenderer';
@@ -159,6 +186,8 @@ const stepCommands = ref([]);
 const stepStates = ref([]);
 const expandRaw = ref([]);
 const serverNames = ref({});
+const asyncSessions = ref({});
+const pollIntervals = ref({});
 
 function getStepTagType(state) {
   if (state === 'completed') return 'success';
@@ -249,7 +278,117 @@ async function handleExecute(index) {
   }
 }
 
+async function handleExecuteAsync(index) {
+  const step = diagnoseStore.steps[index];
+  const command = stepCommands.value[index] || step.command;
+
+  if (!command || !command.trim()) {
+    ElMessage.warning('请输入命令');
+    return;
+  }
+
+  stepStates.value[index] = { 
+    state: 'executing', 
+    result: { 
+      state: 'scheduled', 
+      structuredResults: [], 
+      results: [] 
+    } 
+  };
+
+  try {
+    // Create session and execute async
+    const createRes = await createSession({
+      serverId: diagnoseStore.selectedServerId,
+      sceneId: diagnoseStore.currentSceneId,
+      stepId: step.id,
+      command: command,
+      maxExecTime: step.max_exec_time
+    });
+    const session = createRes.data;
+    asyncSessions.value[index] = session;
+
+    // Start polling
+    pollIntervals.value[index] = setInterval(async () => {
+      try {
+        const res = await pullSessionResults(session.id);
+        const results = res.data;
+
+        if (results && results.length > 0) {
+          // Append new results
+          if (!stepStates.value[index].result) {
+            stepStates.value[index].result = { structuredResults: [], results: [] };
+          }
+          stepStates.value[index].result.structuredResults = [
+            ...(stepStates.value[index].result.structuredResults || []),
+            ...results
+          ];
+          stepStates.value[index].result.results = [
+            ...(stepStates.value[index].result.results || []),
+            ...results.map(r => JSON.stringify(r))
+          ];
+        }
+      } catch (e) {
+        console.error('Poll results error:', e);
+      }
+    }, 2000);
+
+  } catch (e) {
+    stepStates.value[index] = {
+      state: 'error',
+      result: {
+        state: 'failed',
+        error: e.response?.data?.error || e.message || '执行失败',
+        results: []
+      }
+    };
+    ElMessage.error(e.response?.data?.error || '命令执行失败');
+  }
+}
+
+async function handleStopAsync(index) {
+  const session = asyncSessions.value[index];
+  if (!session) return;
+
+  try {
+    await interruptSessionJob(session.id);
+    ElMessage.success('命令已中断');
+  } catch (e) {
+    console.error('Interrupt error:', e);
+  }
+
+  // Clear poll interval
+  if (pollIntervals.value[index]) {
+    clearInterval(pollIntervals.value[index]);
+    delete pollIntervals.value[index];
+  }
+
+  try {
+    await closeSession(session.id);
+  } catch (e) {
+    console.error('Close session error:', e);
+  }
+
+  delete asyncSessions.value[index];
+  stepStates.value[index].state = 'completed';
+  diagnoseStore.saveStepResult(diagnoseStore.steps[index].id, stepStates.value[index].result);
+}
+
 async function handleReset() {
+  // Clear all ongoing sessions
+  for (const index in pollIntervals.value) {
+    if (pollIntervals.value[index]) {
+      clearInterval(pollIntervals.value[index]);
+    }
+  }
+  for (const index in asyncSessions.value) {
+    try {
+      await closeSession(asyncSessions.value[index].id);
+    } catch (e) {
+      console.error('Close session error:', e);
+    }
+  }
+
   try {
     await ElMessageBox.confirm(
       '确定要开始新的诊断吗？当前诊断进度将丢失。',
@@ -274,6 +413,15 @@ onMounted(async () => {
 
   await loadServerNames();
   initializeStepCommands();
+});
+
+onUnmounted(() => {
+  // Clean up all intervals on unmount
+  for (const index in pollIntervals.value) {
+    if (pollIntervals.value[index]) {
+      clearInterval(pollIntervals.value[index]);
+    }
+  }
 });
 </script>
 
