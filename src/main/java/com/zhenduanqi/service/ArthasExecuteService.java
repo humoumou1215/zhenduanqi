@@ -16,10 +16,14 @@ public class ArthasExecuteService {
 
     private final ArthasServerRepository serverRepository;
     private final ArthasHttpClient arthasClient;
+    private final CommandGuardService commandGuardService;
 
-    public ArthasExecuteService(ArthasServerRepository serverRepository, ArthasHttpClient arthasClient) {
+    public ArthasExecuteService(ArthasServerRepository serverRepository, 
+                                ArthasHttpClient arthasClient,
+                                CommandGuardService commandGuardService) {
         this.serverRepository = serverRepository;
         this.arthasClient = arthasClient;
+        this.commandGuardService = commandGuardService;
     }
 
     public ExecuteResponse execute(String serverId, String command) {
@@ -28,6 +32,14 @@ public class ArthasExecuteService {
             ExecuteResponse resp = new ExecuteResponse();
             resp.setState("failed");
             resp.setError("未找到服务器: " + serverId);
+            return resp;
+        }
+
+        CommandGuardService.GuardResult guardResult = commandGuardService.check(command);
+        if (guardResult.isBlocked()) {
+            ExecuteResponse resp = new ExecuteResponse();
+            resp.setState("blocked");
+            resp.setError(guardResult.getReason());
             return resp;
         }
 
