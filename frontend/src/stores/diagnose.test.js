@@ -19,7 +19,7 @@ describe('useDiagnoseStore', () => {
             id: 101,
             command: 'thread -b',
             extract_rules: JSON.stringify([
-              { variable: 'threadId', jsonPath: '$.results[?(@.type=="thread")][0].data.threadId', description: 'Extract first thread id' }
+              { variable: 'threadId', jsonPath: '$[?(@.type=="thread")][0].data.threadId', description: 'Extract first thread id' }
             ])
           }
         ]
@@ -27,13 +27,11 @@ describe('useDiagnoseStore', () => {
 
       store.initScene(scene, 'server-1');
 
-      const results = {
-        results: [
-          { type: 'thread', data: { threadId: 42, name: 'Thread-1', state: 'BLOCKED' } }
-        ]
-      };
+      const results = [
+        { type: 'thread', data: { threadId: 42, name: 'Thread-1', state: 'BLOCKED' } }
+      ];
 
-      store.extractVariables(101, results.results);
+      store.extractVariables(101, results);
 
       expect(store.getVariable('threadId')).toBe('42');
     });
@@ -49,8 +47,8 @@ describe('useDiagnoseStore', () => {
             id: 101,
             command: 'thread -n 5',
             extract_rules: JSON.stringify([
-              { variable: 'threadId', jsonPath: '$.results[0].data.threadId', description: 'First thread id' },
-              { variable: 'threadName', jsonPath: '$.results[0].data.name', description: 'First thread name' }
+              { variable: 'threadId', jsonPath: '$[0].data.threadId', description: 'First thread id' },
+              { variable: 'threadName', jsonPath: '$[0].data.name', description: 'First thread name' }
             ])
           }
         ]
@@ -58,13 +56,11 @@ describe('useDiagnoseStore', () => {
 
       store.initScene(scene, 'server-1');
 
-      const results = {
-        results: [
-          { type: 'thread', data: { threadId: 123, name: 'Worker-Thread-1' } }
-        ]
-      };
+      const results = [
+        { type: 'thread', data: { threadId: 123, name: 'Worker-Thread-1' } }
+      ];
 
-      store.extractVariables(101, results.results);
+      store.extractVariables(101, results);
 
       expect(store.getVariable('threadId')).toBe('123');
       expect(store.getVariable('threadName')).toBe('Worker-Thread-1');
@@ -83,13 +79,11 @@ describe('useDiagnoseStore', () => {
 
       store.initScene(scene, 'server-1');
 
-      const results = {
-        results: [
-          { type: 'thread', data: { threadId: 42 } }
-        ]
-      };
+      const results = [
+        { type: 'thread', data: { threadId: 42 } }
+      ];
 
-      store.extractVariables(101, results.results);
+      store.extractVariables(101, results);
 
       expect(store.getVariable('threadId')).toBeUndefined();
     });
@@ -113,9 +107,9 @@ describe('useDiagnoseStore', () => {
 
       store.initScene(scene, 'server-1');
 
-      const results = { results: [] };
+      const results = [];
 
-      expect(() => store.extractVariables(101, results.results)).not.toThrow();
+      expect(() => store.extractVariables(101, results)).not.toThrow();
       expect(store.getVariable('testVar')).toBeUndefined();
     });
 
@@ -132,9 +126,37 @@ describe('useDiagnoseStore', () => {
 
       store.initScene(scene, 'server-1');
 
-      const results = { results: [] };
+      const results = [];
 
-      expect(() => store.extractVariables(101, results.results)).not.toThrow();
+      expect(() => store.extractVariables(101, results)).not.toThrow();
+    });
+
+    it('should support simple array index jsonpath for data.sql format', () => {
+      const store = useDiagnoseStore();
+
+      const scene = {
+        id: 1,
+        name: 'Test Scene',
+        steps: [
+          {
+            id: 101,
+            command: 'thread -n 5',
+            extract_rules: JSON.stringify([
+              { variable: 'threadId', jsonPath: '$[0].id', description: 'First thread id from simple array' }
+            ])
+          }
+        ]
+      };
+
+      store.initScene(scene, 'server-1');
+
+      const results = [
+        { id: 123, name: 'Worker-Thread-1' }
+      ];
+
+      store.extractVariables(101, results);
+
+      expect(store.getVariable('threadId')).toBe('123');
     });
   });
 
@@ -235,7 +257,10 @@ describe('useDiagnoseStore', () => {
         steps: [
           {
             id: 101,
-            command: 'thread {threadId}'
+            command: 'thread {threadId}',
+            extract_rules: JSON.stringify([
+              { variable: 'threadId', jsonPath: '$[0].data.threadId' }
+            ])
           }
         ]
       };
@@ -264,7 +289,7 @@ describe('useDiagnoseStore', () => {
             id: 101,
             command: 'thread -b',
             extract_rules: JSON.stringify([
-              { variable: 'threadId', jsonPath: '$.results[0].data.threadId' }
+              { variable: 'threadId', jsonPath: '$[0].data.threadId' }
             ])
           }
         ]

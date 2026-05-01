@@ -43,26 +43,26 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
       return;
     }
 
-    const data = { results: results || [] };
+    const data = results || [];
 
     for (const rule of rules) {
-      if (!rule.variable || !rule.jsonPath) {
-        continue;
-      }
-
-      try {
-        const values = JSONPath({
-          path: rule.jsonPath,
-          json: data,
-          resultType: 'value'
-        });
-
-        if (values && values.length > 0) {
-          variables.value.set(rule.variable, String(values[0]));
+        if (!rule.variable || !rule.jsonPath) {
+            continue;
         }
-      } catch {
-        console.warn(`Failed to extract variable ${rule.variable} with jsonPath: ${rule.jsonPath}`);
-      }
+
+        try {
+            const values = JSONPath({
+                path: rule.jsonPath,
+                json: data,
+                resultType: 'value'
+            });
+
+            if (values && values.length > 0) {
+                variables.value.set(rule.variable, String(values[0]));
+            }
+        } catch (error) {
+            console.warn(`Failed to extract variable ${rule.variable} with jsonPath: ${rule.jsonPath}`, error);
+        }
     }
   }
 
