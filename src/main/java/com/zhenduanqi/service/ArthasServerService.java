@@ -3,6 +3,7 @@ package com.zhenduanqi.service;
 import com.zhenduanqi.config.TokenEncryptionUtil;
 import com.zhenduanqi.dto.ArthasServerDTO;
 import com.zhenduanqi.entity.ArthasServerEntity;
+import com.zhenduanqi.model.ServerInfo;
 import com.zhenduanqi.repository.ArthasServerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +42,41 @@ public class ArthasServerService {
 
     public Optional<String> findDecryptedTokenById(String id) {
         return repository.findById(id)
-                .map(entity -> encryptionUtil.decrypt(entity.getToken()));
+                .map(entity -> entity.getToken() != null ? encryptionUtil.decrypt(entity.getToken()) : null);
+    }
+
+    public Optional<ServerInfo> findServerInfoById(String id) {
+        return repository.findById(id)
+                .map(this::toServerInfo);
+    }
+
+    private ServerInfo toServerInfo(ArthasServerEntity entity) {
+        ServerInfo info = new ServerInfo();
+        info.setId(entity.getId());
+        info.setName(entity.getName());
+        info.setHost(entity.getHost());
+        info.setHttpPort(entity.getHttpPort());
+        
+        if (entity.getToken() != null) {
+            info.setToken(encryptionUtil.decrypt(entity.getToken()));
+        }
+        
+        info.setUsername(entity.getUsername());
+        
+        if (entity.getPassword() != null) {
+            info.setPassword(encryptionUtil.decrypt(entity.getPassword()));
+        }
+        
+        return info;
     }
 
     public ArthasServerDTO create(ArthasServerDTO dto) {
         ArthasServerEntity entity = dto.toEntity();
         if (entity.getToken() != null) {
             entity.setToken(encryptionUtil.encrypt(entity.getToken()));
+        }
+        if (entity.getPassword() != null) {
+            entity.setPassword(encryptionUtil.encrypt(entity.getPassword()));
         }
         LocalDateTime now = LocalDateTime.now();
         entity.setCreatedAt(now);
@@ -63,8 +92,12 @@ public class ArthasServerService {
         existing.setName(dto.getName());
         existing.setHost(dto.getHost());
         existing.setHttpPort(dto.getHttpPort());
+        existing.setUsername(dto.getUsername());
         if (dto.getToken() != null && !dto.getToken().isBlank()) {
             existing.setToken(encryptionUtil.encrypt(dto.getToken()));
+        }
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            existing.setPassword(encryptionUtil.encrypt(dto.getPassword()));
         }
         existing.setUpdatedAt(LocalDateTime.now());
         ArthasServerEntity saved = repository.save(existing);

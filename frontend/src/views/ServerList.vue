@@ -19,6 +19,7 @@
       <el-table-column prop="name" label="名称" width="200" />
       <el-table-column prop="host" label="主机" width="150" />
       <el-table-column prop="httpPort" label="端口" width="80" />
+      <el-table-column prop="username" label="用户名" width="120" />
       <el-table-column label="连接状态" width="120">
         <template #default="{ row }">
           <el-tag :type="statusMap[row.id]?.connected ? 'success' : 'danger'" size="small">
@@ -48,11 +49,26 @@
         <el-form-item label="端口">
           <el-input-number v-model="form.httpPort" :min="1" :max="65535" />
         </el-form-item>
+        <el-form-item label="用户名">
+          <el-input
+            v-model="form.username"
+            placeholder="Arthas HTTP 认证用户名，默认 arthas"
+          />
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input
+            v-model="form.password"
+            type="password"
+            placeholder="Arthas HTTP 认证密码"
+            show-password
+          />
+        </el-form-item>
+        <el-divider content-position="left">向后兼容（旧版 Token 认证）</el-divider>
         <el-form-item label="Token">
           <el-input
             v-model="form.token"
             type="password"
-            placeholder="Arthas HTTP API Token"
+            placeholder="Arthas HTTP API Token（已废弃）"
             show-password
           />
         </el-form-item>
@@ -85,6 +101,8 @@ const defaultForm = () => ({
   name: '',
   host: '',
   httpPort: 8563,
+  username: '',
+  password: '',
   token: '',
 });
 const form = ref(defaultForm());
@@ -107,7 +125,15 @@ function openDialog(row) {
   if (row) {
     isEdit.value = true;
     editingId.value = row.id;
-    form.value = { id: row.id, name: row.name, host: row.host, httpPort: row.httpPort, token: '' };
+    form.value = {
+      id: row.id,
+      name: row.name,
+      host: row.host,
+      httpPort: row.httpPort,
+      username: row.username || '',
+      password: '',
+      token: '',
+    };
   } else {
     isEdit.value = false;
     editingId.value = '';

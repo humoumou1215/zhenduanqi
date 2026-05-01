@@ -13,8 +13,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 @Component
@@ -43,13 +45,15 @@ public class ArthasHttpClient {
             String apiUrl = server.getApiUrl();
             String jsonBody = String.format("{\"action\":\"exec\",\"command\":\"%s\"}", escapeJson(command));
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                     .uri(URI.create(apiUrl))
                     .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + server.getToken())
                     .timeout(TIMEOUT)
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+            
+            addAuthorizationHeader(requestBuilder, server);
+            
+            HttpRequest request = requestBuilder.build();
 
             log.info("Executing command on {}: {}", server.getName(), command);
             HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -91,6 +95,17 @@ public class ArthasHttpClient {
         }
 
         return response;
+    }
+    
+    private void addAuthorizationHeader(HttpRequest.Builder requestBuilder, ServerInfo server) {
+        if (server.getUsername() != null && server.getPassword() != null) {
+            String credentials = server.getUsername() + ":" + server.getPassword();
+            String encodedCredentials = Base64.getEncoder().encodeToString(
+                    credentials.getBytes(StandardCharsets.UTF_8));
+            requestBuilder.header("Authorization", "Basic " + encodedCredentials);
+        } else if (server.getToken() != null) {
+            requestBuilder.header("Authorization", "Bearer " + server.getToken());
+        }
     }
 
     private void parseResponseWithJackson(String body, ArthasResponse response) {
@@ -148,13 +163,15 @@ public class ArthasHttpClient {
             String apiUrl = server.getApiUrl();
             String jsonBody = "{\"action\":\"exec\",\"command\":\"version\"}";
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                     .uri(URI.create(apiUrl))
                     .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + server.getToken())
                     .timeout(Duration.ofSeconds(5))
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+            
+            addAuthorizationHeader(requestBuilder, server);
+            
+            HttpRequest request = requestBuilder.build();
 
             HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             return httpResponse.statusCode() == 200;
