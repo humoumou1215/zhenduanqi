@@ -34,31 +34,15 @@ public class ArthasExecuteService {
     }
 
     private ExecuteResponse doExecute(String serverId, String command) {
-        Optional<ArthasServerEntity> entityOpt = serverRepository.findById(serverId);
-        if (entityOpt.isEmpty()) {
+        Optional<ServerInfo> serverInfoOpt = serverService.findServerInfoById(serverId);
+        if (serverInfoOpt.isEmpty()) {
             ExecuteResponse resp = new ExecuteResponse();
             resp.setState("failed");
             resp.setError("未找到服务器: " + serverId);
             return resp;
         }
 
-        ArthasServerEntity entity = entityOpt.get();
-        Optional<String> decryptedTokenOpt = serverService.findDecryptedTokenById(serverId);
-        if (decryptedTokenOpt.isEmpty()) {
-            ExecuteResponse resp = new ExecuteResponse();
-            resp.setState("failed");
-            resp.setError("无法获取服务器 token: " + serverId);
-            return resp;
-        }
-
-        ServerInfo serverInfo = new ServerInfo();
-        serverInfo.setId(entity.getId());
-        serverInfo.setName(entity.getName());
-        serverInfo.setHost(entity.getHost());
-        serverInfo.setHttpPort(entity.getHttpPort());
-        serverInfo.setToken(decryptedTokenOpt.get());
-
-        var arthasResp = arthasClient.executeCommand(serverInfo, command);
+        var arthasResp = arthasClient.executeCommand(serverInfoOpt.get(), command);
         return ExecuteResponse.fromArthasResponse(arthasResp);
     }
 
@@ -86,25 +70,11 @@ public class ArthasExecuteService {
     public Map<String, Object> getStatus(String serverId) {
         return serverRepository.findById(serverId)
                 .map(entity -> {
-                    Optional<String> decryptedTokenOpt = serverService.findDecryptedTokenById(serverId);
-                    if (decryptedTokenOpt.isEmpty()) {
-                        Map<String, Object> m = new HashMap<>();
-                        m.put("exists", true);
-                        m.put("id", entity.getId());
-                        m.put("name", entity.getName());
-                        m.put("host", entity.getHost());
-                        m.put("port", entity.getHttpPort());
-                        m.put("connected", false);
-                        return m;
+                    Optional<ServerInfo> serverInfoOpt = serverService.findServerInfoById(serverId);
+                    boolean connected = false;
+                    if (serverInfoOpt.isPresent()) {
+                        connected = arthasClient.checkConnection(serverInfoOpt.get());
                     }
-
-                    ServerInfo serverInfo = new ServerInfo();
-                    serverInfo.setId(entity.getId());
-                    serverInfo.setName(entity.getName());
-                    serverInfo.setHost(entity.getHost());
-                    serverInfo.setHttpPort(entity.getHttpPort());
-                    serverInfo.setToken(decryptedTokenOpt.get());
-                    boolean connected = arthasClient.checkConnection(serverInfo);
 
                     Map<String, Object> m = new HashMap<>();
                     m.put("exists", true);

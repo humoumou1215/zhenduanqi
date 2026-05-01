@@ -9,6 +9,8 @@ public class ArthasServerDTO {
     private String host;
     private int httpPort;
     private String token;
+    private String username;
+    private String password;
 
     public static ArthasServerDTO fromEntity(ArthasServerEntity entity) {
         ArthasServerDTO dto = new ArthasServerDTO();
@@ -16,6 +18,7 @@ public class ArthasServerDTO {
         dto.setName(entity.getName());
         dto.setHost(entity.getHost());
         dto.setHttpPort(entity.getHttpPort());
+        dto.setUsername(entity.getUsername());
         return dto;
     }
 
@@ -26,6 +29,8 @@ public class ArthasServerDTO {
         entity.setHost(this.host);
         entity.setHttpPort(this.httpPort);
         entity.setToken(this.token);
+        entity.setUsername(this.username);
+        entity.setPassword(this.password);
         return entity;
     }
 
@@ -67,5 +72,21 @@ public class ArthasServerDTO {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

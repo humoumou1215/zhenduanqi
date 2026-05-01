@@ -23,8 +23,14 @@ public class ArthasServerEntity {
     @Column(name = "http_port", nullable = false)
     private int httpPort = 8563;
 
-    @Column(name = "token", length = 500, nullable = false)
+    @Column(name = "token", length = 500)
     private String token;
+
+    @Column(name = "username", length = 100)
+    private String username;
+
+    @Column(name = "password", length = 500)
+    private String password;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -70,6 +76,22 @@ public class ArthasServerEntity {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public LocalDateTime getCreatedAt() {

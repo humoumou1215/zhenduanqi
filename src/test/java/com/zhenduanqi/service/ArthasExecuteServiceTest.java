@@ -3,6 +3,7 @@ package com.zhenduanqi.service;
 import com.zhenduanqi.client.ArthasHttpClient;
 import com.zhenduanqi.model.ArthasResponse;
 import com.zhenduanqi.entity.ArthasServerEntity;
+import com.zhenduanqi.model.ServerInfo;
 import com.zhenduanqi.repository.ArthasServerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,16 @@ class ArthasExecuteServiceTest {
         server.setToken("test-token");
         return server;
     }
+    
+    private ServerInfo createTestServerInfo() {
+        ServerInfo server = new ServerInfo();
+        server.setId("server1");
+        server.setName("Test Server");
+        server.setHost("localhost");
+        server.setHttpPort(8563);
+        server.setToken("test-token");
+        return server;
+    }
 
     @Test
     void execute_dangerousCommand_isBlocked() {
@@ -64,10 +75,9 @@ class ArthasExecuteServiceTest {
 
     @Test
     void execute_safeCommand_executesSuccessfully() {
-        ArthasServerEntity server = createTestServer();
+        ServerInfo serverInfo = createTestServerInfo();
 
-        when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
-        when(serverService.findDecryptedTokenById("server1")).thenReturn(Optional.of("test-token"));
+        when(serverService.findServerInfoById("server1")).thenReturn(Optional.of(serverInfo));
         when(commandGuardService.check("thread -n 5")).thenReturn(
             new CommandGuardService.GuardResult(false, null)
         );
@@ -84,10 +94,9 @@ class ArthasExecuteServiceTest {
 
     @Test
     void execute_whitelistedCommand_executesDespiteBlacklist() {
-        ArthasServerEntity server = createTestServer();
+        ServerInfo serverInfo = createTestServerInfo();
 
-        when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
-        when(serverService.findDecryptedTokenById("server1")).thenReturn(Optional.of("test-token"));
+        when(serverService.findServerInfoById("server1")).thenReturn(Optional.of(serverInfo));
         when(commandGuardService.check("jad --source-only com.example.Class")).thenReturn(
             new CommandGuardService.GuardResult(false, null)
         );
@@ -104,10 +113,9 @@ class ArthasExecuteServiceTest {
 
     @Test
     void executeSystemCommand_bypassesGuardAndExecutes() {
-        ArthasServerEntity server = createTestServer();
+        ServerInfo serverInfo = createTestServerInfo();
 
-        when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
-        when(serverService.findDecryptedTokenById("server1")).thenReturn(Optional.of("test-token"));
+        when(serverService.findServerInfoById("server1")).thenReturn(Optional.of(serverInfo));
 
         ArthasResponse arthasResponse = new ArthasResponse();
         arthasResponse.setState("succeeded");
@@ -122,10 +130,9 @@ class ArthasExecuteServiceTest {
 
     @Test
     void executeSystemCommand_dangerousCommand_bypassesGuard() {
-        ArthasServerEntity server = createTestServer();
+        ServerInfo serverInfo = createTestServerInfo();
 
-        when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
-        when(serverService.findDecryptedTokenById("server1")).thenReturn(Optional.of("test-token"));
+        when(serverService.findServerInfoById("server1")).thenReturn(Optional.of(serverInfo));
 
         ArthasResponse arthasResponse = new ArthasResponse();
         arthasResponse.setState("succeeded");
@@ -140,7 +147,7 @@ class ArthasExecuteServiceTest {
 
     @Test
     void executeSystemCommand_serverNotFound_returnsFailed() {
-        when(serverRepository.findById("nonexistent")).thenReturn(Optional.empty());
+        when(serverService.findServerInfoById("nonexistent")).thenReturn(Optional.empty());
 
         var response = executeService.executeSystemCommand("nonexistent", "version");
 

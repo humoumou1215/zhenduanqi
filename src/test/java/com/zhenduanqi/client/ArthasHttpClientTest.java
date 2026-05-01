@@ -291,4 +291,85 @@ class ArthasHttpClientTest {
         assertThat(response.getRawResponse()).isEqualTo(legacyResponse);
         assertThat(response.getStructuredResults()).isNotEmpty();
     }
+
+    @Test
+    void httpBasicAuth_usesCorrectAuthorizationHeader() throws Exception {
+        String successResponse = """
+            {
+              "state": "SUCCEEDED",
+              "body": {
+                "results": [
+                  {
+                    "type": "status",
+                    "data": {
+                      "status": "true"
+                    }
+                  }
+                ]
+              }
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(successResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenAnswer(invocation -> {
+                    HttpRequest request = invocation.getArgument(0);
+                    assertThat(request.headers().firstValue("Authorization")).isPresent();
+                    String authHeader = request.headers().firstValue("Authorization").get();
+                    assertThat(authHeader).startsWith("Basic ");
+                    // arthas:pswd123 编码后是 "YXJ0aGFzOnBzd2QxMjM="
+                    assertThat(authHeader).isEqualTo("Basic YXJ0aGFzOnBzd2QxMjM=");
+                    return httpResponse;
+                });
+
+        ServerInfo server = new ServerInfo();
+        server.setId("server1");
+        server.setName("Test Server");
+        server.setHost("localhost");
+        server.setHttpPort(8563);
+        server.setUsername("arthas");
+        server.setPassword("pswd123");
+        ArthasResponse response = arthasHttpClient.executeCommand(server, "version");
+
+        assertThat(response.getState()).isEqualTo("SUCCEEDED");
+    }
+
+    @Test
+    void httpBasicAuth_checkConnection_usesCorrectHeader() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenAnswer(invocation -> {
+                    HttpRequest request = invocation.getArgument(0);
+                    String authHeader = request.headers().firstValue("Authorization").get();
+                    assertThat(authHeader).isEqualTo("Basic YXJ0aGFzOnBzd2QxMjM=");
+                    return httpResponse;
+                });
+
+        ServerInfo server = new ServerInfo();
+        server.setUsername("arthas");
+        server.setPassword("pswd123");
+        boolean connected = arthasHttpClient.checkConnection(server);
+
+        assertThat(connected).isTrue();
+    }
+
+    @Test
+    void bearerToken_stillSupported_forBackwardCompatibility() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn("{\"state\":\"SUCCEEDED\"}");
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenAnswer(invocation -> {
+                    HttpRequest request = invocation.getArgument(0);
+                    String authHeader = request.headers().firstValue("Authorization").get();
+                    assertThat(authHeader).isEqualTo("Bearer legacy-token");
+                    return httpResponse;
+                });
+
+        ServerInfo server = new ServerInfo();
+        server.setToken("legacy-token");
+        ArthasResponse response = arthasHttpClient.executeCommand(server, "version");
+
+        assertThat(response.getState()).isEqualTo("SUCCEEDED");
+    }
 }
