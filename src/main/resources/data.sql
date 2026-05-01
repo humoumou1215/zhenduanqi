@@ -75,3 +75,20 @@ INSERT INTO scene_step (scene_id, step_order, title, description, command, expec
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (8, 2, '查看 ClassLoader 继承树', '查看 ClassLoader 继承树', 'classloader -t', '', FALSE, 10000, NULL, NOW(), NOW());
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (8, 3, '反编译查看源码', '反编译指定类查看源码', 'jad {className}', '', FALSE, 15000, NULL, NOW(), NOW());
 
+-- arthas_session 表
+CREATE TABLE IF NOT EXISTS arthas_session (
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    server_id           VARCHAR(50)  NOT NULL,
+    arthas_session_id   VARCHAR(100),
+    arthas_consumer_id  VARCHAR(100),
+    current_job_id      INT,
+    status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    username            VARCHAR(50) NOT NULL,
+    scene_id            BIGINT,
+    step_id             BIGINT,
+    command             TEXT,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_active_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    closed_at           TIMESTAMP
+);
+
