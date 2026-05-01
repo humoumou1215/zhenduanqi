@@ -126,6 +126,8 @@ public class AuditLogAspect {
                 auditEntry.setTarget(value);
             } else if ("target".equals(fieldName) && auditEntry.getTarget() == null) {
                 auditEntry.setTarget(value);
+            } else if ("username".equals(fieldName) && auditEntry.getUsername() == null) {
+                auditEntry.setUsername(value);
             }
         }
     }

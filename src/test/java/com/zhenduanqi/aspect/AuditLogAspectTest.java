@@ -147,6 +147,28 @@ class AuditLogAspectTest {
     }
 
     @Test
+    void loginRequest_withoutUsernameInRequestAttribute_extractsFromLoginRequest() throws Throwable {
+        request.setAttribute("username", null);
+        
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(
+                AuditLogAspectTest.class.getDeclaredMethod("loginMethodWithDTO", LoginRequest.class));
+        LoginRequest req = new LoginRequest();
+        req.setUsername("admin");
+        req.setPassword("secret123");
+        when(joinPoint.getArgs()).thenReturn(new Object[]{req});
+        when(joinPoint.proceed()).thenReturn("success");
+
+        aspect.logAround(joinPoint);
+
+        ArgumentCaptor<SysAuditLog> captor = ArgumentCaptor.forClass(SysAuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+        SysAuditLog log = captor.getValue();
+        assertThat(log.getUsername()).isEqualTo("admin");
+        assertThat(log.getAction()).isEqualTo("LOGIN");
+    }
+
+    @Test
     void executeResponse_succeeded_recordsSuccess() throws Throwable {
         when(joinPoint.getSignature()).thenReturn(signature);
         when(signature.getMethod()).thenReturn(
