@@ -103,3 +103,43 @@ export function updateGuardRule(id, data) {
 export function deleteGuardRule(id) {
   return api.delete(`/command-guard/rules/${id}`);
 }
+
+export function getScenes(params) {
+  return api.get('/scenes', { params });
+}
+
+export function getSceneById(id) {
+  return api.get(`/scenes/${id}`);
+}
+
+export function getSceneSteps(sceneId) {
+  return api.get(`/scenes/${sceneId}/steps`);
+}
+
+export function createScene(data) {
+  return api.post('/scenes', data);
+}
+
+export function updateScene(id, data) {
+  return api.put(`/scenes/${id}`, data);
+}
+
+export function deleteScene(id) {
+  return api.delete(`/scenes/${id}`);
+}
+
+export function addSceneStep(sceneId, data) {
+  return api.post(`/scenes/${sceneId}/steps`, data);
+}
+
+export function updateSceneStep(stepId, data) {
+  return api.put(`/scenes/steps/${stepId}`, data);
+}
+
+export function deleteSceneStep(stepId) {
+  return api.delete(`/scenes/steps/${stepId}`);
+}
+
+export function reorderSceneSteps(sceneId, stepIds) {
+  return api.put(`/scenes/${sceneId}/steps/reorder`, { stepIds });
+}
