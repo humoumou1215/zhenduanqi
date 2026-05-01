@@ -6,6 +6,7 @@ public class CreateSessionRequest {
     private String command;
     private Long sceneId;
     private Long stepId;
+    private Integer maxExecTime;
 
     public String getServerId() {
         return serverId;
@@ -37,5 +38,13 @@ public class CreateSessionRequest {
 
     public void setStepId(Long stepId) {
         this.stepId = stepId;
+    }
+
+    public Integer getMaxExecTime() {
+        return maxExecTime;
+    }
+
+    public void setMaxExecTime(Integer maxExecTime) {
+        this.maxExecTime = maxExecTime;
     }
 }

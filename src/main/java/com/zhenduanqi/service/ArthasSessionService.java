@@ -16,18 +16,27 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
 public class ArthasSessionService {
 
     private static final Logger log = LoggerFactory.getLogger(ArthasSessionService.class);
+    private static final int DEFAULT_MAX_EXEC_TIME = 30000;
 
     private final ArthasSessionRepository sessionRepository;
     private final ArthasServerService serverService;
     private final ArthasHttpClient arthasClient;
     private final CommandGuardService commandGuardService;
+    private final ScheduledExecutorService timeoutScheduler = Executors.newScheduledThreadPool(1);
+    private final Map<Long, ScheduledFuture<?>> timeoutTasks = new ConcurrentHashMap<>();
 
     public ArthasSessionService(ArthasSessionRepository sessionRepository,
                                 ArthasServerService serverService,
@@ -74,6 +83,9 @@ public class ArthasSessionService {
             savedSession = sessionRepository.save(savedSession);
         }
 
+        int maxExecTime = request.getMaxExecTime() != null ? request.getMaxExecTime() : DEFAULT_MAX_EXEC_TIME;
+        scheduleTimeoutTask(savedSession.getId(), maxExecTime);
+
         return ArthasSessionDTO.fromEntity(savedSession);
     }
 
@@ -93,6 +105,10 @@ public class ArthasSessionService {
             return List.of();
         }
         ArthasSession session = sessionOpt.get();
+        
+        session.setLastActiveAt(LocalDateTime.now());
+        sessionRepository.save(session);
+        
         Optional<ServerInfo> serverInfoOpt = serverService.findServerInfoById(session.getServerId());
         if (serverInfoOpt.isEmpty()) {
             return List.of();
@@ -112,6 +128,7 @@ public class ArthasSessionService {
         }
         boolean result = arthasClient.interruptJob(serverInfoOpt.get(), session.getArthasSessionId());
         log.info("中断任务: sessionId={}, result={}", sessionId, result);
+        cancelTimeoutTask(sessionId);
         return result;
     }
 
@@ -134,7 +151,29 @@ public class ArthasSessionService {
         session.setClosedAt(LocalDateTime.now());
         sessionRepository.save(session);
         log.info("关闭 Arthas 会话: sessionId={}", sessionId);
+        cancelTimeoutTask(sessionId);
         return true;
+    }
+
+    private void scheduleTimeoutTask(Long sessionId, int maxExecTimeMs) {
+        ScheduledFuture<?> future = timeoutScheduler.schedule(() -> {
+            log.info("命令执行超时，开始中断: sessionId={}", sessionId);
+            try {
+                interruptJob(sessionId);
+                closeSession(sessionId);
+            } catch (Exception e) {
+                log.error("超时处理失败: sessionId={}", sessionId, e);
+            }
+        }, maxExecTimeMs, TimeUnit.MILLISECONDS);
+        timeoutTasks.put(sessionId, future);
+    }
+
+    private void cancelTimeoutTask(Long sessionId) {
+        ScheduledFuture<?> future = timeoutTasks.remove(sessionId);
+        if (future != null && !future.isDone()) {
+            future.cancel(false);
+            log.debug("取消超时任务: sessionId={}", sessionId);
+        }
     }
 
     @Scheduled(fixedRate = 5 * 60 * 1000)
