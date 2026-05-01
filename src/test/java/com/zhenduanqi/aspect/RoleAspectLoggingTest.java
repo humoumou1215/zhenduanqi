@@ -54,18 +54,12 @@ class RoleAspectLoggingTest {
     void insufficientPermissions_logsWarn() throws Throwable {
         ListAppender<ILoggingEvent> appender = createListAppender();
         try {
-            RoleAspect roleAspect = new RoleAspect(userRepository);
+            RoleAspect roleAspect = new RoleAspect();
             MockHttpServletRequest request = new MockHttpServletRequest();
             MockHttpServletResponse response = new MockHttpServletResponse();
             request.setAttribute("username", "operator");
+            request.setAttribute("userRoles", Set.of("OPERATOR"));
             RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request, response));
-
-            SysRole operatorRole = new SysRole();
-            operatorRole.setRoleCode("OPERATOR");
-            SysUser user = new SysUser();
-            user.setUsername("operator");
-            user.setRoles(Set.of(operatorRole));
-            when(userRepository.findByUsername("operator")).thenReturn(Optional.of(user));
 
             when(joinPoint.getSignature()).thenReturn(signature);
             when(signature.getMethod()).thenReturn(

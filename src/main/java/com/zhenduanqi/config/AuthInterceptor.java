@@ -1,5 +1,8 @@
 package com.zhenduanqi.config;
 
+import com.zhenduanqi.entity.SysRole;
+import com.zhenduanqi.entity.SysUser;
+import com.zhenduanqi.repository.SysUserRepository;
 import com.zhenduanqi.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,15 +12,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(AuthInterceptor.class);
 
     private final AuthService authService;
+    private final SysUserRepository userRepository;
 
-    public AuthInterceptor(AuthService authService) {
+    public AuthInterceptor(AuthService authService, SysUserRepository userRepository) {
         this.authService = authService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -41,6 +49,16 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         log.debug("认证通过: username={}, path={}", username, path);
         request.setAttribute("username", username);
+        
+        // 一并查询用户角色并放入 request attribute
+        SysUser user = userRepository.findByUsername(username).orElse(null);
+        if (user != null) {
+            Set<String> userRoles = user.getRoles().stream()
+                    .map(SysRole::getRoleCode)
+                    .collect(Collectors.toSet());
+            request.setAttribute("userRoles", userRoles);
+        }
+        
         return true;
     }
 
