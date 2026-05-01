@@ -5,13 +5,15 @@ const api = axios.create({
   baseURL: '/api',
   timeout: 60000,
   withCredentials: true,
+  headers: {
+    'Accept': 'application/json',
+  },
 });
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      const userStore = null;
       import('../stores/user').then(({ useUserStore }) => {
         const store = useUserStore();
         store.isLoggedIn = false;
