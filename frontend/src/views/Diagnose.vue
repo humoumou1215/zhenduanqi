@@ -80,21 +80,20 @@
         >
       </div>
 
-      <el-collapse v-if="result.rawResponse" style="margin-top: 12px">
-        <el-collapse-item title="原始响应" v-show="expandRaw">
-          <pre
-            style="
-              background: #f5f7fa;
-              padding: 12px;
-              border-radius: 4px;
-              font-size: 12px;
-              max-height: 300px;
-              overflow: auto;
-            "
-            >{{ result.rawResponse }}</pre
-          >
-        </el-collapse-item>
-      </el-collapse>
+      <div v-if="result.rawResponse && expandRaw" style="margin-top: 12px">
+        <div style="font-weight: 500; margin-bottom: 8px; color: #606266">原始响应</div>
+        <pre
+          style="
+            background: #f5f7fa;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            max-height: 300px;
+            overflow: auto;
+          "
+          >{{ result.rawResponse }}</pre
+        >
+      </div>
     </el-card>
   </div>
 </template>
