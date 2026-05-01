@@ -118,12 +118,24 @@ Set-Cookie: zhenduanqi_token=xxxx; HttpOnly; SameSite=Strict; Path=/api; Max-Age
 **采集方式：** AOP 切面 + `@AuditLog` 自定义注解，同步写入 `sys_audit_log` 表
 
 ```java
-@AuditLog(action = "EXECUTE_COMMAND")
+@AuditLog(action = "执行诊断命令")
 @PostMapping("/execute")
 public ResponseEntity<ExecuteResponse> execute(@RequestBody ExecuteRequest request) {
     // ...
 }
+
+@AuditLog(action = "LOGIN")
+@PostMapping("/login")
+public ResponseEntity<?> login(@RequestBody LoginRequest request, ...) {
+    // ...
+}
 ```
+
+**实现细节：**
+- 使用 Jackson ObjectMapper 序列化请求参数为 JSON
+- 从 DTO 对象中自动提取 `command` 和 `serverId` 字段
+- 使用正则表达式匹配并脱敏敏感字段（password、token）
+- 支持嵌套 JSON 结构的参数序列化
 
 **记录内容（高可审计要求）：**
 | 字段 | 内容 | 脱敏规则 |
@@ -131,11 +143,11 @@ public ResponseEntity<ExecuteResponse> execute(@RequestBody ExecuteRequest reque
 | 操作人 | 登录用户名 | 不脱敏 |
 | 操作时间 | 请求时间 | 不脱敏 |
 | 来源 IP | 请求 IP | 不脱敏 |
-| 操作类型 | LOGIN / EXECUTE_COMMAND / MANAGE_SERVER / MANAGE_USER / MANAGE_SCENE / MANAGE_SESSION / etc. | 不脱敏 |
+| 操作类型 | LOGIN / LOGOUT / 执行诊断命令 / MANAGE_SERVER / MANAGE_USER / MANAGE_SCENE / MANAGE_SESSION / etc. | 不脱敏 |
 | 目标 | 服务器 ID、用户 ID 等操作对象标识 | 不脱敏 |
-| 指令内容 | Arthas 命令**原文完整记录** | 不脱敏（诊断命令非敏感信息） |
-| 请求参数 | 请求体的完整 JSON（不含已脱敏字段） | Token、password 字段自动替换为 `******` |
-| 执行结果 | SUCCESS / FAILED | 不脱敏（根据 ExecuteResponse.state 判断：succeeded → SUCCESS，其余 → FAILED） |
+| 指令内容 | Arthas 命令**原文完整记录**（从 ExecuteRequest.command 自动提取） | 不脱敏（诊断命令非敏感信息） |
+| 请求参数 | 请求体的完整 JSON（不含已脱敏字段） | password、token 字段自动替换为 `******` |
+| 执行结果 | SUCCESS / FAILED / BLOCKED | 不脱敏（根据 ExecuteResponse.state 判断：succeeded → SUCCESS，blocked → BLOCKED，其余 → FAILED） |
 | 结果详情 | 执行结果文本**完整记录**（ExecuteResponse 各字段序列化值） | 不脱敏 |
 | 耗时 | 请求处理耗时（ms） | 不脱敏 |
 
