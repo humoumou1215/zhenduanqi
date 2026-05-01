@@ -92,7 +92,7 @@ Set-Cookie: zhenduanqi_token=xxxx; HttpOnly; SameSite=Strict; Path=/api; Max-Age
 **拦截器层（粗粒度）：**
 - `POST /api/auth/login` → 公开，不校验
 - `/api/**` → 必须已认证（存在有效的 JWT Token）
-- 拦截器负责：Token 解析、校验、设置 `SecurityContext`
+- 拦截器负责：Token 解析、校验、设置 `request.setAttribute("username")` 和 `request.setAttribute("userRoles")`（用户角色集合），**一次性查询用户和角色信息**
 
 **注解层（细粒度）：**
 ```java
@@ -100,6 +100,7 @@ Set-Cookie: zhenduanqi_token=xxxx; HttpOnly; SameSite=Strict; Path=/api; Max-Age
 @RequireRole({OPERATOR, ADMIN})        // 操作员和管理员
 // 不加注解 → 任何已认证用户可访问
 ```
+- `RoleAspect` 直接从 `request.getAttribute("userRoles")` 读取用户角色集合，**避免重复查询数据库**，优化性能
 
 **角色定义：**
 | 角色 | 编码 | 权限范围 |

@@ -1,9 +1,6 @@
 package com.zhenduanqi.aspect;
 
 import com.zhenduanqi.annotation.RequireRole;
-import com.zhenduanqi.entity.SysRole;
-import com.zhenduanqi.entity.SysUser;
-import com.zhenduanqi.repository.SysUserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -17,19 +14,12 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Aspect
 @Component
 public class RoleAspect {
 
     private static final Logger log = LoggerFactory.getLogger(RoleAspect.class);
-
-    private final SysUserRepository userRepository;
-
-    public RoleAspect(SysUserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Around("@annotation(com.zhenduanqi.annotation.RequireRole)")
     public Object checkRole(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -49,16 +39,14 @@ public class RoleAspect {
             return null;
         }
 
-        SysUser user = userRepository.findByUsername(username).orElse(null);
-        if (user == null) {
+        // 直接从 request attribute 读取角色集合
+        @SuppressWarnings("unchecked")
+        Set<String> userRoles = (Set<String>) attrs.getRequest().getAttribute("userRoles");
+        if (userRoles == null) {
             attrs.getResponse().setStatus(403);
             attrs.getResponse().getWriter().write("{\"error\":\"用户不存在\"}");
             return null;
         }
-
-        Set<String> userRoles = user.getRoles().stream()
-                .map(SysRole::getRoleCode)
-                .collect(Collectors.toSet());
 
         boolean hasRole = Arrays.stream(allowedRoles).anyMatch(userRoles::contains);
         if (!hasRole) {

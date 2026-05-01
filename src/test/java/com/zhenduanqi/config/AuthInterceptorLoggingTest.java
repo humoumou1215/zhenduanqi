@@ -4,6 +4,8 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.zhenduanqi.entity.SysRole;
+import com.zhenduanqi.entity.SysUser;
 import com.zhenduanqi.repository.SysUserRepository;
 import com.zhenduanqi.service.AuthService;
 import jakarta.servlet.http.Cookie;
@@ -18,8 +20,11 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class AuthInterceptorLoggingTest {
@@ -36,7 +41,15 @@ class AuthInterceptorLoggingTest {
         TokenBlacklist tokenBlacklist = new TokenBlacklist();
         LoginRateLimiter rateLimiter = new LoginRateLimiter();
         AuthService authService = new AuthService(userRepository, new BCryptPasswordEncoder(), jwtUtil, tokenBlacklist, rateLimiter);
-        interceptor = new AuthInterceptor(authService);
+        interceptor = new AuthInterceptor(authService, userRepository);
+        
+        // 模拟用户数据
+        SysRole adminRole = new SysRole();
+        adminRole.setRoleCode("ADMIN");
+        SysUser adminUser = new SysUser();
+        adminUser.setUsername("admin");
+        adminUser.setRoles(Set.of(adminRole));
+        lenient().when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
     }
 
     private ListAppender<ILoggingEvent> createListAppender() {
