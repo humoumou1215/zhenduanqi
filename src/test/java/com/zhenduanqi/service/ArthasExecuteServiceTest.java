@@ -48,9 +48,6 @@ class ArthasExecuteServiceTest {
 
     @Test
     void execute_dangerousCommand_isBlocked() {
-        ArthasServerEntity server = createTestServer();
-
-        when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
         when(commandGuardService.check("ognl -x 1")).thenReturn(
             new CommandGuardService.GuardResult(true, "高危命令已被拦截: ognl")
         );
