@@ -16,6 +16,11 @@ spring:
       ddl-auto: update
     show-sql: false
     database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
 
 arthas:
   auth:
