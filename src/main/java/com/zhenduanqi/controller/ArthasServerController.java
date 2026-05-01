@@ -1,5 +1,7 @@
 package com.zhenduanqi.controller;
 
+import com.zhenduanqi.annotation.AuditLog;
+import com.zhenduanqi.annotation.RequireRole;
 import com.zhenduanqi.dto.ArthasServerDTO;
 import com.zhenduanqi.service.ArthasServerService;
 import org.springframework.http.HttpStatus;
@@ -31,18 +33,24 @@ public class ArthasServerController {
     }
 
     @PostMapping
+    @RequireRole("ADMIN")
+    @AuditLog(action = "创建服务器")
     public ResponseEntity<ArthasServerDTO> create(@RequestBody ArthasServerDTO dto) {
         ArthasServerDTO created = serverService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
+    @RequireRole("ADMIN")
+    @AuditLog(action = "更新服务器")
     public ResponseEntity<ArthasServerDTO> update(@PathVariable String id, @RequestBody ArthasServerDTO dto) {
         ArthasServerDTO updated = serverService.update(id, dto);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
+    @RequireRole("ADMIN")
+    @AuditLog(action = "删除服务器")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         serverService.delete(id);
         return ResponseEntity.noContent().build();

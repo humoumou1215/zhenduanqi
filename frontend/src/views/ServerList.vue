@@ -9,7 +9,9 @@
       "
     >
       <h3>服务器管理</h3>
-      <el-button type="primary" @click="openDialog()">添加服务器</el-button>
+      <el-button v-if="userStore.role === 'ADMIN'" type="primary" @click="openDialog()"
+        >添加服务器</el-button
+      >
     </div>
 
     <el-table :data="store.list" v-loading="store.loading" stripe style="width: 100%">
@@ -24,7 +26,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="180">
+      <el-table-column v-if="userStore.role === 'ADMIN'" label="操作" width="180">
         <template #default="{ row }">
           <el-button size="small" @click="openDialog(row)">编辑</el-button>
           <el-button size="small" type="danger" @click="handleDelete(row.id)">删除</el-button>
@@ -67,9 +69,11 @@
 import { ref, onMounted, reactive } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useServerStore } from '../stores/servers';
+import { useUserStore } from '../stores/user';
 import { createServer, updateServer, deleteServer, getServerStatus } from '../api';
 
 const store = useServerStore();
+const userStore = useUserStore();
 const dialogVisible = ref(false);
 const isEdit = ref(false);
 const saving = ref(false);
