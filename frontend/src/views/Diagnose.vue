@@ -67,7 +67,11 @@
         {{ result.error }}
       </div>
 
-      <div v-for="(r, i) in result.results" :key="i">
+      <div v-for="(r, i) in result.structuredResults" :key="i">
+        <component :is="getRenderer(r.type)" :data="r.data" />
+      </div>
+
+      <div v-if="result.results && result.results.length > 0 && !result.structuredResults" v-for="(r, i) in result.results" :key="'raw-' + i">
         <pre
           style="
             background: #f5f7fa;
@@ -104,6 +108,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useServerStore } from '../stores/servers';
 import { useUserStore } from '../stores/user';
 import { executeCommand } from '../api';
+import { getRenderer } from '../components/ResultRenderer';
 
 const store = useServerStore();
 const userStore = useUserStore();
