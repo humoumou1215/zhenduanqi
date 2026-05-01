@@ -24,10 +24,10 @@ spring:
 
 arthas:
   auth:
-    jwt-secret: ${JWT_SECRET}
+    jwt-secret: ${JWT_SECRET:render-default-jwt-secret-change-me-32chars!!}
     jwt-expiration-ms: ${JWT_EXPIRATION_MS:7200000}
   server:
-    token-secret: ${TOKEN_SECRET}
+    token-secret: ${TOKEN_SECRET:render-default-token-secret-16ch}
 
 logging:
   level:
