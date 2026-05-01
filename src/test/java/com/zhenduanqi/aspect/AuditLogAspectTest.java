@@ -1,5 +1,6 @@
 package com.zhenduanqi.aspect;
 
+import com.zhenduanqi.dto.ExecuteResponse;
 import com.zhenduanqi.entity.SysAuditLog;
 import com.zhenduanqi.repository.AuditLogRepository;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -10,10 +11,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -85,4 +89,69 @@ class AuditLogAspectTest {
 
     @com.zhenduanqi.annotation.AuditLog(action = "EXECUTE_COMMAND")
     public String dummyDiagnoseMethod() { return ""; }
+
+    @Test
+    void executeResponse_succeeded_recordsSuccess() throws Throwable {
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(
+                AuditLogAspectTest.class.getDeclaredMethod("dummyDiagnoseMethod"));
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"cmd1", "server-1"});
+
+        ExecuteResponse resp = new ExecuteResponse();
+        resp.setState("succeeded");
+        resp.setResults(List.of("result1"));
+        when(joinPoint.proceed()).thenReturn(ResponseEntity.ok(resp));
+
+        aspect.logAround(joinPoint);
+
+        ArgumentCaptor<SysAuditLog> captor = ArgumentCaptor.forClass(SysAuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+        SysAuditLog log = captor.getValue();
+        assertThat(log.getResult()).isEqualTo("SUCCESS");
+        assertThat(log.getResultDetail()).contains("state='succeeded'");
+        assertThat(log.getResultDetail()).contains("result1");
+    }
+
+    @Test
+    void executeResponse_failed_recordsFailed() throws Throwable {
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(
+                AuditLogAspectTest.class.getDeclaredMethod("dummyDiagnoseMethod"));
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"cmd1", "server-1"});
+
+        ExecuteResponse resp = new ExecuteResponse();
+        resp.setState("failed");
+        resp.setError("请求超时: timed out");
+        when(joinPoint.proceed()).thenReturn(ResponseEntity.ok(resp));
+
+        aspect.logAround(joinPoint);
+
+        ArgumentCaptor<SysAuditLog> captor = ArgumentCaptor.forClass(SysAuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+        SysAuditLog log = captor.getValue();
+        assertThat(log.getResult()).isEqualTo("FAILED");
+        assertThat(log.getResultDetail()).contains("state='failed'");
+        assertThat(log.getResultDetail()).contains("请求超时");
+    }
+
+    @Test
+    void executeResponse_blocked_recordsFailed() throws Throwable {
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(
+                AuditLogAspectTest.class.getDeclaredMethod("dummyDiagnoseMethod"));
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"cmd1", "server-1"});
+
+        ExecuteResponse resp = new ExecuteResponse();
+        resp.setState("blocked");
+        resp.setError("命令被拦截");
+        when(joinPoint.proceed()).thenReturn(ResponseEntity.ok(resp));
+
+        aspect.logAround(joinPoint);
+
+        ArgumentCaptor<SysAuditLog> captor = ArgumentCaptor.forClass(SysAuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+        SysAuditLog log = captor.getValue();
+        assertThat(log.getResult()).isEqualTo("FAILED");
+        assertThat(log.getResultDetail()).contains("state='blocked'");
+    }
 }

@@ -1,6 +1,7 @@
 package com.zhenduanqi.aspect;
 
 import com.zhenduanqi.annotation.AuditLog;
+import com.zhenduanqi.dto.ExecuteResponse;
 import com.zhenduanqi.entity.SysAuditLog;
 import com.zhenduanqi.repository.AuditLogRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +9,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -73,7 +75,12 @@ public class AuditLogAspect {
         long start = System.currentTimeMillis();
         try {
             Object result = joinPoint.proceed();
-            log.setResult("SUCCESS");
+            ExecuteResponse execResp = extractExecuteResponse(result);
+            if (execResp != null && !"succeeded".equals(execResp.getState())) {
+                log.setResult("FAILED");
+            } else {
+                log.setResult("SUCCESS");
+            }
             log.setResultDetail(result != null ? result.toString() : null);
             return result;
         } catch (Exception e) {
@@ -84,6 +91,19 @@ public class AuditLogAspect {
             log.setDurationMs(System.currentTimeMillis() - start);
             auditLogRepository.save(log);
         }
+    }
+
+    private ExecuteResponse extractExecuteResponse(Object result) {
+        if (result instanceof ResponseEntity<?> responseEntity) {
+            Object body = responseEntity.getBody();
+            if (body instanceof ExecuteResponse execResp) {
+                return execResp;
+            }
+        }
+        if (result instanceof ExecuteResponse execResp) {
+            return execResp;
+        }
+        return null;
     }
 
     private String extractField(String str, String fieldName) {

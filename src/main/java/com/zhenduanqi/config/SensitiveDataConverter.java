@@ -4,24 +4,17 @@ import ch.qos.logback.classic.pattern.MessageConverter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SensitiveDataConverter extends MessageConverter {
 
-    private static final List<Pattern> SENSITIVE_PATTERNS = List.of(
-            Pattern.compile("(password=)[^,\\s}]*"),
-            Pattern.compile("(password\":\")[^\"]*\""),
-            Pattern.compile("(token=)[^,\\s}]*"),
-            Pattern.compile("(token\":\")[^\"]*\""),
-            Pattern.compile("(Authorization:\\s*Bearer\\s+)\\S+")
-    );
-
-    private static final List<String> REPLACEMENTS = List.of(
-            "${1}******",
-            "${1}******\"",
-            "${1}******",
-            "${1}******\"",
-            "${1}******"
+    private static final List<MaskRule> MASK_RULES = List.of(
+            new MaskRule(Pattern.compile("(password=)[^,\\s}]*"), "$1******"),
+            new MaskRule(Pattern.compile("(password\":\")[^\"]*\""), "$1******\""),
+            new MaskRule(Pattern.compile("(token=)[^,\\s}]*"), "$1******"),
+            new MaskRule(Pattern.compile("(token\":\")[^\"]*\""), "$1******\""),
+            new MaskRule(Pattern.compile("(Authorization:\\s*Bearer\\s+)\\S+"), "$1******")
     );
 
     @Override
@@ -30,9 +23,23 @@ public class SensitiveDataConverter extends MessageConverter {
         if (message == null || message.isEmpty()) {
             return message;
         }
-        for (int i = 0; i < SENSITIVE_PATTERNS.size(); i++) {
-            message = SENSITIVE_PATTERNS.get(i).matcher(message).replaceAll(REPLACEMENTS.get(i));
+        for (MaskRule rule : MASK_RULES) {
+            message = rule.apply(message);
         }
         return message;
+    }
+
+    private static class MaskRule {
+        final Pattern pattern;
+        final String replacement;
+
+        MaskRule(Pattern pattern, String replacement) {
+            this.pattern = pattern;
+            this.replacement = replacement;
+        }
+
+        String apply(String message) {
+            return pattern.matcher(message).replaceAll(replacement);
+        }
     }
 }

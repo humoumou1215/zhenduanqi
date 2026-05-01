@@ -50,4 +50,10 @@ public class ExecuteResponse {
     public void setRawResponse(String rawResponse) {
         this.rawResponse = rawResponse;
     }
+
+    @Override
+    public String toString() {
+        return "ExecuteResponse{state='" + state + "', results=" + results
+                + ", error='" + error + "', rawResponse='" + rawResponse + "'}";
+    }
 }

@@ -27,3 +27,10 @@ arthas:
   auth:
     jwt-secret: zhenduanqi-dev-secret-key-change-in-production-32chars
     jwt-expiration-ms: 7200000
+
+logging:
+  level:
+    root: INFO
+    com.zhenduanqi: DEBUG
+  file:
+    name: ./logs/zhenduanqi.log

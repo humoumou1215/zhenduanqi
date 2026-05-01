@@ -135,8 +135,8 @@ public ResponseEntity<ExecuteResponse> execute(@RequestBody ExecuteRequest reque
 | 目标 | 服务器 ID、用户 ID 等操作对象标识 | 不脱敏 |
 | 指令内容 | Arthas 命令**原文完整记录** | 不脱敏（诊断命令非敏感信息） |
 | 请求参数 | 请求体的完整 JSON（不含已脱敏字段） | Token、password 字段自动替换为 `******` |
-| 执行结果 | SUCCESS / FAILED / BLOCKED | 不脱敏 |
-| 结果详情 | 执行结果文本**完整记录** | 不脱敏 |
+| 执行结果 | SUCCESS / FAILED | 不脱敏（根据 ExecuteResponse.state 判断：succeeded → SUCCESS，其余 → FAILED） |
+| 结果详情 | 执行结果文本**完整记录**（ExecuteResponse 各字段序列化值） | 不脱敏 |
 | 耗时 | 请求处理耗时（ms） | 不脱敏 |
 
 **数据表：**
