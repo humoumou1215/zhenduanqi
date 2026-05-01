@@ -19,13 +19,16 @@ public class ArthasExecuteService {
     private static final Logger log = LoggerFactory.getLogger(ArthasExecuteService.class);
 
     private final ArthasServerRepository serverRepository;
+    private final ArthasServerService serverService;
     private final ArthasHttpClient arthasClient;
     private final CommandGuardService commandGuardService;
 
-    public ArthasExecuteService(ArthasServerRepository serverRepository, 
+    public ArthasExecuteService(ArthasServerRepository serverRepository,
+                                ArthasServerService serverService,
                                 ArthasHttpClient arthasClient,
                                 CommandGuardService commandGuardService) {
         this.serverRepository = serverRepository;
+        this.serverService = serverService;
         this.arthasClient = arthasClient;
         this.commandGuardService = commandGuardService;
     }
@@ -40,12 +43,20 @@ public class ArthasExecuteService {
         }
 
         ArthasServerEntity entity = entityOpt.get();
+        Optional<String> decryptedTokenOpt = serverService.findDecryptedTokenById(serverId);
+        if (decryptedTokenOpt.isEmpty()) {
+            ExecuteResponse resp = new ExecuteResponse();
+            resp.setState("failed");
+            resp.setError("无法获取服务器 token: " + serverId);
+            return resp;
+        }
+
         ServerInfo serverInfo = new ServerInfo();
         serverInfo.setId(entity.getId());
         serverInfo.setName(entity.getName());
         serverInfo.setHost(entity.getHost());
         serverInfo.setHttpPort(entity.getHttpPort());
-        serverInfo.setToken(entity.getToken());
+        serverInfo.setToken(decryptedTokenOpt.get());
 
         var arthasResp = arthasClient.executeCommand(serverInfo, command);
         return ExecuteResponse.fromArthasResponse(arthasResp);
@@ -75,13 +86,26 @@ public class ArthasExecuteService {
     public Map<String, Object> getStatus(String serverId) {
         return serverRepository.findById(serverId)
                 .map(entity -> {
+                    Optional<String> decryptedTokenOpt = serverService.findDecryptedTokenById(serverId);
+                    if (decryptedTokenOpt.isEmpty()) {
+                        Map<String, Object> m = new HashMap<>();
+                        m.put("exists", true);
+                        m.put("id", entity.getId());
+                        m.put("name", entity.getName());
+                        m.put("host", entity.getHost());
+                        m.put("port", entity.getHttpPort());
+                        m.put("connected", false);
+                        return m;
+                    }
+
                     ServerInfo serverInfo = new ServerInfo();
                     serverInfo.setId(entity.getId());
                     serverInfo.setName(entity.getName());
                     serverInfo.setHost(entity.getHost());
                     serverInfo.setHttpPort(entity.getHttpPort());
-                    serverInfo.setToken(entity.getToken());
+                    serverInfo.setToken(decryptedTokenOpt.get());
                     boolean connected = arthasClient.checkConnection(serverInfo);
+
                     Map<String, Object> m = new HashMap<>();
                     m.put("exists", true);
                     m.put("id", entity.getId());

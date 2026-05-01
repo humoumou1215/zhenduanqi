@@ -24,6 +24,9 @@ class ArthasExecuteServiceTest {
     private ArthasServerRepository serverRepository;
 
     @Mock
+    private ArthasServerService serverService;
+
+    @Mock
     private ArthasHttpClient arthasClient;
 
     @Mock
@@ -33,7 +36,7 @@ class ArthasExecuteServiceTest {
 
     @BeforeEach
     void setUp() {
-        executeService = new ArthasExecuteService(serverRepository, arthasClient, commandGuardService);
+        executeService = new ArthasExecuteService(serverRepository, serverService, arthasClient, commandGuardService);
     }
 
     private ArthasServerEntity createTestServer() {
@@ -64,6 +67,7 @@ class ArthasExecuteServiceTest {
         ArthasServerEntity server = createTestServer();
 
         when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
+        when(serverService.findDecryptedTokenById("server1")).thenReturn(Optional.of("test-token"));
         when(commandGuardService.check("thread -n 5")).thenReturn(
             new CommandGuardService.GuardResult(false, null)
         );
@@ -83,6 +87,7 @@ class ArthasExecuteServiceTest {
         ArthasServerEntity server = createTestServer();
 
         when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
+        when(serverService.findDecryptedTokenById("server1")).thenReturn(Optional.of("test-token"));
         when(commandGuardService.check("jad --source-only com.example.Class")).thenReturn(
             new CommandGuardService.GuardResult(false, null)
         );
@@ -102,6 +107,7 @@ class ArthasExecuteServiceTest {
         ArthasServerEntity server = createTestServer();
 
         when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
+        when(serverService.findDecryptedTokenById("server1")).thenReturn(Optional.of("test-token"));
 
         ArthasResponse arthasResponse = new ArthasResponse();
         arthasResponse.setState("succeeded");
@@ -119,6 +125,7 @@ class ArthasExecuteServiceTest {
         ArthasServerEntity server = createTestServer();
 
         when(serverRepository.findById("server1")).thenReturn(Optional.of(server));
+        when(serverService.findDecryptedTokenById("server1")).thenReturn(Optional.of("test-token"));
 
         ArthasResponse arthasResponse = new ArthasResponse();
         arthasResponse.setState("succeeded");

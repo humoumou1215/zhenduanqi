@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.zhenduanqi.config.TokenEncryptionUtil;
 import com.zhenduanqi.dto.ArthasServerDTO;
 import com.zhenduanqi.repository.ArthasServerRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,11 +26,14 @@ class ArthasServerServiceLoggingTest {
     @Mock
     private ArthasServerRepository repository;
 
+    @Mock
+    private TokenEncryptionUtil encryptionUtil;
+
     private ArthasServerService service;
 
     @BeforeEach
     void setUp() {
-        service = new ArthasServerService(repository);
+        service = new ArthasServerService(repository, encryptionUtil);
     }
 
     private ListAppender<ILoggingEvent> createListAppender() {
