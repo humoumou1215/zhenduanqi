@@ -1,0 +1,1 @@
+import{H as s,I as t}from"./index-Bu9iOKNW.js";const r=s("servers",{state:()=>({list:[],loading:!1}),actions:{async fetchServers(){this.loading=!0;try{const e=await t();this.list=e.data}finally{this.loading=!1}}}});export{r as u};

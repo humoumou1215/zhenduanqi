@@ -40,7 +40,7 @@ public class SysUser {
     @JoinTable(name = "sys_user_role",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<SysRole> roles;
+    private Set<SysRole> roles = new java.util.HashSet<>();
 
     @PrePersist
     protected void onCreate() {
