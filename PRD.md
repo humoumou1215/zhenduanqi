@@ -1037,7 +1037,7 @@ zhenduanqi/
 | **前端渲染器** | 各 type 渲染组件的输入输出 | P1 | ✅ 已实现 |
 | **前端 extract_rules** | JSONPath 变量提取逻辑 | P1 |
 | **ArthasSessionService** | 会话创建/关闭、L1-L4 安全机制、孤儿清理 | P2 | ✅ 已实现 |
-| **ArthasHttpClient 异步** | async_exec/pull_results/interrupt_job | P2 |
+| **ArthasHttpClient 异步** | async_exec/pull_results/interrupt_job/init_session/join_session/close_session 方法测试 | P2 | ✅ 已实现 |
 | **前端 API 层** | Axios 拦截器、401 重定向 | P0 |
 
 ### 测试技术

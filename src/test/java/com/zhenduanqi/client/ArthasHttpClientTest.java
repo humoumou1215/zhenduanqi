@@ -1,8 +1,10 @@
 package com.zhenduanqi.client;
 
+import com.zhenduanqi.model.ArthasApiResponse;
 import com.zhenduanqi.model.ArthasResponse;
 import com.zhenduanqi.model.ArthasResult;
 import com.zhenduanqi.model.ServerInfo;
+import com.zhenduanqi.model.SessionInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -371,5 +373,270 @@ class ArthasHttpClientTest {
         ArthasResponse response = arthasHttpClient.executeCommand(server, "version");
 
         assertThat(response.getState()).isEqualTo("SUCCEEDED");
+    }
+
+    @Test
+    void initSession_returnsSessionInfo() throws Exception {
+        String initResponse = """
+            {
+              "sessionId": "new-session-id",
+              "consumerId": "new-consumer-id",
+              "state": "SUCCEEDED"
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(initResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        SessionInfo sessionInfo = arthasHttpClient.initSession(server);
+
+        assertThat(sessionInfo).isNotNull();
+        assertThat(sessionInfo.getSessionId()).isEqualTo("new-session-id");
+        assertThat(sessionInfo.getConsumerId()).isEqualTo("new-consumer-id");
+    }
+
+    @Test
+    void initSession_returnsNullOnFailure() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(500);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        SessionInfo sessionInfo = arthasHttpClient.initSession(server);
+
+        assertThat(sessionInfo).isNull();
+    }
+
+    @Test
+    void joinSession_returnsConsumerId() throws Exception {
+        String joinResponse = """
+            {
+              "consumerId": "joined-consumer-id",
+              "state": "SUCCEEDED"
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(joinResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        String consumerId = arthasHttpClient.joinSession(server, "existing-session");
+
+        assertThat(consumerId).isEqualTo("joined-consumer-id");
+    }
+
+    @Test
+    void joinSession_returnsNullOnFailure() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(500);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        String consumerId = arthasHttpClient.joinSession(server, "bad-session");
+
+        assertThat(consumerId).isNull();
+    }
+
+    @Test
+    void asyncExecuteCommand_returnsScheduledResponse() throws Exception {
+        String asyncResponse = """
+            {
+              "state": "SCHEDULED",
+              "sessionId": "test-session",
+              "body": {
+                "jobId": 42
+              }
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(asyncResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        ArthasApiResponse response = arthasHttpClient.asyncExecuteCommand(
+                server, "trace *.* *", "test-session");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getState()).isEqualTo("SCHEDULED");
+        assertThat(response.getSessionId()).isEqualTo("test-session");
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getJobId()).isEqualTo(42);
+        assertThat(response.getRawResponse()).isEqualTo(asyncResponse);
+    }
+
+    @Test
+    void asyncExecuteCommand_returnsFailedOnError() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(500);
+        when(httpResponse.body()).thenReturn("Internal Server Error");
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        ArthasApiResponse response = arthasHttpClient.asyncExecuteCommand(
+                server, "trace *.* *", "test-session");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getState()).isEqualTo("failed");
+    }
+
+    @Test
+    void asyncExecuteCommand_handlesException() throws Exception {
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenThrow(new java.net.ConnectException("Connection refused"));
+
+        ServerInfo server = createTestServer();
+        ArthasApiResponse response = arthasHttpClient.asyncExecuteCommand(
+                server, "trace *.* *", "test-session");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getState()).isEqualTo("failed");
+        assertThat(response.getRawResponse()).contains("Connection refused");
+    }
+
+    @Test
+    void pullResults_returnsResultList() throws Exception {
+        String pullResponse = """
+            {
+              "state": "SUCCEEDED",
+              "body": {
+                "results": [
+                  {
+                    "type": "trace",
+                    "data": {
+                      "class": "com.example.Test",
+                      "method": "doSomething",
+                      "cost": 1234
+                    }
+                  },
+                  {
+                    "type": "trace",
+                    "data": {
+                      "class": "com.example.Test",
+                      "method": "doSomething",
+                      "cost": 5678
+                    }
+                  }
+                ]
+              }
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(pullResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        List<ArthasResult> results = arthasHttpClient.pullResults(
+                server, "test-session", "test-consumer");
+
+        assertThat(results).isNotNull();
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).getType()).isEqualTo("trace");
+        assertThat(results.get(0).getData()).containsEntry("cost", 1234);
+    }
+
+    @Test
+    void pullResults_returnsEmptyListOnFailure() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(500);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        List<ArthasResult> results = arthasHttpClient.pullResults(
+                server, "test-session", "test-consumer");
+
+        assertThat(results).isNotNull();
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    void pullResults_returnsEmptyListOnException() throws Exception {
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenThrow(new java.net.ConnectException("Connection refused"));
+
+        ServerInfo server = createTestServer();
+        List<ArthasResult> results = arthasHttpClient.pullResults(
+                server, "test-session", "test-consumer");
+
+        assertThat(results).isNotNull();
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    void interruptJob_returnsTrueOnSuccess() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        boolean result = arthasHttpClient.interruptJob(server, "test-session");
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void interruptJob_returnsFalseOnFailure() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(500);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        boolean result = arthasHttpClient.interruptJob(server, "test-session");
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void interruptJob_returnsFalseOnException() throws Exception {
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenThrow(new java.net.ConnectException("Connection refused"));
+
+        ServerInfo server = createTestServer();
+        boolean result = arthasHttpClient.interruptJob(server, "test-session");
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void closeSession_returnsTrueOnSuccess() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        boolean result = arthasHttpClient.closeSession(server, "test-session");
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void closeSession_returnsFalseOnFailure() throws Exception {
+        when(httpResponse.statusCode()).thenReturn(500);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        boolean result = arthasHttpClient.closeSession(server, "test-session");
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void closeSession_returnsFalseOnException() throws Exception {
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenThrow(new java.net.ConnectException("Connection refused"));
+
+        ServerInfo server = createTestServer();
+        boolean result = arthasHttpClient.closeSession(server, "test-session");
+
+        assertThat(result).isFalse();
     }
 }
