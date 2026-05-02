@@ -621,6 +621,20 @@ CREATE TABLE arthas_session (
 - `ArthasServerService.findServerInfoById()` 方法统一处理认证信息的解密和组装
 - 前端服务器管理界面区分显示 Basic Auth 字段（用户名、密码）和旧版 Token 字段（标记为已废弃）
 
+**默认测试服务器：**
+系统启动后自动存在一台默认测试服务器，方便用户快速体验系统功能：
+- ID: `server-test`
+- 名称: 测试服务器
+- 主机: `47.99.63.148`
+- HTTP Port: `8563`
+- 用户名: `arthas`
+- 密码: `pswd123`
+
+**前端表单默认值：**
+新增服务器时，前端表单自动填充以下默认值：
+- HTTP Port: `8563`（Arthas 默认 HTTP 端口）
+- Username: `arthas`（Arthas 默认用户名）
+
 **加密方案（适用于密码和 Token）：**
 - 算法：AES/GCM/NoPadding（认证加密，防篡改）
 - IV：每次加密随机生成 12 字节 IV，前置于密文

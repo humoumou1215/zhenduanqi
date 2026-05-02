@@ -101,7 +101,7 @@ const defaultForm = () => ({
   name: '',
   host: '',
   httpPort: 8563,
-  username: '',
+  username: 'arthas',
   password: '',
   token: '',
 });
