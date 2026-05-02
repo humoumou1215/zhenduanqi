@@ -52,6 +52,12 @@ const routes = [
     component: () => import('../views/CommandGuard.vue'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/sessions',
+    name: 'SessionManage',
+    component: () => import('../views/SessionManage.vue'),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({

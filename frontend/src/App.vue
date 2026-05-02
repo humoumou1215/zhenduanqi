@@ -26,6 +26,9 @@
         <el-menu-item index="/command-guard" v-if="userStore.role === 'ADMIN'" style="color: white">
           命令守卫
         </el-menu-item>
+        <el-menu-item index="/sessions" v-if="userStore.role === 'ADMIN'" style="color: white">
+          会话管理
+        </el-menu-item>
       </el-menu>
       <div style="margin-left: 16px; display: flex; align-items: center; gap: 8px">
         <el-tag size="small" :type="roleTagType" effect="dark">{{ userStore.role }}</el-tag>
