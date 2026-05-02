@@ -100,6 +100,7 @@ Set-Cookie: zhenduanqi_token=xxxx; HttpOnly; SameSite=Strict; Path=/api; Max-Age
 @RequireRole({OPERATOR, ADMIN})        // 操作员和管理员
 // 不加注解 → 任何已认证用户可访问
 ```
+- `RoleAspect` 直接从 `request.getAttribute("userRoles")` 读取用户角色集合，**避免重复查询数据库**，优化性能
 
 **性能优化：**
 - **原有问题：** AuthInterceptor 和 RoleAspect 分别查询数据库，每次请求两次 DB 访问
