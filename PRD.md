@@ -671,7 +671,7 @@ public class ArthasResult {
 | type | 渲染器 | data 字段说明 |
 |------|--------|---------------|
 | `status` | StatusRenderer | `statusCode` (0=成功, 非0=失败), `message` |
-| `thread` | ThreadRenderer | `threads` 数组或单个线程对象，每个包含 `name`, `status`, `cpu`, `deltaTime`, `lockedMonitors`, `threadId` |
+| `thread` | ThreadRenderer | `busyThreads` 数组（`thread -n`）或 `threads` 数组，每个线程含 `name`, `state`(状态), `cpu`, `deltaTime`, `id`(线程ID), `lockedMonitors` |
 | `memory` | MemoryRenderer | `memory` 数组或单个内存区域对象，每个包含 `name`, `used`, `total` |
 | `enhancer` | EnhancerRenderer | `success` (boolean), `effect` { `cost`, `classCount`, `methodCount` }, `message` |
 | 其他 | FallbackRenderer | 原始 JSON 展示 |
@@ -681,8 +681,8 @@ public class ArthasResult {
 | 命令 | result type | data 字段 |
 |------|-------------|-----------|
 | `thread -b` | `status` | `statusCode`, `message` (无死锁时: "No most blocking thread found!") |
-| `thread -n 5` | `thread` | `threads` 数组，每个含 `name`, `status`, `cpu`, `deltaTime`, `threadId` |
-| `thread {id}` | `thread` | 单个线程对象，含 `name`, `status`, `cpu`, `stackTrace` 等 |
+| `thread -n 5` | `thread` | `busyThreads` 数组，每个含 `name`, `state`, `cpu`, `deltaTime`, `id` |
+| `thread {id}` | `thread` | 单个线程对象，含 `name`, `state`, `cpu`, `stackTrace` 等 |
 | `memory` | `memory` | 内存区域数组，每个含 `name`, `used`, `total`, `usagePercent` |
 | `dashboard -n 1` | `dashboard` | `threads`, `memory`, `gc` 等综合信息 |
 | `sc -d {class}` | `class` | `classInfo`, `codeSource`, `classLoaderHash` 等 |
