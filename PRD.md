@@ -1000,16 +1000,19 @@ zhenduanqi/
 - ✅ 半自动变量填充（extract_rules + jsonpath-plus）
 - ✅ 前端 diagnose store（步骤状态管理、变量缓存）
 
-### 第三阶段（P2）：场景模板引擎 — 异步版
+### 第三阶段（P2）：场景模板引擎 — 异步版 ✅ 已完成
 目标：实现连续输出命令场景的诊断 + 会话安全管控
-- ArthasHttpClient 支持 async_exec + pull_results + interrupt_job
-- Arthas 会话管理（创建/轮询/中断/关闭）
-- arthas_session 表 + 持久化
-- **L2 会话级超时**：基于 `created_at` 的 10 分钟超时清理（`cleanupStaleSessions` 定时任务，每 1 分钟执行）
-- L4 孤儿清理定时任务（基于 `last_active_at` 的超时清理）
-- 活跃会话管理页（ADMIN）
-- 刷新恢复（重连会话 + 恢复步骤状态）
-- 场景6-8 完整异步模式支持
+- ✅ ArthasHttpClient 支持 async_exec + pull_results + interrupt_job
+- ✅ Arthas 会话管理（创建/轮询/中断/关闭）
+- ✅ arthas_session 表 + 持久化
+- ✅ **L1 命令级超时**：基于 `max_exec_time` 的命令超时自动中断
+- ✅ **L2 会话级超时**：基于 `created_at` 的 10 分钟超时清理（`cleanupStaleSessions` 定时任务，每 1 分钟执行）
+- ✅ **L3 增强类自动重置**：每步结束后立即 reset
+- ✅ **L4 孤儿清理定时任务**：基于 `last_active_at` 的超时清理（每 5 分钟执行）
+- ✅ 活跃会话管理页（ADMIN）
+- ✅ 刷新恢复（重连会话 + 恢复步骤状态）
+- ✅ 场景6-8 完整异步模式支持
+- ✅ 场景6-8 预置数据 + 端到端验证
 
 ## Testing Decisions
 
