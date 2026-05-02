@@ -143,3 +143,23 @@ export function deleteSceneStep(stepId) {
 export function reorderSceneSteps(sceneId, stepIds) {
   return api.put(`/scenes/${sceneId}/steps/reorder`, { stepIds });
 }
+
+export function createSession(data) {
+  return api.post('/arthas-sessions', data);
+}
+
+export function getActiveSessions(params) {
+  return api.get('/arthas-sessions', { params });
+}
+
+export function pullSessionResults(id) {
+  return api.get(`/arthas-sessions/${id}/results`);
+}
+
+export function interruptSessionJob(id) {
+  return api.post(`/arthas-sessions/${id}/interrupt`);
+}
+
+export function closeSession(id) {
+  return api.post(`/arthas-sessions/${id}/close`);
+}
