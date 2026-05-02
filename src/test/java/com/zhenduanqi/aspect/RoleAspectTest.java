@@ -1,8 +1,5 @@
 package com.zhenduanqi.aspect;
 
-import com.zhenduanqi.entity.SysRole;
-import com.zhenduanqi.entity.SysUser;
-import com.zhenduanqi.repository.SysUserRepository;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.Test;
@@ -14,7 +11,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,8 +19,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class RoleAspectTest {
 
-    @Mock
-    private SysUserRepository userRepository;
     @Mock
     private ProceedingJoinPoint joinPoint;
     @Mock
@@ -86,6 +80,20 @@ class RoleAspectTest {
 
         assertThat(result).isNull();
         assertThat(response.getStatus()).isEqualTo(401);
+        verify(joinPoint, never()).proceed();
+    }
+
+    @Test
+    void userWithoutRoles_onSecuredEndpoint_returns403() throws Throwable {
+        setUpRequest("user", null);
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(
+                RoleAspectTest.class.getDeclaredMethod("adminOnlyEndpoint"));
+
+        Object result = roleAspect.checkRole(joinPoint);
+
+        assertThat(result).isNull();
+        assertThat(response.getStatus()).isEqualTo(403);
         verify(joinPoint, never()).proceed();
     }
 
