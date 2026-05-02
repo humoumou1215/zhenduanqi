@@ -1,7 +1,9 @@
 package com.zhenduanqi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ArthasApiResponse {
     private String state;
     private String sessionId;
@@ -52,6 +54,7 @@ public class ArthasApiResponse {
         this.rawResponse = rawResponse;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Body {
         private List<ArthasResult> results;
         private Integer jobId;

@@ -58,13 +58,23 @@ public class ArthasServerService {
         info.setHttpPort(entity.getHttpPort());
         
         if (entity.getToken() != null) {
-            info.setToken(encryptionUtil.decrypt(entity.getToken()));
+            try {
+                info.setToken(encryptionUtil.decrypt(entity.getToken()));
+            } catch (Exception e) {
+                log.warn("Token decryption failed, using raw value for server {}", entity.getId());
+                info.setToken(entity.getToken());
+            }
         }
         
         info.setUsername(entity.getUsername());
         
         if (entity.getPassword() != null) {
-            info.setPassword(encryptionUtil.decrypt(entity.getPassword()));
+            try {
+                info.setPassword(encryptionUtil.decrypt(entity.getPassword()));
+            } catch (Exception e) {
+                log.warn("Password decryption failed, using raw value for server {}", entity.getId());
+                info.setPassword(entity.getPassword());
+            }
         }
         
         return info;

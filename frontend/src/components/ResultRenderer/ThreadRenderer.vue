@@ -57,16 +57,30 @@ const tableData = computed(() => {
     return defaultThreadData;
   }
   if (Array.isArray(props.data)) {
-    return props.data;
+    return props.data.map(normalizeThread);
+  }
+  if (props.data?.busyThreads) {
+    return props.data.busyThreads.map(normalizeThread);
   }
   if (props.data?.threads) {
-    return props.data.threads;
+    return props.data.threads.map(normalizeThread);
   }
-  if (props.data?.name || props.data?.threadId) {
-    return [props.data];
+  if (props.data?.name || props.data?.threadId || props.data?.id) {
+    return [normalizeThread(props.data)];
   }
   return defaultThreadData;
 });
+
+function normalizeThread(thread) {
+  return {
+    name: thread.name,
+    status: thread.state || thread.status,
+    cpu: thread.cpu,
+    deltaTime: thread.deltaTime,
+    lockedMonitors: thread.lockedMonitors?.length || thread.lockedMonitors || 0,
+    threadId: thread.id || thread.threadId
+  };
+}
 
 const isExample = computed(() => {
   return !props.data || Object.keys(props.data).length === 0;
