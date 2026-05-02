@@ -1,5 +1,6 @@
 package com.zhenduanqi.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -13,6 +14,7 @@ public class SceneStep {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scene_id", nullable = false)
+    @JsonBackReference
     private DiagnoseScene scene;
 
     @Column(name = "step_order", nullable = false)

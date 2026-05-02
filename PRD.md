@@ -186,6 +186,38 @@ CREATE TABLE sys_audit_log (
 - 行详情展开：完整查看 instruction 指令、params、result_detail
 - 仅 ADMIN 可访问
 
+### JPA 实体 JSON 序列化策略
+
+**问题背景：**
+- JPA 双向关联实体（如 DiagnoseScene ↔ SceneStep）在 Jackson 序列化为 JSON 时会发生无限递归，导致 API 响应膨胀甚至崩溃。
+
+**解决方案：**
+采用 **`@JsonManagedReference` + `@JsonBackReference` 配对注解打破循环引用：
+- 在 `@JsonManagedReference：在**父实体的集合字段上（如 DiagnoseScene.steps）→ 序列化时包含此字段
+- 在 `@JsonBackReference`：在**子实体的反向字段上（如 SceneStep.scene）→ 序列化时忽略此字段
+
+**代码示例：**
+```java
+// DiagnoseScene.java
+@OneToMany(mappedBy = "scene", ...")
+@JsonManagedReference
+private List<SceneStep> steps;
+
+// SceneStep.java
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "scene_id", nullable = false)
+@JsonBackReference
+private DiagnoseScene scene;
+```
+
+**效果：**
+- JSON 输出：DiagnoseScene 包含 steps 数组，但 SceneStep 不包含 scene 字段，避免循环递归
+- JPA 关系不受影响：数据库关联查询正常
+
+**为什么选择此策略，而非 @JsonIgnore：**
+- `@JsonBackReference` 语义清晰，表示这是反向引用，应该在序列化时被忽略
+- 如果未来有需要单独查询 SceneStep 的场景，可以通过 DTO 或其他方式处理
+
 ### 应用运行时日志策略
 
 **与审计日志的边界：**
