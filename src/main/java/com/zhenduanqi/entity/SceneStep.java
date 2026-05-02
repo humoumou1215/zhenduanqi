@@ -1,6 +1,7 @@
 package com.zhenduanqi.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,6 +14,7 @@ public class SceneStep {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scene_id", nullable = false)
+    @JsonIgnore
     private DiagnoseScene scene;
 
     @Column(name = "step_order", nullable = false)
