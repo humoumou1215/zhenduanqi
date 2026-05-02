@@ -26,6 +26,9 @@
         </template>
       </el-table-column>
     </el-table>
+    <div v-if="isExample" style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic">
+      (示例数据)
+    </div>
   </div>
 </template>
 
@@ -35,11 +38,23 @@ import { computed } from 'vue';
 const props = defineProps({
   data: {
     type: Object,
-    required: true
+    default: () => ({})
   }
 });
 
+const defaultMemoryData = [
+  { name: 'Heap Memory', used: 268435456, total: 536870912 },
+  { name: 'Non-Heap Memory', used: 67108864, total: 134217728 },
+  { name: 'Eden Space', used: 134217728, total: 268435456 },
+  { name: 'Survivor Space', used: 16777216, total: 33554432 },
+  { name: 'Old Gen', used: 117440512, total: 268435456 },
+  { name: 'Metaspace', used: 50331648, total: 100663296 }
+];
+
 const tableData = computed(() => {
+  if (!props.data || Object.keys(props.data).length === 0) {
+    return defaultMemoryData;
+  }
   if (Array.isArray(props.data)) {
     return props.data;
   }
@@ -49,7 +64,11 @@ const tableData = computed(() => {
   if (props.data?.name) {
     return [props.data];
   }
-  return [];
+  return defaultMemoryData;
+});
+
+const isExample = computed(() => {
+  return !props.data || Object.keys(props.data).length === 0;
 });
 
 function formatBytes(bytes) {
