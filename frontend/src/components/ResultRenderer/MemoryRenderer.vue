@@ -46,7 +46,10 @@ const tableData = computed(() => {
   if (props.data?.memory) {
     return props.data.memory;
   }
-  return [props.data];
+  if (props.data?.name) {
+    return [props.data];
+  }
+  return [];
 });
 
 function formatBytes(bytes) {

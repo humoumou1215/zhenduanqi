@@ -630,6 +630,108 @@ CREATE TABLE arthas_session (
 - 读取解密：`ArthasServerService.findServerInfoById()` 方法解密后供执行引擎使用
 - API 返回：`ArthasServerDTO.fromEntity()` 不返回密码和 Token 字段，仅返回用户名
 
+### Arthas HTTP API 响应格式规范
+
+**数据模型设计：**
+
+Arthas HTTP API 返回的结果是扁平结构，每个 result 对象包含 `type` 字段和其他命令相关字段。后端使用 `@JsonAnySetter` 注解将所有非 `type` 字段自动收集到 `data` Map 中。
+
+```java
+public class ArthasResult {
+    private String type;
+    private Map<String, Object> data = new HashMap<>();
+
+    @JsonAnySetter
+    public void addExtraField(String key, Object value) {
+        if (!"type".equals(key)) {
+            data.put(key, value);
+        }
+    }
+}
+```
+
+**前端渲染器约定：**
+
+前端渲染器接收 `data` 对象，根据 `type` 选择渲染组件：
+
+| type | 渲染器 | data 字段说明 |
+|------|--------|---------------|
+| `status` | StatusRenderer | `statusCode` (0=成功, 非0=失败), `message` |
+| `thread` | ThreadRenderer | `threads` 数组或单个线程对象，每个包含 `name`, `status`, `cpu`, `deltaTime`, `lockedMonitors`, `threadId` |
+| `memory` | MemoryRenderer | `memory` 数组或单个内存区域对象，每个包含 `name`, `used`, `total` |
+| `enhancer` | EnhancerRenderer | `success` (boolean), `effect` { `cost`, `classCount`, `methodCount` }, `message` |
+| 其他 | FallbackRenderer | 原始 JSON 展示 |
+
+**预置场景涉及的命令响应格式：**
+
+| 命令 | result type | data 字段 |
+|------|-------------|-----------|
+| `thread -b` | `status` | `statusCode`, `message` (无死锁时: "No most blocking thread found!") |
+| `thread -n 5` | `thread` | `threads` 数组，每个含 `name`, `status`, `cpu`, `deltaTime`, `threadId` |
+| `thread {id}` | `thread` | 单个线程对象，含 `name`, `status`, `cpu`, `stackTrace` 等 |
+| `memory` | `memory` | 内存区域数组，每个含 `name`, `used`, `total`, `usagePercent` |
+| `dashboard -n 1` | `dashboard` | `threads`, `memory`, `gc` 等综合信息 |
+| `sc -d {class}` | `class` | `classInfo`, `codeSource`, `classLoaderHash` 等 |
+| `watch` | `watch` | `value` (watch 表达式结果), `cost`, `ts` |
+| `trace` | `trace` | `value` (调用链), `cost`, `ts` |
+| `monitor` | `monitor` | `timestamp`, `class`, `method`, `total`, `success`, `fail`, `avgRt` |
+| `stack` | `stack` | `value` (调用栈), `ts` |
+| `jad {class}` | `jad` | `classInfo`, `codeSource`, `location`, `source` (反编译代码) |
+| `classloader -t` | `classloader` | `classLoaders` 数组，含继承关系 |
+| `vmoption` | `vmoption` | `options` 数组，每个含 `name`, `value`, `origin` |
+| `sysenv` | `sysenv` | `env` 对象，键值对 |
+| `version` | `version` | `version` 字符串 |
+
+**特殊 result type 说明：**
+
+| type | 说明 | data 字段 |
+|------|------|-----------|
+| `status` | 命令执行状态，每个命令结束后必有 | `jobId`, `statusCode` (0=成功), `message` (失败时) |
+| `enhancer` | 类增强结果，trace/watch/jad 等命令产生 | `success`, `effect` { `listenerId`, `cost`, `classCount`, `methodCount` } |
+| `command` | 命令回显，异步执行时返回 | `jobId`, `state`, `command` |
+| `input_status` | 输入状态控制 | `inputStatus` (`ALLOW_INPUT`/`ALLOW_INTERRUPT`/`DISABLED`) |
+
+**示例响应：**
+
+```json
+{
+  "state": "SUCCEEDED",
+  "sessionId": "xxx",
+  "body": {
+    "results": [
+      {
+        "type": "thread",
+        "name": "main",
+        "status": "RUNNABLE",
+        "cpu": 0.5,
+        "threadId": 1
+      },
+      {
+        "type": "status",
+        "jobId": 5,
+        "statusCode": 0
+      }
+    ]
+  }
+}
+```
+
+后端解析后，前端收到：
+```json
+{
+  "structuredResults": [
+    {
+      "type": "thread",
+      "data": { "name": "main", "status": "RUNNABLE", "cpu": 0.5, "threadId": 1 }
+    },
+    {
+      "type": "status",
+      "data": { "jobId": 5, "statusCode": 0 }
+    }
+  ]
+}
+```
+
 ### 部署策略 (Render 免费层)
 
 **目标：** PR 合并到 main 后自动部署到 Render 免费层，供调试使用。

@@ -3,6 +3,11 @@
     <el-tag :type="tagType" size="small">
       {{ tagText }}
     </el-tag>
+    <div v-if="props.data?.effect" style="margin-top: 8px; color: #606266; font-size: 13px">
+      <span>增强耗时: {{ props.data.effect.cost }}ms</span>
+      <span style="margin-left: 16px">类数: {{ props.data.effect.classCount }}</span>
+      <span style="margin-left: 16px">方法数: {{ props.data.effect.methodCount }}</span>
+    </div>
     <div v-if="props.data?.message" style="margin-top: 8px; color: #909399; font-size: 13px">
       {{ props.data.message }}
     </div>
@@ -25,9 +30,7 @@ const tagType = computed(() => {
 
 const tagText = computed(() => {
   if (props.data?.success === true) {
-    const classes = props.data.enhancedClasses || 0;
-    const methods = props.data.enhancedMethods || 0;
-    return `增强成功: ${classes} 类 / ${methods} 方法`;
+    return '增强成功';
   }
   return '增强失败';
 });

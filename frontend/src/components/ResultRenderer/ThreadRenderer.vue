@@ -9,8 +9,16 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="cpu" label="CPU%" width="70" align="right" />
-      <el-table-column prop="deltaTime" label="Delta(ms)" width="100" align="right" />
+      <el-table-column prop="cpu" label="CPU%" width="70" align="right">
+        <template #default="{ row }">
+          {{ row.cpu != null ? row.cpu.toFixed(1) : '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="deltaTime" label="Delta(ms)" width="100" align="right">
+        <template #default="{ row }">
+          {{ row.deltaTime != null ? row.deltaTime : '-' }}
+        </template>
+      </el-table-column>
       <el-table-column prop="lockedMonitors" label="阻塞锁" width="80" align="center">
         <template #default="{ row }">
           <span v-if="row.lockedMonitors > 0" style="color: #f56c6c">
@@ -19,6 +27,7 @@
           <span v-else>-</span>
         </template>
       </el-table-column>
+      <el-table-column prop="threadId" label="线程ID" width="80" align="center" />
     </el-table>
   </div>
 </template>
@@ -40,13 +49,16 @@ const tableData = computed(() => {
   if (props.data?.threads) {
     return props.data.threads;
   }
-  return [props.data];
+  if (props.data?.name || props.data?.threadId) {
+    return [props.data];
+  }
+  return [];
 });
 
 function getStatusType(status) {
   if (status === 'RUNNABLE') return 'success';
   if (status === 'BLOCKED') return 'danger';
-  if (status === 'WAITING') return 'warning';
+  if (status === 'WAITING' || status === 'TIMED_WAITING') return 'warning';
   return 'info';
 }
 </script>
