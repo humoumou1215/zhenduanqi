@@ -54,6 +54,7 @@ INSERT INTO scene_step (scene_id, step_order, title, description, command, expec
 
 -- 场景 4 步骤
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (4, 1, '查看内存区', '查看各内存区使用情况', 'memory', '', FALSE, 10000, NULL, NOW(), NOW());
+INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (4, 2, '查看各内存池详情', '使用 vmtool 查看各内存池的详细信息', 'vmtool --action getInstances --className java.lang.management.MemoryPoolMXBean', '', FALSE, 15000, NULL, NOW(), NOW());
 
 -- 场景 5 步骤
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (5, 1, 'JVM 概览', '查看 JVM 运行概览', 'dashboard -n 1', '', FALSE, 15000, NULL, NOW(), NOW());
