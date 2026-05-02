@@ -215,4 +215,23 @@ public class ArthasSessionService {
         }
         log.info("清理孤儿会话完成: count={}", orphanSessions.size());
     }
+
+    @Scheduled(fixedRate = 1 * 60 * 1000)
+    public void cleanupStaleSessions() {
+        LocalDateTime tenMinutesAgo = LocalDateTime.now().minusMinutes(10);
+        List<ArthasSession> staleSessions = sessionRepository.findByCreatedAtBeforeAndStatus(tenMinutesAgo, "ACTIVE");
+        for (ArthasSession session : staleSessions) {
+            try {
+                log.warn("会话级超时，开始清理: sessionId={}, createdAt={}", session.getId(), session.getCreatedAt());
+                interruptJob(session.getId());
+                closeSession(session.getId());
+                log.info("会话级超时清理完成: sessionId={}", session.getId());
+            } catch (Exception e) {
+                log.error("会话级超时清理失败: sessionId={}", session.getId(), e);
+            }
+        }
+        if (!staleSessions.isEmpty()) {
+            log.info("会话级超时清理完成: count={}", staleSessions.size());
+        }
+    }
 }

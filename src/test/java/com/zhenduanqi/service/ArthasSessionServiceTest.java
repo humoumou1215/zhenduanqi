@@ -302,4 +302,66 @@ class ArthasSessionServiceTest {
         verify(sessionRepository).save(orphanSession);
         assertThat(orphanSession.getStatus()).isEqualTo("CLOSED");
     }
+
+    @Test
+    void cleanupStaleSessions_closesSessionsOlderThan10Minutes() {
+        ArthasSession staleSession = new ArthasSession();
+        staleSession.setId(1L);
+        staleSession.setServerId("server1");
+        staleSession.setArthasSessionId("arthas-session-1");
+        staleSession.setStatus("ACTIVE");
+        staleSession.setCreatedAt(LocalDateTime.now().minusMinutes(15));
+        staleSession.setLastActiveAt(LocalDateTime.now().minusMinutes(5));
+
+        when(sessionRepository.findByCreatedAtBeforeAndStatus(any(LocalDateTime.class), eq("ACTIVE")))
+                .thenReturn(List.of(staleSession));
+        when(sessionRepository.findById(1L)).thenReturn(Optional.of(staleSession));
+        ServerInfo serverInfo = createTestServerInfo();
+        when(serverService.findServerInfoById("server1")).thenReturn(Optional.of(serverInfo));
+        when(sessionRepository.save(any(ArthasSession.class))).thenReturn(staleSession);
+
+        sessionService.cleanupStaleSessions();
+
+        verify(sessionRepository).save(staleSession);
+        assertThat(staleSession.getStatus()).isEqualTo("CLOSED");
+    }
+
+    @Test
+    void cleanupStaleSessions_doesNotCloseRecentSessions() {
+        ArthasSession recentSession = new ArthasSession();
+        recentSession.setId(2L);
+        recentSession.setServerId("server1");
+        recentSession.setStatus("ACTIVE");
+        recentSession.setCreatedAt(LocalDateTime.now().minusMinutes(5));
+
+        when(sessionRepository.findByCreatedAtBeforeAndStatus(any(LocalDateTime.class), eq("ACTIVE")))
+                .thenReturn(List.of());
+
+        sessionService.cleanupStaleSessions();
+
+        verify(sessionRepository, never()).save(any(ArthasSession.class));
+    }
+
+    @Test
+    void cleanupStaleSessions_activeSessionNotClosed() {
+        ArthasSession activeSession = new ArthasSession();
+        activeSession.setId(3L);
+        activeSession.setServerId("server1");
+        activeSession.setArthasSessionId("arthas-session-3");
+        activeSession.setStatus("ACTIVE");
+        activeSession.setCreatedAt(LocalDateTime.now().minusMinutes(15));
+        activeSession.setLastActiveAt(LocalDateTime.now().minusSeconds(30));
+
+        when(sessionRepository.findByCreatedAtBeforeAndStatus(any(LocalDateTime.class), eq("ACTIVE")))
+                .thenReturn(List.of(activeSession));
+        when(sessionRepository.findById(3L)).thenReturn(Optional.of(activeSession));
+        ServerInfo serverInfo = createTestServerInfo();
+        when(serverService.findServerInfoById("server1")).thenReturn(Optional.of(serverInfo));
+        when(sessionRepository.save(any(ArthasSession.class))).thenReturn(activeSession);
+
+        sessionService.cleanupStaleSessions();
+
+        verify(sessionRepository).save(activeSession);
+        assertThat(activeSession.getStatus()).isEqualTo("CLOSED");
+    }
 }

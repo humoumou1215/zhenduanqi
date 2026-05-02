@@ -541,9 +541,9 @@ CREATE TABLE scene_step (
 | 层 | 机制 | 说明 |
 |----|------|------|
 | L1 命令级超时 | 步骤定义的 `max_exec_time` 字段，默认 30s | 到时后自动 `interrupt_job` |
-| L2 会话级超时 | 每个 Arthas 会话最大存活时间，默认 10 分钟 | 到时后自动 `close_session` + `reset` |
+| L2 会话级超时 | 每个 Arthas 会话最大存活时间，默认 10 分钟 | 到时后自动 `close_session` + `reset`，通过 `cleanupStaleSessions` 定时任务（每 1 分钟）检查 `created_at` |
 | L3 增强类自动重置 | 每个步骤执行结束后立即执行 `reset` 命令 | 清除 watch/trace 的字节码增强，安全优先级最高 |
-| L4 孤儿会话清理 | 后端定时任务（每 5 分钟）扫描超时会话，主动关闭 | 防止任何异常导致的会话泄漏 |
+| L4 孤儿会话清理 | 后端定时任务（每 5 分钟）扫描超时会话 | 检查 `last_active_at`，清理无响应的孤儿会话 |
 
 **会话生命周期：**
 ```
@@ -1005,7 +1005,8 @@ zhenduanqi/
 - ArthasHttpClient 支持 async_exec + pull_results + interrupt_job
 - Arthas 会话管理（创建/轮询/中断/关闭）
 - arthas_session 表 + 持久化
-- L1-L4 安全机制（命令超时、会话超时、自动 reset、孤儿清理定时任务）
+- **L2 会话级超时**：基于 `created_at` 的 10 分钟超时清理（`cleanupStaleSessions` 定时任务，每 1 分钟执行）
+- L4 孤儿清理定时任务（基于 `last_active_at` 的超时清理）
 - 活跃会话管理页（ADMIN）
 - 刷新恢复（重连会话 + 恢复步骤状态）
 - 场景6-8 完整异步模式支持
