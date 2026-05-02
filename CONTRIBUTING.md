@@ -68,11 +68,10 @@ refactor(api): replace manual JSON parsing with Jackson (#24)
 1. 认领 issue
 2. git checkout main && git pull origin main
 3. git checkout -b feature/issue-{编号}-{描述}
-4. 开发 → 频繁提交（每个有意义的改动一次提交）
+4. 开发 → 频繁提交（每个有意义的改动一次提交，PRD 随代码同步更新）
 5. git push origin feature/issue-{编号}-{描述}
 6. 创建 Pull Request（标题+描述关联 issue）
 7. PR 审查通过后合并 → 自动关闭 issue → 删除分支
-8. 更新 PRD.md
 ```
 
 ### 禁止事项
@@ -168,11 +167,34 @@ npm install
 
 ## PRD 同步
 
-PRD.md 是项目唯一的功能真相来源（Single Source of Truth），开发完成后必须同步更新：
+PRD.md 是项目唯一的功能真相来源（Single Source of Truth）。
 
-- 每个 PR 合并后，检查 PRD.md 对应章节是否需要更新
-- 更新范围：User Stories、Implementation Decisions、API 清单、Schema、项目结构、阶段调整
-- 如果 PRD.md 与代码实现不一致，以代码实现为准，并更新 PRD.md
+### 核心原则
+
+**PRD 是代码的一部分，不是代码的附属文档。**
+
+### 同步规则
+
+| 场景 | 更新范围 | 提交时机 |
+|------|----------|----------|
+| 新功能开发 | User Stories, API 清单, Schema | 随代码 commit |
+| Bug 修复（行为变更） | API 清单, 行为描述 | 随代码 commit |
+| 重构（API/Schema 变更） | API 清单, Schema | 随代码 commit |
+| 删除功能 | 移除相关章节 | 随代码 commit |
+| 纯代码重构 | 无需更新 | - |
+
+### 更新章节检查清单
+
+更新 PRD.md 时检查以下章节：
+
+- [ ] **User Stories**：新增或变更的用户故事
+- [ ] **Implementation Decisions**：新增模块、技术方案变更、Schema 变更
+- [ ] **完整 API 清单**：新增或变更的 API 端点
+- [ ] **数据库全量 Schema**：新增或变更的表结构
+- [ ] **项目结构**：新增或变更的文件
+- [ ] **Implementation Phasing**：阶段调整
+- [ ] **Testing Decisions**：新增测试策略
+- [ ] **Out of Scope**：明确排除的范围变更
 
 ## 技能协作流程
 
