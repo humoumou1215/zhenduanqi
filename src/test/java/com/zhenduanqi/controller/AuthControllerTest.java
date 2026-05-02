@@ -2,6 +2,9 @@ package com.zhenduanqi.controller;
 
 import com.zhenduanqi.dto.LoginRequest;
 import com.zhenduanqi.dto.LoginResponse;
+import com.zhenduanqi.entity.SysRole;
+import com.zhenduanqi.entity.SysUser;
+import com.zhenduanqi.repository.SysUserRepository;
 import com.zhenduanqi.service.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -12,6 +15,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -31,7 +36,19 @@ class AuthControllerTest {
     @MockBean
     private AuthService authService;
 
+    @MockBean
+    private SysUserRepository userRepository;
+
     private final Cookie validCookie = new Cookie("zhenduanqi_token", "valid-jwt");
+
+    private SysUser createMockUser(String username, String roleCode) {
+        SysUser user = new SysUser();
+        user.setUsername(username);
+        SysRole role = new SysRole();
+        role.setRoleCode(roleCode);
+        user.setRoles(Set.of(role));
+        return user;
+    }
 
     @Test
     void login_withValidCredentials_returns200() throws Exception {
@@ -78,6 +95,7 @@ class AuthControllerTest {
     @Test
     void logout_withValidToken_returns200() throws Exception {
         when(authService.validateToken("valid-jwt")).thenReturn("admin");
+        when(userRepository.findByUsername("admin")).thenReturn(java.util.Optional.of(createMockUser("admin", "ADMIN")));
 
         mockMvc.perform(post("/api/auth/logout").cookie(validCookie))
                 .andExpect(status().isOk());
@@ -87,6 +105,7 @@ class AuthControllerTest {
     void me_withValidToken_returnsUserInfo() throws Exception {
         when(authService.validateToken("valid-jwt")).thenReturn("admin");
         when(authService.getUserRole("admin")).thenReturn("ADMIN");
+        when(userRepository.findByUsername("admin")).thenReturn(java.util.Optional.of(createMockUser("admin", "ADMIN")));
 
         mockMvc.perform(get("/api/auth/me").cookie(validCookie))
                 .andExpect(status().isOk())
