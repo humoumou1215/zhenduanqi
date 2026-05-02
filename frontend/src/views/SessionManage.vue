@@ -25,7 +25,12 @@
       <el-table-column prop="username" label="用户" width="100" />
       <el-table-column prop="status" label="状态" width="100">
         <template #default="{ row }">
-          <el-tag :type="row.status === 'ACTIVE' ? 'success' : row.status === 'RESET' ? 'warning' : 'info'" size="small">
+          <el-tag
+            :type="
+              row.status === 'ACTIVE' ? 'success' : row.status === 'RESET' ? 'warning' : 'info'
+            "
+            size="small"
+          >
             {{ statusTextMap[row.status] || row.status }}
           </el-tag>
         </template>
@@ -72,9 +77,7 @@
       </el-table-column>
     </el-table>
 
-    <div v-if="sessions.length === 0 && !loading" class="empty-tip">
-      暂无活跃会话
-    </div>
+    <div v-if="sessions.length === 0 && !loading" class="empty-tip">暂无活跃会话</div>
   </div>
 </template>
 
@@ -143,7 +146,10 @@ async function handleInterrupt(row) {
 
 async function handleClose(row) {
   try {
-    await ElMessageBox.confirm(`确定要关闭会话 ${row.id} 吗？这将执行 reset 并关闭会话。`, '确认关闭');
+    await ElMessageBox.confirm(
+      `确定要关闭会话 ${row.id} 吗？这将执行 reset 并关闭会话。`,
+      '确认关闭'
+    );
   } catch {
     return;
   }

@@ -24,21 +24,19 @@ public class ArthasJacksonTest {
                 "results": [
                   {
                     "type": "thread",
-                    "data": {
-                      "threadId": 1,
-                      "threadName": "main",
-                      "threadState": "RUNNABLE",
-                      "cpu": 0.5
-                    }
+                    "threadId": 1,
+                    "threadName": "main",
+                    "threadState": "RUNNABLE",
+                    "cpuUsage": 0.5,
+                    "deltaTime": 100
                   },
                   {
                     "type": "thread",
-                    "data": {
-                      "threadId": 2,
-                      "threadName": "worker",
-                      "threadState": "BLOCKED",
-                      "cpu": 0.2
-                    }
+                    "threadId": 2,
+                    "threadName": "worker",
+                    "threadState": "BLOCKED",
+                    "cpuUsage": 0.2,
+                    "deltaTime": 50
                   }
                 ]
               }
@@ -56,6 +54,7 @@ public class ArthasJacksonTest {
         assertThat(results.get(0).getType()).isEqualTo("thread");
         assertThat(results.get(0).getData()).containsEntry("threadId", 1);
         assertThat(results.get(0).getData()).containsEntry("threadName", "main");
+        assertThat(results.get(0).getData()).containsEntry("threadState", "RUNNABLE");
         assertThat(results.get(1).getData()).containsEntry("threadName", "worker");
     }
 
@@ -117,5 +116,76 @@ public class ArthasJacksonTest {
         ArthasResult result = response.getBody().getResults().get(0);
         assertThat(result.getType()).isEqualTo("enhancer");
         assertThat(result.getData()).containsEntry("success", true);
+    }
+
+    @Test
+    void parseThreadBlockedResponse_noDeadlock_returnsStatus() throws Exception {
+        String threadBlockedResponse = """
+            {
+              "state": "SUCCEEDED",
+              "body": {
+                "results": [
+                  {
+                    "type": "status",
+                    "jobId": 5,
+                    "statusCode": 0,
+                    "message": "No most blocking thread found!"
+                  }
+                ]
+              }
+            }
+            """;
+
+        ArthasApiResponse response = objectMapper.readValue(threadBlockedResponse, ArthasApiResponse.class);
+
+        assertThat(response.getState()).isEqualTo("SUCCEEDED");
+        assertThat(response.getBody().getResults()).hasSize(1);
+
+        ArthasResult result = response.getBody().getResults().get(0);
+        assertThat(result.getType()).isEqualTo("status");
+        assertThat(result.getData()).containsEntry("statusCode", 0);
+        assertThat(result.getData()).containsEntry("message", "No most blocking thread found!");
+    }
+
+    @Test
+    void parseThreadBlockedResponse_withDeadlock_returnsThreadInfo() throws Exception {
+        String threadBlockedResponse = """
+            {
+              "state": "SUCCEEDED",
+              "body": {
+                "results": [
+                  {
+                    "type": "thread",
+                    "threadId": 15,
+                    "threadName": "http-nio-8080-exec-1",
+                    "threadState": "BLOCKED",
+                    "cpuUsage": 2.5,
+                    "deltaTime": 200,
+                    "lockedMonitors": 1,
+                    "stackTrace": ["java.lang.Object.wait(Native Method)", "com.example.Service.method(Service.java:10)"]
+                  },
+                  {
+                    "type": "status",
+                    "jobId": 5,
+                    "statusCode": 0
+                  }
+                ]
+              }
+            }
+            """;
+
+        ArthasApiResponse response = objectMapper.readValue(threadBlockedResponse, ArthasApiResponse.class);
+
+        assertThat(response.getState()).isEqualTo("SUCCEEDED");
+        assertThat(response.getBody().getResults()).hasSize(2);
+
+        ArthasResult threadResult = response.getBody().getResults().get(0);
+        assertThat(threadResult.getType()).isEqualTo("thread");
+        assertThat(threadResult.getData()).containsEntry("threadName", "http-nio-8080-exec-1");
+        assertThat(threadResult.getData()).containsEntry("threadState", "BLOCKED");
+        assertThat(threadResult.getData()).containsEntry("cpuUsage", 2.5);
+
+        ArthasResult statusResult = response.getBody().getResults().get(1);
+        assertThat(statusResult.getType()).isEqualTo("status");
     }
 }
