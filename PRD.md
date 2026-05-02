@@ -253,8 +253,8 @@ public void doFilter(ServletRequest request, ServletResponse response, FilterCha
 | ArthasExecuteService | INFO | 命令执行完成（含结果状态、耗时） | ✅ 已实现 |
 | ArthasHttpClient | INFO | Arthas API 请求（含服务器名、命令） | ✅ 已实现 |
 | ArthasHttpClient | WARN | 连接检测失败 | ✅ 已实现 |
-| ArthasSessionService | INFO | 会话创建/关闭/超时清理 | TODO 待P2实现 |
-| ArthasSessionService | WARN | 孤儿会话检测与清理 | TODO 待P2实现 |
+| ArthasSessionService | INFO | 会话创建/关闭/超时清理 | ✅ 已实现 |
+| ArthasSessionService | WARN | 孤儿会话检测与清理 | ✅ 已实现 |
 | JwtUtil | WARN | Token 校验异常（不输出 Token 原文） | ✅ 已实现 |
 | ArthasServerService | INFO | 服务器 CRUD 操作 | ✅ 已实现 |
 | UserService | INFO | 用户 CRUD 操作、密码重置 | ✅ 已实现 |
