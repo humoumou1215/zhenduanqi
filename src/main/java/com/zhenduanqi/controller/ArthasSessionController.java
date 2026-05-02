@@ -61,4 +61,12 @@ public class ArthasSessionController {
         boolean result = sessionService.closeSession(id);
         return ResponseEntity.ok(Map.of("success", result));
     }
+
+    @PostMapping("/{id}/reconnect")
+    @RequireRole({"OPERATOR", "ADMIN"})
+    @AuditLog(action = "重连 Arthas 会话")
+    public ResponseEntity<ArthasSessionDTO> reconnectSession(@PathVariable Long id) {
+        ArthasSessionDTO session = sessionService.reconnectSession(id);
+        return ResponseEntity.ok(session);
+    }
 }

@@ -171,7 +171,9 @@ import {
   createSession, 
   pullSessionResults, 
   interruptSessionJob, 
-  closeSession 
+  closeSession,
+  reconnectSession,
+  getActiveSessions
 } from '../api';
 import { useDiagnoseStore } from '../stores/diagnose';
 import { useServerStore } from '../stores/servers';
@@ -307,6 +309,7 @@ async function handleExecuteAsync(index) {
     });
     const session = createRes.data;
     asyncSessions.value[index] = session;
+    diagnoseStore.setActiveSession(step.id, session);
 
     // Start polling
     pollIntervals.value[index] = setInterval(async () => {
@@ -347,6 +350,7 @@ async function handleExecuteAsync(index) {
             }
 
             delete asyncSessions.value[index];
+            diagnoseStore.removeActiveSession(step.id);
             stepStates.value[index].state = 'completed';
             diagnoseStore.saveStepResult(step.id, stepStates.value[index].result);
             
@@ -377,7 +381,7 @@ async function handleExecuteAsync(index) {
 
 async function handleStopAsync(index) {
   const step = diagnoseStore.steps[index];
-  const session = asyncSessions.value[index];
+  const session = asyncSessions.value[index] || diagnoseStore.getActiveSession(step.id);
   if (!session) return;
 
   try {
@@ -400,6 +404,7 @@ async function handleStopAsync(index) {
   }
 
   delete asyncSessions.value[index];
+  diagnoseStore.removeActiveSession(step.id);
   stepStates.value[index].state = 'completed';
   diagnoseStore.saveStepResult(step.id, stepStates.value[index].result);
   
@@ -441,6 +446,100 @@ function goBack() {
   router.push('/scenes');
 }
 
+async function recoverSessions() {
+  try {
+    const res = await getActiveSessions({
+      serverId: diagnoseStore.selectedServerId,
+      sceneId: diagnoseStore.currentSceneId
+    });
+    const sessions = res.data;
+
+    if (sessions && sessions.length > 0) {
+      diagnoseStore.restoreFromSessions(sessions);
+
+      for (let i = 0; i < diagnoseStore.steps.length; i++) {
+        const step = diagnoseStore.steps[i];
+        const session = diagnoseStore.getActiveSession(step.id);
+
+        if (session) {
+          // Reconnect to the session
+          try {
+            const reconnectRes = await reconnectSession(session.id);
+            const updatedSession = reconnectRes.data;
+            asyncSessions.value[i] = updatedSession;
+            diagnoseStore.setActiveSession(step.id, updatedSession);
+
+            // Mark step as executing and resume polling
+            stepStates.value[i] = { 
+              state: 'executing', 
+              result: { 
+                state: 'scheduled', 
+                structuredResults: [], 
+                results: [] 
+              } 
+            };
+
+            // Resume polling
+            pollIntervals.value[i] = setInterval(async () => {
+              try {
+                const pullRes = await pullSessionResults(updatedSession.id);
+                const results = pullRes.data;
+
+                if (results && results.length > 0) {
+                  const statusResult = results.find(r => r.type === 'status');
+                  const isTaskCompleted = statusResult?.data?.status === 'terminated';
+
+                  if (!stepStates.value[i].result) {
+                    stepStates.value[i].result = { structuredResults: [], results: [] };
+                  }
+                  stepStates.value[i].result.structuredResults = [
+                    ...(stepStates.value[i].result.structuredResults || []),
+                    ...results
+                  ];
+                  stepStates.value[i].result.results = [
+                    ...(stepStates.value[i].result.results || []),
+                    ...results.map(r => JSON.stringify(r))
+                  ];
+
+                  diagnoseStore.extractVariables(step.id, stepStates.value[i].result.structuredResults);
+
+                  if (isTaskCompleted) {
+                    clearInterval(pollIntervals.value[i]);
+                    delete pollIntervals.value[i];
+                    
+                    try {
+                      await closeSession(updatedSession.id);
+                    } catch (e) {
+                      console.error('Close session error:', e);
+                    }
+
+                    delete asyncSessions.value[i];
+                    diagnoseStore.removeActiveSession(step.id);
+                    stepStates.value[i].state = 'completed';
+                    diagnoseStore.saveStepResult(step.id, stepStates.value[i].result);
+                    
+                    for (let j = i + 1; j < diagnoseStore.steps.length; j++) {
+                      const nextStep = diagnoseStore.steps[j];
+                      stepCommands.value[j] = diagnoseStore.getPreFilledCommand(nextStep.id) || nextStep.command || '';
+                    }
+                  }
+                }
+              } catch (e) {
+                console.error('Poll results error:', e);
+              }
+            }, 2000);
+
+          } catch (reconnectError) {
+            console.error('Reconnect session error:', reconnectError);
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Recover sessions error:', e);
+  }
+}
+
 onMounted(async () => {
   if (!diagnoseStore.currentSceneId) {
     router.push('/scenes');
@@ -449,6 +548,7 @@ onMounted(async () => {
 
   await loadServerNames();
   initializeStepCommands();
+  await recoverSessions();
 });
 
 onUnmounted(() => {

@@ -163,3 +163,7 @@ export function interruptSessionJob(id) {
 export function closeSession(id) {
   return api.post(`/arthas-sessions/${id}/close`);
 }
+
+export function reconnectSession(id) {
+  return api.post(`/arthas-sessions/${id}/reconnect`);
+}
