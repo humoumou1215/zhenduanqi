@@ -848,7 +848,7 @@ CREATE TABLE arthas_session (
 ```
 /                          → 重定向到 /scenes
 /login                     → 登录页面
-/scenes                    → 场景列表页（按分类展示所有场景卡片）
+/scenes                    → 场景列表页（按分类展示所有场景卡片）← 导航菜单默认入口
 /scenes/:id/diagnose       → 场景诊断页（步骤列表 + 执行）
 /scenes/manage             → 场景管理页（ADMIN，CRUD场景和步骤）
 /servers                   → 服务器管理页
@@ -858,6 +858,17 @@ CREATE TABLE arthas_session (
 /command-guard             → 高危命令规则页（ADMIN）
 /sessions                  → 活跃会话管理页（ADMIN，查看和清理Arthas会话）
 ```
+
+**导航菜单：** 登录后顶部导航栏包含以下菜单项：
+- 场景列表（/scenes）— 默认入口
+- 执行诊断（/diagnose）
+- 服务器管理（/servers）— ADMIN
+- 用户管理（/users）— ADMIN
+- 审计日志（/audit-logs）— ADMIN
+- 命令守卫（/command-guard）— ADMIN
+- 会话管理（/sessions）— ADMIN
+
+**登录后默认跳转：** 已登录用户访问 /login 会重定向到 /scenes
 
 ### 项目结构（最终态）
 

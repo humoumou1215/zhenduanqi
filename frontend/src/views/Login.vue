@@ -68,7 +68,7 @@ async function handleLogin() {
   try {
     await userStore.login(form.username, form.password);
     ElMessage.success('登录成功');
-    router.push('/diagnose');
+    router.push('/scenes');
   } catch (e) {
     ElMessage.error(e.response?.data?.error || '登录失败');
   } finally {
