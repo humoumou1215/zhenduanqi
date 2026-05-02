@@ -290,4 +290,18 @@ class AuditLogAspectTest {
             removeAppender(appender);
         }
     }
+
+    @Test
+    void auditLogSaveFailure_doesNotAffectBusinessLogic() throws Throwable {
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(
+                AuditLogAspectTest.class.getDeclaredMethod("dummyDiagnoseMethod"));
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"cmd1", "server-1"});
+        when(joinPoint.proceed()).thenReturn("success");
+        doThrow(new RuntimeException("数据库连接失败")).when(auditLogRepository).save(any());
+
+        Object result = aspect.logAround(joinPoint);
+
+        assertThat(result).isEqualTo("success");
+    }
 }

@@ -147,6 +147,7 @@ public ResponseEntity<?> login(@RequestBody LoginRequest request, ...) {
 - 从 DTO 对象中自动提取 `username` 字段（用于登录场景，当 request attribute 中无 username 时）
 - 使用正则表达式匹配并脱敏敏感字段（password、token）
 - 支持嵌套 JSON 结构的参数序列化
+- **异常保护**：finally 块中的 save() 操作必须用 try-catch 包裹，审计日志保存失败不应影响业务逻辑（仅记录 ERROR 日志）
 
 **记录内容（高可审计要求）：**
 | 字段 | 内容 | 脱敏规则 |

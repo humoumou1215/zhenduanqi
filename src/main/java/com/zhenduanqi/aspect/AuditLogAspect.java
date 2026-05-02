@@ -89,7 +89,11 @@ public class AuditLogAspect {
             throw e;
         } finally {
             auditEntry.setDurationMs(System.currentTimeMillis() - start);
-            auditLogRepository.save(auditEntry);
+            try {
+                auditLogRepository.save(auditEntry);
+            } catch (Exception e) {
+                log.error("审计日志保存失败: action={}, user={}, error={}", auditEntry.getAction(), auditEntry.getUsername(), e.getMessage());
+            }
         }
     }
 
