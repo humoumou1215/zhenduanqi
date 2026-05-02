@@ -5,3 +5,7 @@ data/
 *.log
 .DS_Store
 Thumbs.db
+
+# Temp test/debug scripts
+test_*.py
+*.pyc
