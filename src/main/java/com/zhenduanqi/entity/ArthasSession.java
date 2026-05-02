@@ -24,7 +24,7 @@ public class ArthasSession {
     private Integer currentJobId;
 
     @Column(name = "status", length = 20, nullable = false)
-    private String status;
+    private String status = "ACTIVE";
 
     @Column(name = "username", length = 50, nullable = false)
     private String username;
