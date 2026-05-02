@@ -304,4 +304,34 @@ class AuditLogAspectTest {
 
         assertThat(result).isEqualTo("success");
     }
+
+    @com.zhenduanqi.annotation.AuditLog(action = "LOGIN")
+    public ResponseEntity<?> loginMethodWithServletResponse(
+            LoginRequest req, jakarta.servlet.http.HttpServletRequest servletRequest,
+            jakarta.servlet.http.HttpServletResponse servletResponse) {
+        return ResponseEntity.ok().build();
+    }
+
+    @Test
+    void loginMethodWithServletResponse_shouldNotCallGetWriter() throws Throwable {
+        when(joinPoint.getSignature()).thenReturn(signature);
+        when(signature.getMethod()).thenReturn(
+                AuditLogAspectTest.class.getDeclaredMethod("loginMethodWithServletResponse",
+                        LoginRequest.class,
+                        jakarta.servlet.http.HttpServletRequest.class,
+                        jakarta.servlet.http.HttpServletResponse.class));
+        LoginRequest req = new LoginRequest();
+        req.setUsername("admin");
+        req.setPassword("secret123");
+        when(joinPoint.getArgs()).thenReturn(new Object[]{req, request, new MockHttpServletResponse()});
+        when(joinPoint.proceed()).thenReturn(ResponseEntity.ok().build());
+
+        aspect.logAround(joinPoint);
+
+        ArgumentCaptor<SysAuditLog> captor = ArgumentCaptor.forClass(SysAuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+        SysAuditLog log = captor.getValue();
+        assertThat(log.getAction()).isEqualTo("LOGIN");
+        assertThat(log.getUsername()).isEqualTo("zhangsan");
+    }
 }

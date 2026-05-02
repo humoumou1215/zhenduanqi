@@ -8,6 +8,7 @@ import com.zhenduanqi.dto.ExecuteResponse;
 import com.zhenduanqi.entity.SysAuditLog;
 import com.zhenduanqi.repository.AuditLogRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -107,6 +108,8 @@ public class AuditLogAspect {
                 } else if (auditEntry.getTarget() == null) {
                     auditEntry.setTarget(str);
                 }
+            } else if (arg instanceof HttpServletRequest || arg instanceof HttpServletResponse) {
+                continue;
             } else {
                 try {
                     String json = objectMapper.writeValueAsString(arg);
@@ -151,6 +154,9 @@ public class AuditLogAspect {
                     result.append("null");
                 } else if (args[i] instanceof String str) {
                     result.append("\"").append(str).append("\"");
+                } else if (args[i] instanceof HttpServletRequest 
+                        || args[i] instanceof HttpServletResponse) {
+                    result.append("{}");
                 } else {
                     String json = objectMapper.writeValueAsString(args[i]);
                     json = maskJsonFields(json, fieldsToMask);
