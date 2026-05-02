@@ -24,4 +24,6 @@ public interface ArthasSessionRepository extends JpaRepository<ArthasSession, Lo
     Optional<ArthasSession> findByIdAndStatus(Long id, String status);
 
     List<ArthasSession> findByLastActiveAtBeforeAndStatus(LocalDateTime before, String status);
+
+    List<ArthasSession> findByCreatedAtBeforeAndStatus(LocalDateTime before, String status);
 }
