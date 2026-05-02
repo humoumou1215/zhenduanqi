@@ -653,6 +653,7 @@ CREATE TABLE arthas_session (
 | `server.port` | `${PORT:8080}` | Render 通过 PORT 环境变量指定端口 |
 | `arthas.auth.jwt-secret` | `${JWT_SECRET}` | 环境变量注入，Render 自动生成随机值 |
 | `arthas.server.token-secret` | `${TOKEN_SECRET}` | 环境变量注入，Render 自动生成随机值 |
+| `spring.jpa.properties.hibernate.jdbc.time_zone` | `Asia/Shanghai` | 审计日志等时间字段使用北京时间 |
 | 日志级别 | root=WARN, com.zhenduanqi=INFO | 生产级日志，仅控制台输出 |
 
 **Render 环境变量：**
