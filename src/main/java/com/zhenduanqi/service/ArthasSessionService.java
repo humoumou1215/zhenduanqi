@@ -176,6 +176,32 @@ public class ArthasSessionService {
         }
     }
 
+    public ArthasSessionDTO reconnectSession(Long sessionId) {
+        Optional<ArthasSession> sessionOpt = sessionRepository.findById(sessionId);
+        if (sessionOpt.isEmpty()) {
+            throw new IllegalArgumentException("会话不存在");
+        }
+
+        ArthasSession session = sessionOpt.get();
+        Optional<ServerInfo> serverInfoOpt = serverService.findServerInfoById(session.getServerId());
+        if (serverInfoOpt.isEmpty()) {
+            throw new IllegalArgumentException("服务器不存在");
+        }
+
+        ServerInfo serverInfo = serverInfoOpt.get();
+        String newConsumerId = arthasClient.joinSession(serverInfo, session.getArthasSessionId());
+        if (newConsumerId == null) {
+            throw new RuntimeException("重连会话失败");
+        }
+
+        session.setArthasConsumerId(newConsumerId);
+        session.setLastActiveAt(LocalDateTime.now());
+        ArthasSession updatedSession = sessionRepository.save(session);
+        log.info("重连会话成功: sessionId={}, newConsumerId={}", sessionId, newConsumerId);
+
+        return ArthasSessionDTO.fromEntity(updatedSession);
+    }
+
     @Scheduled(fixedRate = 5 * 60 * 1000)
     public void cleanupOrphanSessions() {
         LocalDateTime tenMinutesAgo = LocalDateTime.now().minusMinutes(10);

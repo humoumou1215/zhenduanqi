@@ -9,6 +9,8 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
   const steps = ref([]);
   const variables = ref(new Map());
   const stepResults = ref(new Map());
+  const activeSessions = ref(new Map());  // 存储活跃会话: step.id -> session
+  const stepSessionIds = ref(new Map());  // 步骤与会话的映射: step.id -> session.id
 
   function initScene(scene, serverId) {
     currentSceneId.value = scene.id;
@@ -17,6 +19,8 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
     steps.value = scene.steps || [];
     variables.value = new Map();
     stepResults.value = new Map();
+    activeSessions.value = new Map();
+    stepSessionIds.value = new Map();
   }
 
   function reset() {
@@ -26,6 +30,8 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
     steps.value = [];
     variables.value = new Map();
     stepResults.value = new Map();
+    activeSessions.value = new Map();
+    stepSessionIds.value = new Map();
   }
 
   function extractVariables(stepId, results) {
@@ -90,7 +96,7 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
 
   function saveStepResult(stepId, result) {
     stepResults.value.set(stepId, result);
-    extractVariables(stepId, result.results);
+    extractVariables(stepId, result.structuredResults);
   }
 
   function getStepResult(stepId) {
@@ -109,6 +115,29 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
     return variables.value.get(key);
   }
 
+  function setActiveSession(stepId, session) {
+    activeSessions.value.set(stepId, session);
+    stepSessionIds.value.set(stepId, session.id);
+  }
+
+  function getActiveSession(stepId) {
+    return activeSessions.value.get(stepId);
+  }
+
+  function removeActiveSession(stepId) {
+    activeSessions.value.delete(stepId);
+    stepSessionIds.value.delete(stepId);
+  }
+
+  function restoreFromSessions(sessions) {
+    for (const session of sessions) {
+      if (session.stepId) {
+        activeSessions.value.set(session.stepId, session);
+        stepSessionIds.value.set(session.stepId, session.id);
+      }
+    }
+  }
+
   return {
     currentSceneId,
     currentSceneName,
@@ -116,6 +145,8 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
     steps,
     variables,
     stepResults,
+    activeSessions,
+    stepSessionIds,
     initScene,
     reset,
     extractVariables,
@@ -125,6 +156,10 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
     getStepResult,
     getVariables,
     setVariable,
-    getVariable
+    getVariable,
+    setActiveSession,
+    getActiveSession,
+    removeActiveSession,
+    restoreFromSessions
   };
 });
