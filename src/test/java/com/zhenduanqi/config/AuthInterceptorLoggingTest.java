@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthInterceptorLoggingTest {
@@ -42,14 +42,6 @@ class AuthInterceptorLoggingTest {
         LoginRateLimiter rateLimiter = new LoginRateLimiter();
         AuthService authService = new AuthService(userRepository, new BCryptPasswordEncoder(), jwtUtil, tokenBlacklist, rateLimiter);
         interceptor = new AuthInterceptor(authService, userRepository);
-        
-        // 模拟用户数据
-        SysRole adminRole = new SysRole();
-        adminRole.setRoleCode("ADMIN");
-        SysUser adminUser = new SysUser();
-        adminUser.setUsername("admin");
-        adminUser.setRoles(Set.of(adminRole));
-        lenient().when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
     }
 
     private ListAppender<ILoggingEvent> createListAppender() {
@@ -71,6 +63,13 @@ class AuthInterceptorLoggingTest {
 
     @Test
     void preHandle_authPassed_logsDebug() throws Exception {
+        SysRole adminRole = new SysRole();
+        adminRole.setRoleCode("ADMIN");
+        SysUser user = new SysUser();
+        user.setUsername("admin");
+        user.setRoles(Set.of(adminRole));
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
+
         ListAppender<ILoggingEvent> appender = createListAppender();
         try {
             String validToken = jwtUtil.generateToken("admin");
@@ -86,6 +85,8 @@ class AuthInterceptorLoggingTest {
                     e.getLevel() == Level.DEBUG && e.getFormattedMessage().contains("认证通过"))).isTrue();
             assertThat(events.stream().anyMatch(e ->
                     e.getFormattedMessage().contains("admin"))).isTrue();
+            assertThat(events.stream().anyMatch(e ->
+                    e.getFormattedMessage().contains("ADMIN"))).isTrue();
         } finally {
             removeAppender(appender);
         }

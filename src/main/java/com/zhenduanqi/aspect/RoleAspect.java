@@ -39,7 +39,6 @@ public class RoleAspect {
             return null;
         }
 
-        // 直接从 request attribute 读取角色集合
         @SuppressWarnings("unchecked")
         Set<String> userRoles = (Set<String>) attrs.getRequest().getAttribute("userRoles");
         if (userRoles == null) {

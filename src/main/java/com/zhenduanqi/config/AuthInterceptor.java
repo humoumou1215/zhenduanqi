@@ -47,18 +47,22 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        log.debug("认证通过: username={}, path={}", username, path);
-        request.setAttribute("username", username);
-        
-        // 一并查询用户角色并放入 request attribute
         SysUser user = userRepository.findByUsername(username).orElse(null);
-        if (user != null) {
-            Set<String> userRoles = user.getRoles().stream()
-                    .map(SysRole::getRoleCode)
-                    .collect(Collectors.toSet());
-            request.setAttribute("userRoles", userRoles);
+        if (user == null) {
+            log.warn("用户不存在: username={}, path={}", username, path);
+            response.setStatus(403);
+            response.setContentType("application/json;charset=utf-8");
+            response.getWriter().write("{\"error\":\"用户不存在\"}");
+            return false;
         }
-        
+
+        Set<String> userRoles = user.getRoles().stream()
+                .map(SysRole::getRoleCode)
+                .collect(Collectors.toSet());
+
+        log.debug("认证通过: username={}, roles={}, path={}", username, userRoles, path);
+        request.setAttribute("username", username);
+        request.setAttribute("userRoles", userRoles);
         return true;
     }
 
