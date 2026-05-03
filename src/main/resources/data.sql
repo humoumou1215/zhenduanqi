@@ -40,17 +40,17 @@ INSERT INTO diagnose_scene (name, description, category, business_scenario, icon
 
 -- 场景 1 步骤
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (1, 1, '检查死锁线程', '检测 JVM 中是否存在死锁线程', 'thread -b', '如果发现死锁，继续下一步查看 CPU 热点，或查看线程栈', FALSE, 10000, NULL, NOW(), NOW());
-INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (1, 2, 'TOP 5 CPU 活跃线程', '查看 CPU 占用最高的 5 个线程', 'thread -n 5', '记录 CPU 最高的线程 ID，填入下一步', FALSE, 10000, '[{"variable":"threadId","jsonPath":"$[0].id","description":"从 thread -n 5 结果中提取第一个线程的 ID"}]', NOW(), NOW());
+INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (1, 2, 'TOP 5 CPU 活跃线程', '查看 CPU 占用最高的 5 个线程', 'thread -n 5', '记录 CPU 最高的线程 ID，填入下一步', FALSE, 10000, '[{"variable":"threadId","jsonPath":"$[0].data.busyThreads[0].id","description":"从 thread -n 5 结果中提取第一个线程的 ID"}]', NOW(), NOW());
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (1, 3, '查看具体线程栈', '查看指定线程的完整堆栈信息', 'thread {threadId}', '', FALSE, 10000, NULL, NOW(), NOW());
 
 -- 场景 2 步骤
-INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (2, 1, '找出 CPU 最高的线程', '查看 CPU 占用最高的 5 个线程', 'thread -n 5', '记录 CPU 最高的线程 ID，填入下一步', FALSE, 10000, '[{"variable":"threadId","jsonPath":"$[0].id","description":"从 thread -n 5 结果中提取第一个线程的 ID"}]', NOW(), NOW());
+INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (2, 1, '找出 CPU 最高的线程', '查看 CPU 占用最高的 5 个线程', 'thread -n 5', '记录 CPU 最高的线程 ID，填入下一步', FALSE, 10000, '[{"variable":"threadId","jsonPath":"$[0].data.busyThreads[0].id","description":"从 thread -n 5 结果中提取第一个线程的 ID"}]', NOW(), NOW());
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (2, 2, '查看线程栈', '查看指定线程的完整堆栈信息', 'thread {threadId}', '', FALSE, 10000, NULL, NOW(), NOW());
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (2, 3, '查看 JVM 概览', '查看 JVM 运行概览', 'dashboard -n 1', '', FALSE, 15000, NULL, NOW(), NOW());
 
 -- 场景 3 步骤
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (3, 1, '查看内存区使用情况', '查看各内存区使用情况', 'memory', '', FALSE, 10000, NULL, NOW(), NOW());
-INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (3, 2, '查看堆中大对象', '查看堆内存中占用最大的 10 个对象', 'heapdump --live', '', FALSE, 15000, NULL, NOW(), NOW());
+INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (3, 2, '查看堆中大对象', '查看堆内存中占用最大的 10 个对象', 'heap -h 10', '', FALSE, 15000, NULL, NOW(), NOW());
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (3, 3, '查看类加载信息', '查看指定类的加载信息', 'sc -d {className}', '', FALSE, 10000, NULL, NOW(), NOW());
 
 -- 场景 4 步骤

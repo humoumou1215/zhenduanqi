@@ -1,9 +1,9 @@
 server:
-  port: 8080
+  port: 8207
 
 spring:
   datasource:
-    url: jdbc:h2:file:./data/zhenduanqi
+    url: jdbc:h2:file:./data/zhenduanqi-issue-127
     driver-class-name: org.h2.Driver
     username: sa
     password:
