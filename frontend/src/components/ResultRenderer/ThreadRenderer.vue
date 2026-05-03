@@ -29,7 +29,10 @@
       </el-table-column>
       <el-table-column prop="threadId" label="线程ID" width="80" align="center" />
     </el-table>
-    <div v-if="isExample" style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic">
+    <div
+      v-if="isExample"
+      style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic"
+    >
       (示例数据)
     </div>
   </div>
@@ -41,15 +44,36 @@ import { computed } from 'vue';
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 });
 
 const defaultThreadData = [
   { name: 'main', status: 'RUNNABLE', cpu: 0.5, deltaTime: 100, lockedMonitors: 0, threadId: 1 },
-  { name: 'gc-thread-1', status: 'WAITING', cpu: 0.0, deltaTime: 50, lockedMonitors: 0, threadId: 2 },
-  { name: 'http-nio-8080-exec-1', status: 'BLOCKED', cpu: 2.3, deltaTime: 200, lockedMonitors: 1, threadId: 15 },
-  { name: 'pool-1-thread-1', status: 'TIMED_WAITING', cpu: 0.1, deltaTime: 80, lockedMonitors: 0, threadId: 8 }
+  {
+    name: 'gc-thread-1',
+    status: 'WAITING',
+    cpu: 0.0,
+    deltaTime: 50,
+    lockedMonitors: 0,
+    threadId: 2,
+  },
+  {
+    name: 'http-nio-8080-exec-1',
+    status: 'BLOCKED',
+    cpu: 2.3,
+    deltaTime: 200,
+    lockedMonitors: 1,
+    threadId: 15,
+  },
+  {
+    name: 'pool-1-thread-1',
+    status: 'TIMED_WAITING',
+    cpu: 0.1,
+    deltaTime: 80,
+    lockedMonitors: 0,
+    threadId: 8,
+  },
 ];
 
 const tableData = computed(() => {
@@ -78,7 +102,7 @@ function normalizeThread(thread) {
     cpu: thread.cpu,
     deltaTime: thread.deltaTime,
     lockedMonitors: thread.lockedMonitors?.length || thread.lockedMonitors || 0,
-    threadId: thread.id || thread.threadId
+    threadId: thread.id || thread.threadId,
   };
 }
 
