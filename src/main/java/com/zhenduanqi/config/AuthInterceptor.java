@@ -40,7 +40,13 @@ public class AuthInterceptor implements HandlerInterceptor {
         String username = authService.validateToken(token);
 
         if (username == null) {
-            log.warn("Token无效或缺失: path={}", path);
+            if (token == null || token.isEmpty()) {
+                log.warn("Token缺失: path={}", path);
+            } else if (authService.isTokenBlacklisted(token)) {
+                log.warn("Token已吊销: path={}", path);
+            } else {
+                log.warn("Token无效: path={}", path);
+            }
             response.setStatus(401);
             response.setContentType("application/json;charset=utf-8");
             response.getWriter().write("{\"error\":\"未登录或Token已过期\"}");

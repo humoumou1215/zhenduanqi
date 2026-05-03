@@ -45,7 +45,7 @@ class JwtUtilLoggingTest {
 
             List<ILoggingEvent> events = appender.list;
             assertThat(events.stream().anyMatch(e ->
-                    e.getLevel() == Level.WARN && e.getFormattedMessage().contains("Token校验异常"))).isTrue();
+                    e.getLevel() == Level.WARN && e.getFormattedMessage().contains("Token无效"))).isTrue();
         } finally {
             removeAppender(appender);
         }

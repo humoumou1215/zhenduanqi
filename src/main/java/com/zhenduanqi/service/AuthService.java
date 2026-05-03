@@ -130,4 +130,8 @@ public class AuthService {
                 })
                 .orElse("READONLY");
     }
+
+    public boolean isTokenBlacklisted(String token) {
+        return token != null && !token.isEmpty() && tokenBlacklist.contains(token);
+    }
 }
