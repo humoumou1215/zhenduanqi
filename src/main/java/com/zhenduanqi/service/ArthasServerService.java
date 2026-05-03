@@ -1,7 +1,9 @@
 package com.zhenduanqi.service;
 
+import com.zhenduanqi.client.ArthasHttpClient;
 import com.zhenduanqi.config.TokenEncryptionUtil;
 import com.zhenduanqi.dto.ArthasServerDTO;
+import com.zhenduanqi.dto.ServerStatusDTO;
 import com.zhenduanqi.entity.ArthasServerEntity;
 import com.zhenduanqi.model.ServerInfo;
 import com.zhenduanqi.repository.ArthasServerRepository;
@@ -20,10 +22,26 @@ public class ArthasServerService {
 
     private final ArthasServerRepository repository;
     private final TokenEncryptionUtil encryptionUtil;
+    private final ArthasHttpClient arthasHttpClient;
 
-    public ArthasServerService(ArthasServerRepository repository, TokenEncryptionUtil encryptionUtil) {
+    public ArthasServerService(ArthasServerRepository repository, TokenEncryptionUtil encryptionUtil, ArthasHttpClient arthasHttpClient) {
         this.repository = repository;
         this.encryptionUtil = encryptionUtil;
+        this.arthasHttpClient = arthasHttpClient;
+    }
+
+    public ServerStatusDTO checkConnection(String id) {
+        Optional<ServerInfo> serverInfoOpt = findServerInfoById(id);
+        if (serverInfoOpt.isEmpty()) {
+            return ServerStatusDTO.failure("服务器不存在");
+        }
+        ServerInfo serverInfo = serverInfoOpt.get();
+        ArthasHttpClient.ServerStatusResult result = arthasHttpClient.checkConnectionDetailed(serverInfo);
+        if (result.isConnected()) {
+            return ServerStatusDTO.success(result.getMessage());
+        } else {
+            return ServerStatusDTO.failure(result.getError());
+        }
     }
 
     public List<ArthasServerDTO> findAll() {

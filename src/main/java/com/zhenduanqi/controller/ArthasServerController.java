@@ -3,6 +3,7 @@ package com.zhenduanqi.controller;
 import com.zhenduanqi.annotation.AuditLog;
 import com.zhenduanqi.annotation.RequireRole;
 import com.zhenduanqi.dto.ArthasServerDTO;
+import com.zhenduanqi.dto.ServerStatusDTO;
 import com.zhenduanqi.service.ArthasServerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,5 +55,11 @@ public class ArthasServerController {
     public ResponseEntity<Void> delete(@PathVariable String id) {
         serverService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/status")
+    public ResponseEntity<ServerStatusDTO> checkStatus(@PathVariable String id) {
+        ServerStatusDTO status = serverService.checkConnection(id);
+        return ResponseEntity.ok(status);
     }
 }
