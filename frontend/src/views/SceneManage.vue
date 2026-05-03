@@ -102,7 +102,12 @@
         </el-table-column>
         <el-table-column prop="title" label="标题" min-width="150" />
         <el-table-column prop="command" label="命令" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="expectedHint" label="预期提示" min-width="150" show-overflow-tooltip />
+        <el-table-column
+          prop="expectedHint"
+          label="预期提示"
+          min-width="150"
+          show-overflow-tooltip
+        />
         <el-table-column label="连续执行" width="100">
           <template #default="{ row }">
             <el-tag :type="row.continuous ? 'success' : 'info'" size="small">
@@ -111,9 +116,7 @@
           </template>
         </el-table-column>
         <el-table-column label="超时时间" width="100">
-          <template #default="{ row }">
-            {{ row.maxExecTime / 1000 }}s
-          </template>
+          <template #default="{ row }">{{ row.maxExecTime / 1000 }}s</template>
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
