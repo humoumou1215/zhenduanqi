@@ -15,6 +15,7 @@
       >
         <el-menu-item index="/scenes" style="color: white">场景列表</el-menu-item>
         <el-menu-item index="/diagnose" style="color: white">执行诊断</el-menu-item>
+        <el-menu-item index="/my-history" style="color: white">我的历史</el-menu-item>
         <el-menu-item index="/servers" v-if="userStore.role === 'ADMIN'" style="color: white">
           服务器管理
         </el-menu-item>

@@ -947,6 +947,7 @@ CREATE TABLE arthas_session (
 | POST | `/api/arthas-sessions/{id}/interrupt` | 中断当前命令 | OPERATOR, ADMIN |
 | POST | `/api/arthas-sessions/{id}/close` | 关闭会话（reset+close） | OPERATOR, ADMIN |
 | GET | `/api/audit-logs` | 审计日志（分页+筛选） | ADMIN |
+| GET | `/api/my-history` | 当前用户的诊断历史（分页+筛选） | 已认证 |
 | GET | `/api/command-guard/rules` | 高危命令规则列表 | ADMIN |
 | POST | `/api/command-guard/rules` | 新增规则 | ADMIN |
 | PUT | `/api/command-guard/rules/{id}` | 更新规则 | ADMIN |
@@ -1181,7 +1182,6 @@ zhenduanqi/
 - **LDAP/OAuth 集成**：企业级 SSO 集成，后续迭代
 - **多语言（i18n）**：当前仅中文，暂无国际化计划
 - **Docker/K8s 部署**：当前仅提供 jar 独立部署，后续可按需提供
-- **诊断历史个人查询**：当前仅 ADMIN 可查全部审计日志，后续可增加个人查询入口
 
 ## Further Notes
 
