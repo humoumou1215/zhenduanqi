@@ -1,5 +1,6 @@
 package com.zhenduanqi.controller;
 
+import com.zhenduanqi.annotation.AuditLog;
 import com.zhenduanqi.annotation.RequireRole;
 import com.zhenduanqi.dto.*;
 import com.zhenduanqi.service.UserService;
@@ -28,6 +29,7 @@ public class UserController {
 
     @PostMapping
     @RequireRole("ADMIN")
+    @AuditLog(action = "创建用户")
     public ResponseEntity<?> create(@RequestBody CreateUserRequest req) {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(req));
@@ -38,16 +40,22 @@ public class UserController {
 
     @PutMapping("/{id}")
     @RequireRole("ADMIN")
+    @AuditLog(action = "更新用户")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UpdateUserRequest req) {
         try {
             return ResponseEntity.ok(userService.update(id, req));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            String msg = e.getMessage();
+            if ("用户不存在".equals(msg)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", msg));
+            }
+            return ResponseEntity.badRequest().body(Map.of("error", msg));
         }
     }
 
     @PutMapping("/{id}/reset-password")
     @RequireRole("ADMIN")
+    @AuditLog(action = "重置密码")
     public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestBody ResetPasswordRequest req) {
         try {
             userService.resetPassword(id, req.getNewPassword());
