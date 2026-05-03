@@ -9,6 +9,8 @@ import SysenvRenderer from './SysenvRenderer.vue';
 import ClassInfoRenderer from './ClassInfoRenderer.vue';
 import ClassloaderRenderer from './ClassloaderRenderer.vue';
 import JadRenderer from './JadRenderer.vue';
+import MonitorRenderer from './MonitorRenderer.vue';
+import StackRenderer from './StackRenderer.vue';
 
 const rendererMap = {
   thread: ThreadRenderer,
@@ -23,6 +25,8 @@ const rendererMap = {
   classloader: ClassloaderRenderer,
   classloaderTree: ClassloaderRenderer,
   jad: JadRenderer,
+  monitor: MonitorRenderer,
+  stack: StackRenderer,
 };
 
 export function getRenderer(type) {
@@ -41,4 +45,6 @@ export {
   ClassInfoRenderer,
   ClassloaderRenderer,
   JadRenderer,
+  MonitorRenderer,
+  StackRenderer,
 };
