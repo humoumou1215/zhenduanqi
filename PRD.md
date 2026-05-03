@@ -674,6 +674,14 @@ public class ArthasResult {
 | `thread` | ThreadRenderer | `busyThreads` 数组（`thread -n`）或 `threads` 数组，每个线程含 `name`, `state`(状态), `cpu`, `deltaTime`, `id`(线程ID), `lockedMonitors` |
 | `memory` | MemoryRenderer | `memory` 数组或单个内存区域对象，每个包含 `name`, `used`, `total` |
 | `enhancer` | EnhancerRenderer | `success` (boolean), `effect` { `cost`, `classCount`, `methodCount` }, `message` |
+| `dashboard` | DashboardRenderer | `threads`, `memory`, `gc` 等综合信息 |
+| `vmoption` | VmoptionRenderer | `options` 数组，每个含 `name`, `value`, `origin` |
+| `sysenv` | SysenvRenderer | `env` 对象，键值对 |
+| `class` | ClassInfoRenderer | `classInfo`, `codeSource`, `classLoaderHash` 等 |
+| `classloader` | ClassloaderRenderer | `classLoaders` 数组，含继承关系 |
+| `jad` | JadRenderer | `classInfo`, `codeSource`, `location`, `source` (反编译代码) |
+| `monitor` | MonitorRenderer | `timestamp`, `class`, `method`, `total`, `success`, `fail`, `avgRt` |
+| `stack` | StackRenderer | `value` (调用栈), `ts` |
 | 其他 | FallbackRenderer | 原始 JSON 展示 |
 
 **预置场景涉及的命令响应格式：**
@@ -1004,12 +1012,20 @@ zhenduanqi/
 │       ├── api/index.js             # Axios 请求封装
 │       ├── router/index.js          # 路由 + 导航守卫
 │       ├── components/
-│       │   └── result-renderers/    # 结果渲染器组件
+│       │   └── ResultRenderer/      # 结果渲染器组件
 │       │       ├── index.js         # 渲染器注册（策略模式）
 │       │       ├── ThreadRenderer.vue
 │       │       ├── MemoryRenderer.vue
 │       │       ├── StatusRenderer.vue
 │       │       ├── EnhancerRenderer.vue
+│       │       ├── DashboardRenderer.vue  # dashboard 命令渲染
+│       │       ├── VmoptionRenderer.vue   # vmoption 命令渲染
+│       │       ├── SysenvRenderer.vue     # sysenv 命令渲染
+│       │       ├── ClassInfoRenderer.vue  # sc -d 命令渲染
+│       │       ├── ClassloaderRenderer.vue  # classloader 命令渲染
+│       │       ├── JadRenderer.vue        # jad 命令渲染
+│       │       ├── MonitorRenderer.vue    # monitor 命令渲染
+│       │       ├── StackRenderer.vue      # stack 命令渲染
 │       │       └── FallbackRenderer.vue  # <pre> 降级渲染
 │       ├── stores/
 │       │   ├── servers.js           # 服务器 Pinia store
