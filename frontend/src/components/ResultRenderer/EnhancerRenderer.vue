@@ -11,7 +11,10 @@
     <div v-if="currentData?.message" style="margin-top: 8px; color: #909399; font-size: 13px">
       {{ currentData.message }}
     </div>
-    <div v-if="isExample" style="margin-top: 4px; font-size: 11px; color: #909399; font-style: italic">
+    <div
+      v-if="isExample"
+      style="margin-top: 4px; font-size: 11px; color: #909399; font-style: italic"
+    >
       (示例数据)
     </div>
   </div>
@@ -23,8 +26,8 @@ import { computed } from 'vue';
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 });
 
 const defaultData = {
@@ -32,8 +35,8 @@ const defaultData = {
   effect: {
     cost: 24,
     classCount: 1,
-    methodCount: 3
-  }
+    methodCount: 3,
+  },
 };
 
 const currentData = computed(() => {
