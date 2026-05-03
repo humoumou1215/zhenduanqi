@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.zhenduanqi.annotation.AuditLog;
+import com.zhenduanqi.config.ClientIpUtil;
 import com.zhenduanqi.dto.ExecuteResponse;
 import com.zhenduanqi.entity.SysAuditLog;
 import com.zhenduanqi.repository.AuditLogRepository;
@@ -55,7 +56,7 @@ public class AuditLogAspect {
         if (attrs != null) {
             HttpServletRequest req = attrs.getRequest();
             auditEntry.setUsername((String) req.getAttribute("username"));
-            auditEntry.setUserIp(req.getRemoteAddr());
+            auditEntry.setUserIp(ClientIpUtil.extractClientIp(req));
 
             Object[] args = joinPoint.getArgs();
             if (args != null && args.length > 0) {
