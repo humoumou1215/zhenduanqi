@@ -9,9 +9,14 @@
       "
     >
       <h3>服务器管理</h3>
-      <el-button v-if="userStore.role === 'ADMIN'" type="primary" @click="openDialog()">
-        添加服务器
-      </el-button>
+      <div>
+        <el-button v-if="userStore.role === 'ADMIN'" type="primary" @click="openDialog()">
+          添加服务器
+        </el-button>
+        <el-button type="success" @click="checkAllStatus" :loading="checkingAll">
+          检测全部
+        </el-button>
+      </div>
     </div>
 
     <el-table :data="store.list" v-loading="store.loading" stripe style="width: 100%">
@@ -20,15 +25,35 @@
       <el-table-column prop="host" label="主机" width="150" />
       <el-table-column prop="httpPort" label="端口" width="80" />
       <el-table-column prop="username" label="用户名" width="120" />
-      <el-table-column label="连接状态" width="120">
+      <el-table-column label="连接状态" width="180">
         <template #default="{ row }">
-          <el-tag :type="statusMap[row.id]?.connected ? 'success' : 'danger'" size="small">
-            {{ statusMap[row.id]?.connected ? '已连接' : '未连接' }}
-          </el-tag>
+          <div v-if="statusMap[row.id]?.loading">
+            <el-tag type="info" size="small">检测中...</el-tag>
+          </div>
+          <div v-else-if="statusMap[row.id]">
+            <el-tooltip
+              :content="statusMap[row.id].error || statusMap[row.id].message"
+              placement="top"
+            >
+              <el-tag :type="statusMap[row.id].connected ? 'success' : 'danger'" size="small">
+                {{ statusMap[row.id].connected ? '已连接' : '未连接' }}
+              </el-tag>
+            </el-tooltip>
+          </div>
+          <div v-else>
+            <el-tag type="info" size="small">未知</el-tag>
+          </div>
         </template>
       </el-table-column>
-      <el-table-column v-if="userStore.role === 'ADMIN'" label="操作" width="180">
+      <el-table-column v-if="userStore.role === 'ADMIN'" label="操作" width="240">
         <template #default="{ row }">
+          <el-button
+            size="small"
+            @click="checkSingleStatus(row.id)"
+            :loading="statusMap[row.id]?.loading"
+          >
+            检测
+          </el-button>
           <el-button size="small" @click="openDialog(row)">编辑</el-button>
           <el-button size="small" type="danger" @click="handleDelete(row.id)">删除</el-button>
         </template>
@@ -90,6 +115,7 @@ const userStore = useUserStore();
 const dialogVisible = ref(false);
 const isEdit = ref(false);
 const saving = ref(false);
+const checkingAll = ref(false);
 const editingId = ref('');
 const statusMap = reactive({});
 
@@ -110,11 +136,34 @@ onMounted(async () => {
 });
 
 async function checkStatus(id) {
+  statusMap[id] = { loading: true };
   try {
     const res = await getServerStatus(id);
-    statusMap[id] = res.data;
-  } catch {
-    statusMap[id] = { connected: false };
+    statusMap[id] = { ...res.data, loading: false };
+  } catch (e) {
+    statusMap[id] = {
+      connected: false,
+      error: e.response?.data?.message || '检测失败',
+      loading: false,
+    };
+  }
+}
+
+async function checkSingleStatus(id) {
+  await checkStatus(id);
+  ElMessage.success('检测完成');
+}
+
+async function checkAllStatus() {
+  checkingAll.value = true;
+  try {
+    const promises = store.list.map((s) => checkStatus(s.id));
+    await Promise.all(promises);
+    ElMessage.success('全部检测完成');
+  } catch (e) {
+    ElMessage.error('检测过程中出现错误');
+  } finally {
+    checkingAll.value = false;
   }
 }
 

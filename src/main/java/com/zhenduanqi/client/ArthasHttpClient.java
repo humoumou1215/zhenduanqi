@@ -182,6 +182,75 @@ public class ArthasHttpClient {
         }
     }
 
+    public ServerStatusResult checkConnectionDetailed(ServerInfo server) {
+        try {
+            String apiUrl = server.getApiUrl();
+            String jsonBody = "{\"action\":\"exec\",\"command\":\"version\"}";
+
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .header("Content-Type", "application/json")
+                    .timeout(Duration.ofSeconds(5))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+            
+            addAuthorizationHeader(requestBuilder, server);
+            
+            HttpRequest request = requestBuilder.build();
+
+            HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            
+            if (httpResponse.statusCode() == 200) {
+                return ServerStatusResult.success("连接成功");
+            } else {
+                return ServerStatusResult.failure("HTTP " + httpResponse.statusCode() + ": " + getHttpErrorMessage(httpResponse.statusCode()));
+            }
+        } catch (java.net.ConnectException e) {
+            log.warn("Connection failed for {}: {}", server.getName(), e.getMessage());
+            return ServerStatusResult.failure("无法连接到服务器: " + e.getMessage());
+        } catch (java.net.http.HttpConnectTimeoutException e) {
+            log.warn("Connection timeout for {}: {}", server.getName(), e.getMessage());
+            return ServerStatusResult.failure("连接超时");
+        } catch (java.net.http.HttpTimeoutException e) {
+            log.warn("Request timeout for {}: {}", server.getName(), e.getMessage());
+            return ServerStatusResult.failure("请求超时");
+        } catch (Exception e) {
+            log.warn("Connection check failed for {}: {}", server.getName(), e.getMessage());
+            return ServerStatusResult.failure("连接失败: " + e.getMessage());
+        }
+    }
+
+    public static class ServerStatusResult {
+        private final boolean connected;
+        private final String message;
+        private final String error;
+
+        private ServerStatusResult(boolean connected, String message, String error) {
+            this.connected = connected;
+            this.message = message;
+            this.error = error;
+        }
+
+        public static ServerStatusResult success(String message) {
+            return new ServerStatusResult(true, message, null);
+        }
+
+        public static ServerStatusResult failure(String error) {
+            return new ServerStatusResult(false, null, error);
+        }
+
+        public boolean isConnected() {
+            return connected;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public String getError() {
+            return error;
+        }
+    }
+
     public ArthasResponse executeCommand(ServerInfo server, String sessionId, String command) {
         try {
             String apiUrl = server.getApiUrl();

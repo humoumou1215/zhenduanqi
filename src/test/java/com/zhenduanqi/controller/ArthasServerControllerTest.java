@@ -2,6 +2,7 @@ package com.zhenduanqi.controller;
 
 import com.zhenduanqi.aspect.RoleAspect;
 import com.zhenduanqi.dto.ArthasServerDTO;
+import com.zhenduanqi.dto.ServerStatusDTO;
 import com.zhenduanqi.entity.SysRole;
 import com.zhenduanqi.entity.SysUser;
 import com.zhenduanqi.repository.SysUserRepository;
@@ -194,5 +195,43 @@ class ArthasServerControllerTest {
     void deleteServer_withReadonlyAuth_returns403() throws Exception {
         mockMvc.perform(delete("/api/servers/server-1").cookie(readonlyCookie))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void checkStatus_withAdminAuth_returns200() throws Exception {
+        ServerStatusDTO status = ServerStatusDTO.success("连接成功");
+        when(serverService.checkConnection("server-1")).thenReturn(status);
+
+        mockMvc.perform(get("/api/servers/server-1/status").cookie(adminCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.connected").value(true))
+                .andExpect(jsonPath("$.message").value("连接成功"));
+    }
+
+    @Test
+    void checkStatus_withOperatorAuth_returns200() throws Exception {
+        ServerStatusDTO status = ServerStatusDTO.success("连接成功");
+        when(serverService.checkConnection("server-1")).thenReturn(status);
+
+        mockMvc.perform(get("/api/servers/server-1/status").cookie(operatorCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.connected").value(true));
+    }
+
+    @Test
+    void checkStatus_withReadonlyAuth_returns200() throws Exception {
+        ServerStatusDTO status = ServerStatusDTO.failure("连接失败");
+        when(serverService.checkConnection("server-1")).thenReturn(status);
+
+        mockMvc.perform(get("/api/servers/server-1/status").cookie(readonlyCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.connected").value(false))
+                .andExpect(jsonPath("$.error").value("连接失败"));
+    }
+
+    @Test
+    void checkStatus_withoutAuth_returns401() throws Exception {
+        mockMvc.perform(get("/api/servers/server-1/status"))
+                .andExpect(status().isUnauthorized());
     }
 }
