@@ -305,6 +305,28 @@ class AuditLogAspectTest {
         assertThat(result).isEqualTo("success");
     }
 
+    @Test
+    void auditLogSaveFailure_logsError() throws Throwable {
+        ListAppender<ILoggingEvent> appender = createListAppender();
+        try {
+            when(joinPoint.getSignature()).thenReturn(signature);
+            when(signature.getMethod()).thenReturn(
+                    AuditLogAspectTest.class.getDeclaredMethod("dummyDiagnoseMethod"));
+            when(joinPoint.getArgs()).thenReturn(new Object[]{"cmd1", "server-1"});
+            when(joinPoint.proceed()).thenReturn("success");
+            doThrow(new RuntimeException("数据库连接失败")).when(auditLogRepository).save(any());
+
+            Object result = aspect.logAround(joinPoint);
+
+            assertThat(result).isEqualTo("success");
+            List<ILoggingEvent> events = appender.list;
+            assertThat(events.stream().anyMatch(e ->
+                    e.getLevel() == Level.ERROR && e.getFormattedMessage().contains("审计日志保存失败"))).isTrue();
+        } finally {
+            removeAppender(appender);
+        }
+    }
+
     @com.zhenduanqi.annotation.AuditLog(action = "LOGIN")
     public ResponseEntity<?> loginMethodWithServletResponse(
             LoginRequest req, jakarta.servlet.http.HttpServletRequest servletRequest,
