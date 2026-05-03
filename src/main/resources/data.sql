@@ -8,11 +8,11 @@ INSERT INTO sys_role (role_code, role_name, description) VALUES ('OPERATOR', '�
 INSERT INTO sys_role (role_code, role_name, description) VALUES ('READONLY', '只读用户', '仅可查看服务器列表和执行结果');
 
 -- 默认高危命令黑名单规则 (与 PRD 一致)
-INSERT INTO command_guard_rule (rule_type, pattern, description, enabled, created_at, updated_at) VALUES ('BLACKLIST', '^ognl\\b', 'OGNL 表达式可执行任意代码，极高风险', TRUE, NOW(), NOW());
-INSERT INTO command_guard_rule (rule_type, pattern, description, enabled, created_at, updated_at) VALUES ('BLACKLIST', '^mc\\b', '内存编译器，可编译恶意类', TRUE, NOW(), NOW());
-INSERT INTO command_guard_rule (rule_type, pattern, description, enabled, created_at, updated_at) VALUES ('BLACKLIST', '^redefine\\b', '热替换类字节码，可能导致不可预期行为', TRUE, NOW(), NOW());
-INSERT INTO command_guard_rule (rule_type, pattern, description, enabled, created_at, updated_at) VALUES ('BLACKLIST', '^retransform\\b', '类似 redefine，热替换字节码', TRUE, NOW(), NOW());
-INSERT INTO command_guard_rule (rule_type, pattern, description, enabled, created_at, updated_at) VALUES ('BLACKLIST', '^heapdump\\b', 'dump 堆可能产生大文件，影响磁盘和性能', TRUE, NOW(), NOW());
+INSERT INTO command_guard_rule (rule_type, pattern, description, enabled, created_at, updated_at) VALUES ('BLACKLIST', '^ognl\b', 'OGNL 表达式可执行任意代码，极高风险', TRUE, NOW(), NOW());
+INSERT INTO command_guard_rule (rule_type, pattern, description, enabled, created_at, updated_at) VALUES ('BLACKLIST', '^mc\b', '内存编译器，可编译恶意类', TRUE, NOW(), NOW());
+INSERT INTO command_guard_rule (rule_type, pattern, description, enabled, created_at, updated_at) VALUES ('BLACKLIST', '^redefine\b', '热替换类字节码，可能导致不可预期行为', TRUE, NOW(), NOW());
+INSERT INTO command_guard_rule (rule_type, pattern, description, enabled, created_at, updated_at) VALUES ('BLACKLIST', '^retransform\b', '类似 redefine，热替换字节码', TRUE, NOW(), NOW());
+INSERT INTO command_guard_rule (rule_type, pattern, description, enabled, created_at, updated_at) VALUES ('BLACKLIST', '^heapdump\b', 'dump 堆可能产生大文件，影响磁盘和性能', TRUE, NOW(), NOW());
 
 -- 预置场景 1: 线程死锁检测
 INSERT INTO diagnose_scene (name, description, category, business_scenario, icon, sort_order, enabled, created_at, updated_at) VALUES ('线程死锁检测', '检测 Java 线程死锁检测和分析', 'THREAD', '应用卡死无响应、请求超时', 'Lock', 1, TRUE, NOW(), NOW());

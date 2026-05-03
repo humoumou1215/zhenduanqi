@@ -2,9 +2,10 @@ package com.zhenduanqi.service;
 
 import com.zhenduanqi.entity.CommandGuardRule;
 import com.zhenduanqi.repository.CommandGuardRuleRepository;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class CommandGuardService {
         this.ruleRepository = ruleRepository;
     }
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void reloadRules() {
         if (ruleRepository == null) return;
         blacklistPatterns = ruleRepository.findByRuleTypeAndEnabledTrue("BLACKLIST")
