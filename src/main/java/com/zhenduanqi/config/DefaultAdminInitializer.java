@@ -41,16 +41,58 @@ public class DefaultAdminInitializer implements CommandLineRunner {
             admin.setRealName("系统管理员");
             admin.setStatus("ACTIVE");
 
-            Set<SysRole> roles = new HashSet<>();
+            Set<SysRole> adminRoles = new HashSet<>();
             roleRepository.findByRoleCode("ADMIN").ifPresentOrElse(
-                    roles::add,
+                    adminRoles::add,
                     () -> log.warn("ADMIN role not found, user will have no roles")
             );
-            admin.setRoles(roles);
+            admin.setRoles(adminRoles);
 
             userRepository.save(admin);
             log.info("Default admin user created successfully with roles: {}", 
-                    roles.stream().map(SysRole::getRoleCode).toList());
+                    adminRoles.stream().map(SysRole::getRoleCode).toList());
+        }
+
+        if (userRepository.findByUsername("readonly").isEmpty()) {
+            log.info("Creating default readonly user...");
+
+            SysUser readonly = new SysUser();
+            readonly.setUsername("readonly");
+            readonly.setPassword(passwordEncoder.encode("Abcd1234"));
+            readonly.setRealName("只读用户");
+            readonly.setStatus("ACTIVE");
+
+            Set<SysRole> readonlyRoles = new HashSet<>();
+            roleRepository.findByRoleCode("READONLY").ifPresentOrElse(
+                    readonlyRoles::add,
+                    () -> log.warn("READONLY role not found, user will have no roles")
+            );
+            readonly.setRoles(readonlyRoles);
+
+            userRepository.save(readonly);
+            log.info("Default readonly user created successfully with roles: {}", 
+                    readonlyRoles.stream().map(SysRole::getRoleCode).toList());
+        }
+
+        if (userRepository.findByUsername("operator").isEmpty()) {
+            log.info("Creating default operator user...");
+
+            SysUser operator = new SysUser();
+            operator.setUsername("operator");
+            operator.setPassword(passwordEncoder.encode("Abcd1234"));
+            operator.setRealName("操作员");
+            operator.setStatus("ACTIVE");
+
+            Set<SysRole> operatorRoles = new HashSet<>();
+            roleRepository.findByRoleCode("OPERATOR").ifPresentOrElse(
+                    operatorRoles::add,
+                    () -> log.warn("OPERATOR role not found, user will have no roles")
+            );
+            operator.setRoles(operatorRoles);
+
+            userRepository.save(operator);
+            log.info("Default operator user created successfully with roles: {}", 
+                    operatorRoles.stream().map(SysRole::getRoleCode).toList());
         }
     }
 }
