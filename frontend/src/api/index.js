@@ -88,6 +88,10 @@ export function getAuditLogs(params) {
   return api.get('/audit-logs', { params });
 }
 
+export function getMyHistory(params) {
+  return api.get('/my-history', { params });
+}
+
 export function getGuardRules() {
   return api.get('/command-guard/rules');
 }

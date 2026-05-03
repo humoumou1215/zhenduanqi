@@ -58,6 +58,12 @@ const routes = [
     component: () => import('../views/SessionManage.vue'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/my-history',
+    name: 'MyHistory',
+    component: () => import('../views/MyHistory.vue'),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({

@@ -45,4 +45,27 @@ public class AuditLogService {
         };
         return repository.findAll(spec, pageable);
     }
+
+    public Page<SysAuditLog> queryMyHistory(String username, String action, String target,
+                                            LocalDateTime startTime, LocalDateTime endTime,
+                                            Pageable pageable) {
+        Specification<SysAuditLog> spec = (root, q, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("username"), username));
+            if (action != null && !action.isEmpty()) {
+                predicates.add(cb.equal(root.get("action"), action));
+            }
+            if (target != null && !target.isEmpty()) {
+                predicates.add(cb.like(root.get("target"), "%" + target + "%"));
+            }
+            if (startTime != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), startTime));
+            }
+            if (endTime != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), endTime));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        return repository.findAll(spec, pageable);
+    }
 }
