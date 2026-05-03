@@ -202,6 +202,64 @@ class ArthasHttpClientTest {
     }
 
     @Test
+    void parseDashboardResponse_withDashboardType_extractsResults() throws Exception {
+        String dashboardResponse = """
+            {
+              "state": "SUCCEEDED",
+              "body": {
+                "results": [
+                  {
+                    "type": "dashboard",
+                    "data": {
+                      "threads": [
+                        {
+                          "name": "main",
+                          "state": "RUNNABLE",
+                          "cpu": 0.5,
+                          "deltaTime": 100,
+                          "threadId": 1
+                        }
+                      ],
+                      "memory": [
+                        {
+                          "name": "Heap Memory",
+                          "used": 268435456,
+                          "total": 536870912
+                        }
+                      ],
+                      "gc": [
+                        {
+                          "name": "Copy",
+                          "count": 15,
+                          "time": 120
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+            """;
+
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(dashboardResponse);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponse);
+
+        ServerInfo server = createTestServer();
+        ArthasResponse response = arthasHttpClient.executeCommand(server, "dashboard -n 1");
+
+        assertThat(response.getState()).isEqualTo("SUCCEEDED");
+        assertThat(response.getStructuredResults()).isNotEmpty();
+        
+        List<ArthasResult> results = response.getStructuredResults();
+        assertThat(results.get(0).getType()).isEqualTo("dashboard");
+        assertThat(results.get(0).getData()).containsKey("threads");
+        assertThat(results.get(0).getData()).containsKey("memory");
+        assertThat(results.get(0).getData()).containsKey("gc");
+    }
+
+    @Test
     void parseUnknownTypeResponse_fallsBackToRawText() throws Exception {
         String unknownResponse = """
             {
