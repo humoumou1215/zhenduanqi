@@ -38,9 +38,7 @@
         <p style="margin-top: 16px">
           {{ searchKeyword ? `未找到与"${searchKeyword}"相关的场景` : '暂无场景数据' }}
         </p>
-        <p v-if="searchKeyword" style="margin-top: 8px; font-size: 13px">
-          请尝试其他关键词
-        </p>
+        <p v-if="searchKeyword" style="margin-top: 8px; font-size: 13px">请尝试其他关键词</p>
       </div>
 
       <div v-else>
@@ -239,7 +237,7 @@ function handleSearch() {}
 function highlightText(text) {
   if (!text) return '';
   if (!searchKeyword.value) return text;
-  
+
   const keyword = searchKeyword.value;
   const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
   return text.replace(regex, '<mark class="highlight">$1</mark>');
