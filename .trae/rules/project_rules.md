@@ -48,6 +48,24 @@ git status          # 检查是否有未提交的改动
 3. REFACTOR：重构代码，保持测试通过
 ```
 
+### 步骤 5：多 Agent 并行开发初始化
+
+**当检测到需要并行开发时（多个 Agent 同时工作）：**
+
+1. **认领 Issue**
+   - 用户指定 issue 编号，或
+   - 自动扫描未认领的 issue，按优先级（P0 > P1 > P2）认领
+   - 认领方式：添加 GitHub Label `agent-claimed` + 指定 assignee
+
+2. **创建 Worktree**
+   ```bash
+   git worktree add .worktrees/issue-{编号} -b feature/issue-{编号}-{描述}
+   ```
+
+3. **配置独立环境**
+   - 端口：后端使用 `8080 + issue编号 % 100`（如 issue-98 → 8098）
+   - 数据库：使用独立 H2 文件 `./data/zhenduanqi-issue-{编号}`
+
 ---
 
 ## 1 — PRD 同步规则
@@ -103,6 +121,26 @@ PRD.md 是代码的一部分，不是代码的附属文档。
 | GIT-1 | MUST | main 分支始终保持可部署状态 |
 | GIT-2 | MUST | 功能分支从 main 检出，命名格式 `feature/issue-{编号}-{简短描述}` |
 | GIT-3 | MUST | 修复分支从 main 检出，命名格式 `bugfix/issue-{编号}-{简短描述}` |
+
+### Worktree 管理（多 Agent 并行）
+
+| 编号 | 级别 | 规则 |
+|------|------|------|
+| GIT-16 | MUST | 多 Agent 并行开发时使用 Git Worktree 隔离工作目录 |
+| GIT-17 | MUST | Worktree 目录命名：`.worktrees/issue-{编号}/` |
+| GIT-18 | SHOULD | 完成任务后用户自行清理 worktree（`git worktree remove`） |
+
+**Worktree 使用示例**：
+```bash
+# 创建 worktree
+git worktree add .worktrees/issue-98 -b feature/issue-98-auth
+
+# 在 worktree 中工作
+cd .worktrees/issue-98
+
+# 完成后清理（用户手动）
+git worktree remove .worktrees/issue-98
+```
 
 ### 提交规范
 
@@ -225,4 +263,76 @@ grill-me（需求探讨）→ to-prd（输出 PRD）→ to-issues（拆分 issue
 2. 包含 What happened / What I expected / Steps to reproduce
 3. 添加优先级标签（P0/P1/P2）
 4. 关联相关 issue（如有阻塞关系）
+```
+
+---
+
+## 5 — 多 Agent 协作规则
+
+### 适用场景
+
+同一机器上多个 AI-Agent 终端并行开发调试同一项目。
+
+### Issue 认领机制
+
+| 编号 | 级别 | 规则 |
+|------|------|------|
+| AGENT-1 | MUST | Agent 启动时必须先认领 issue |
+| AGENT-2 | MUST | 认领方式：添加 GitHub Label `agent-claimed` + 指定 assignee |
+| AGENT-3 | MUST | 认领前检查 issue 是否已被认领（有 `agent-claimed` 标签则跳过） |
+| AGENT-4 | MUST | 用户可指定 issue 编号，未指定则自动按优先级（P0 > P1 > P2）认领 |
+
+### Worktree 隔离
+
+| 编号 | 级别 | 规则 |
+|------|------|------|
+| AGENT-5 | MUST | 每个 Agent 使用独立的 Git Worktree |
+| AGENT-6 | MUST | Worktree 目录命名：`.worktrees/issue-{编号}/` |
+| AGENT-7 | SHOULD | 完成任务后保留 worktree，用户自行定时清理 |
+
+### 环境隔离
+
+| 编号 | 级别 | 规则 |
+|------|------|------|
+| AGENT-8 | MUST | 每个 worktree 使用独立数据库文件 |
+| AGENT-9 | MUST | 数据库路径：`./data/zhenduanqi-issue-{编号}` |
+| AGENT-10 | MUST | 后端端口：`8080 + issue编号 % 100`（避免冲突） |
+
+**端口分配示例**：
+| Issue 编号 | 后端端口 | 数据库文件 |
+|------------|----------|------------|
+| #98 | 8098 | `./data/zhenduanqi-issue-98` |
+| #99 | 8099 | `./data/zhenduanqi-issue-99` |
+| #100 | 8100 | `./data/zhenduanqi-issue-100` |
+
+### 冲突处理
+
+| 编号 | 级别 | 规则 |
+|------|------|------|
+| AGENT-11 | SHOULD | 文件冲突依赖 Git 合并机制解决，不做预检测 |
+| AGENT-12 | SHOULD | Agent 定期 `git fetch origin main` 保持同步 |
+
+### 清理策略
+
+| 编号 | 级别 | 规则 |
+|------|------|------|
+| AGENT-13 | SHOULD | PR 合并后不主动清理，用户自行定时清理 |
+| AGENT-14 | SHOULD | 清理命令：`git worktree remove .worktrees/issue-{编号}` |
+
+### 多 Agent 工作流程
+
+```
+1. Agent 启动
+   ↓
+2. 认领 Issue（用户指定 或 自动按优先级认领）
+   ↓
+3. 检查 issue 是否已被认领 → 已认领则跳过，找下一个
+   ↓
+4. 创建 Worktree：git worktree add .worktrees/issue-{编号}
+   ↓
+5. 配置独立环境（端口、数据库）
+   ↓
+6. 开发 → 提交 → 创建 PR
+   ↓
+7. PR 合并 → 保留 worktree（用户自行清理）
 ```
