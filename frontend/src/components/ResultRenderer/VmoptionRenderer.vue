@@ -24,7 +24,7 @@
           <el-tag v-if="row.origin && row.origin !== row.value" size="small" type="warning">
             修改
           </el-tag>
-          <el-tag v-else size="small" type="info"> 默认 </el-tag>
+          <el-tag v-else size="small" type="info">默认</el-tag>
         </template>
       </el-table-column>
     </el-table>
