@@ -19,11 +19,11 @@
       </div>
     </div>
 
-    <el-table :data="store.list" v-loading="store.loading" stripe style="width: 100%">
-      <el-table-column prop="id" label="ID" width="120" />
-      <el-table-column prop="name" label="名称" width="200" />
-      <el-table-column prop="host" label="主机" width="150" />
-      <el-table-column prop="httpPort" label="端口" width="80" />
+    <el-table :data="store.list" v-loading="store.loading" stripe style="width: 100%" @sort-change="handleSortChange" :default-sort="{ prop: 'id', order: 'ascending' }">
+      <el-table-column prop="id" label="ID" width="120" sortable />
+      <el-table-column prop="name" label="名称" width="200" sortable />
+      <el-table-column prop="host" label="主机" width="150" sortable />
+      <el-table-column prop="httpPort" label="端口" width="80" sortable />
       <el-table-column prop="username" label="用户名" width="120" />
       <el-table-column label="连接状态" width="180">
         <template #default="{ row }">
@@ -118,6 +118,8 @@ const saving = ref(false);
 const checkingAll = ref(false);
 const editingId = ref('');
 const statusMap = reactive({});
+const sortProp = ref('id');
+const sortOrder = ref('ascending');
 
 const defaultForm = () => ({
   id: '',
@@ -215,6 +217,19 @@ async function handleDelete(id) {
     await store.fetchServers();
   } catch {
     // cancelled
+  }
+}
+
+function handleSortChange({ prop, order }) {
+  sortProp.value = prop;
+  sortOrder.value = order;
+  if (order) {
+    store.list.sort((a, b) => {
+      const aVal = a[prop];
+      const bVal = b[prop];
+      const compare = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      return order === 'ascending' ? compare : -compare;
+    });
   }
 }
 </script>
