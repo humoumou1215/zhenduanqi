@@ -17,6 +17,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/scenes/manage',
+    name: 'SceneManage',
+    component: () => import('../views/SceneManage.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/scenes/:id/diagnose',
     name: 'SceneDiagnose',
     component: () => import('../views/SceneDiagnose.vue'),

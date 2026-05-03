@@ -4,6 +4,7 @@ import com.zhenduanqi.entity.DiagnoseScene;
 import com.zhenduanqi.entity.SceneStep;
 import com.zhenduanqi.repository.DiagnoseSceneRepository;
 import com.zhenduanqi.repository.SceneStepRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,7 @@ public class SceneService {
     public DiagnoseScene updateScene(Long id, DiagnoseScene scene) {
         log.info("更新场景: id={}, name={}", id, scene.getName());
         DiagnoseScene existing = sceneRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("场景不存在"));
+                .orElseThrow(() -> new EntityNotFoundException("场景不存在"));
         existing.setName(scene.getName());
         existing.setDescription(scene.getDescription());
         existing.setCategory(scene.getCategory());
@@ -78,7 +79,7 @@ public class SceneService {
     public SceneStep addStep(Long sceneId, SceneStep step) {
         log.info("添加步骤: sceneId={}, title={}", sceneId, step.getTitle());
         DiagnoseScene scene = sceneRepository.findById(sceneId)
-                .orElseThrow(() -> new RuntimeException("场景不存在"));
+                .orElseThrow(() -> new EntityNotFoundException("场景不存在"));
         step.setScene(scene);
         return stepRepository.save(step);
     }
@@ -87,7 +88,7 @@ public class SceneService {
     public SceneStep updateStep(Long stepId, SceneStep step) {
         log.info("更新步骤: stepId={}", stepId);
         SceneStep existing = stepRepository.findById(stepId)
-                .orElseThrow(() -> new RuntimeException("步骤不存在"));
+                .orElseThrow(() -> new EntityNotFoundException("步骤不存在"));
         existing.setStepOrder(step.getStepOrder());
         existing.setTitle(step.getTitle());
         existing.setDescription(step.getDescription());
@@ -111,7 +112,7 @@ public class SceneService {
         for (int i = 0; i < stepIds.size(); i++) {
             Long stepId = stepIds.get(i);
             SceneStep step = stepRepository.findById(stepId)
-                    .orElseThrow(() -> new RuntimeException("步骤不存在"));
+                    .orElseThrow(() -> new EntityNotFoundException("步骤不存在"));
             step.setStepOrder(i + 1);
             stepRepository.save(step);
         }
