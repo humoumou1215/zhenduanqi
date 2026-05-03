@@ -26,9 +26,7 @@ jobs:
         run: mvn compile -B
 
       - name: Run tests
-        run: mvn test -B
-        env:
-          MAVEN_OPTS: "-Duser.timezone=Asia/Shanghai"
+        run: mvn test -B -DargLine="-Duser.timezone=Asia/Shanghai"
 
   frontend:
     name: Frontend Build & Format Check
