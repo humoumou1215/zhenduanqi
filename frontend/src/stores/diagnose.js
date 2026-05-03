@@ -9,8 +9,8 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
   const steps = ref([]);
   const variables = ref(new Map());
   const stepResults = ref(new Map());
-  const activeSessions = ref(new Map());  // 存储活跃会话: step.id -> session
-  const stepSessionIds = ref(new Map());  // 步骤与会话的映射: step.id -> session.id
+  const activeSessions = ref(new Map()); // 存储活跃会话: step.id -> session
+  const stepSessionIds = ref(new Map()); // 步骤与会话的映射: step.id -> session.id
 
   function initScene(scene, serverId) {
     currentSceneId.value = scene.id;
@@ -35,16 +35,17 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
   }
 
   function extractVariables(stepId, results) {
-    const step = steps.value.find(s => s.id === stepId);
+    const step = steps.value.find((s) => s.id === stepId);
     if (!step || !step.extract_rules) {
       return;
     }
 
     let rules;
     try {
-      rules = typeof step.extract_rules === 'string'
-        ? JSON.parse(step.extract_rules)
-        : step.extract_rules;
+      rules =
+        typeof step.extract_rules === 'string'
+          ? JSON.parse(step.extract_rules)
+          : step.extract_rules;
     } catch {
       return;
     }
@@ -52,28 +53,31 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
     const data = results || [];
 
     for (const rule of rules) {
-        if (!rule.variable || !rule.jsonPath) {
-            continue;
-        }
+      if (!rule.variable || !rule.jsonPath) {
+        continue;
+      }
 
-        try {
-            const values = JSONPath({
-                path: rule.jsonPath,
-                json: data,
-                resultType: 'value'
-            });
+      try {
+        const values = JSONPath({
+          path: rule.jsonPath,
+          json: data,
+          resultType: 'value',
+        });
 
-            if (values && values.length > 0) {
-                variables.value.set(rule.variable, String(values[0]));
-            }
-        } catch (error) {
-            console.warn(`Failed to extract variable ${rule.variable} with jsonPath: ${rule.jsonPath}`, error);
+        if (values && values.length > 0) {
+          variables.value.set(rule.variable, String(values[0]));
         }
+      } catch (error) {
+        console.warn(
+          `Failed to extract variable ${rule.variable} with jsonPath: ${rule.jsonPath}`,
+          error
+        );
+      }
     }
   }
 
   function fillCommand(stepId) {
-    const step = steps.value.find(s => s.id === stepId);
+    const step = steps.value.find((s) => s.id === stepId);
     if (!step) {
       return '';
     }
@@ -160,6 +164,6 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
     setActiveSession,
     getActiveSession,
     removeActiveSession,
-    restoreFromSessions
+    restoreFromSessions,
   };
 });

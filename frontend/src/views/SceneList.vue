@@ -1,6 +1,13 @@
 <template>
   <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      "
+    >
       <div>
         <h2 style="margin: 0">诊断场景</h2>
         <p style="color: #909399; margin: 4px 0 0 0; font-size: 14px">
@@ -19,7 +26,13 @@
             <el-icon><Search /></el-icon>
           </template>
         </el-input>
-        <el-select v-model="selectedCategory" placeholder="全部分类" clearable style="width: 160px" @change="handleCategoryChange">
+        <el-select
+          v-model="selectedCategory"
+          placeholder="全部分类"
+          clearable
+          style="width: 160px"
+          @change="handleCategoryChange"
+        >
           <el-option label="线程问题" value="THREAD" />
           <el-option label="内存问题" value="MEMORY" />
           <el-option label="JVM 基础" value="JVM" />
@@ -30,7 +43,10 @@
     </div>
 
     <div v-loading="loading">
-      <div v-if="filteredScenes.length === 0 && !loading" style="text-align: center; padding: 60px 0; color: #909399">
+      <div
+        v-if="filteredScenes.length === 0 && !loading"
+        style="text-align: center; padding: 60px 0; color: #909399"
+      >
         <el-icon :size="48"><Folder /></el-icon>
         <p style="margin-top: 16px">暂无场景数据</p>
       </div>
@@ -51,7 +67,10 @@
             shadow="hover"
             @click="enterScene(scene)"
           >
-            <div class="scene-card-header" :style="{ backgroundColor: getCategoryColor(scene.category) }">
+            <div
+              class="scene-card-header"
+              :style="{ backgroundColor: getCategoryColor(scene.category) }"
+            >
               <el-icon :size="28" style="color: white">
                 <component :is="getCategoryIcon(scene.category)" />
               </el-icon>
@@ -75,7 +94,12 @@
       </el-row>
     </div>
 
-    <el-dialog v-model="showServerDialog" title="选择目标服务器" width="500px" :close-on-click-modal="false">
+    <el-dialog
+      v-model="showServerDialog"
+      title="选择目标服务器"
+      width="500px"
+      :close-on-click-modal="false"
+    >
       <el-form label-width="100px">
         <el-form-item label="目标服务器" required>
           <el-select v-model="selectedServerId" placeholder="请选择服务器" style="width: 100%">
@@ -102,7 +126,16 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { Search, Folder, Location, Odometer, DataAnalysis, Box, Connection, Monitor } from '@element-plus/icons-vue';
+import {
+  Search,
+  Folder,
+  Location,
+  Odometer,
+  DataAnalysis,
+  Box,
+  Connection,
+  Monitor,
+} from '@element-plus/icons-vue';
 import { getScenes, getSceneSteps } from '../api';
 import { useServerStore } from '../stores/servers';
 import { useDiagnoseStore } from '../stores/diagnose';
@@ -124,22 +157,23 @@ const categoryMap = {
   MEMORY: { name: '内存问题', color: '#67C23A', tagType: 'success' },
   JVM: { name: 'JVM 基础', color: '#E6A23C', tagType: 'warning' },
   METHOD: { name: '方法调试', color: '#9B59B6', tagType: 'info' },
-  CLASSLOADER: { name: '类加载问题', color: '#F56C6C', tagType: 'danger' }
+  CLASSLOADER: { name: '类加载问题', color: '#F56C6C', tagType: 'danger' },
 };
 
 const filteredScenes = computed(() => {
   let result = scenes.value;
 
   if (selectedCategory.value) {
-    result = result.filter(s => s.category === selectedCategory.value);
+    result = result.filter((s) => s.category === selectedCategory.value);
   }
 
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase();
-    result = result.filter(s =>
-      s.name.toLowerCase().includes(keyword) ||
-      (s.businessScenario && s.businessScenario.toLowerCase().includes(keyword)) ||
-      (s.description && s.description.toLowerCase().includes(keyword))
+    result = result.filter(
+      (s) =>
+        s.name.toLowerCase().includes(keyword) ||
+        (s.businessScenario && s.businessScenario.toLowerCase().includes(keyword)) ||
+        (s.description && s.description.toLowerCase().includes(keyword))
     );
   }
 
@@ -164,7 +198,7 @@ function getCategoryIcon(category) {
     MEMORY: DataAnalysis,
     JVM: Box,
     METHOD: Monitor,
-    CLASSLOADER: Connection
+    CLASSLOADER: Connection,
   };
   return iconMap[category] || Folder;
 }
@@ -191,11 +225,9 @@ async function fetchScenes() {
   }
 }
 
-function handleSearch() {
-}
+function handleSearch() {}
 
-function handleCategoryChange() {
-}
+function handleCategoryChange() {}
 
 function enterScene(scene) {
   pendingScene.value = scene;
@@ -210,7 +242,7 @@ async function confirmEnterScene() {
     const stepsRes = await getSceneSteps(pendingScene.value.id);
     const sceneWithSteps = {
       ...pendingScene.value,
-      steps: stepsRes.data
+      steps: stepsRes.data,
     };
 
     diagnoseStore.initScene(sceneWithSteps, selectedServerId.value);
@@ -231,7 +263,9 @@ onMounted(() => {
 <style scoped>
 .scene-card {
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   height: 100%;
 }
 

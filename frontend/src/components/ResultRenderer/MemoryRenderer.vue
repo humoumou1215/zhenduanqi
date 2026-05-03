@@ -26,7 +26,10 @@
         </template>
       </el-table-column>
     </el-table>
-    <div v-if="isExample" style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic">
+    <div
+      v-if="isExample"
+      style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic"
+    >
       (示例数据)
     </div>
   </div>
@@ -38,8 +41,8 @@ import { computed } from 'vue';
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 });
 
 const defaultMemoryData = [
@@ -48,7 +51,7 @@ const defaultMemoryData = [
   { name: 'Eden Space', used: 134217728, total: 268435456 },
   { name: 'Survivor Space', used: 16777216, total: 33554432 },
   { name: 'Old Gen', used: 117440512, total: 268435456 },
-  { name: 'Metaspace', used: 50331648, total: 100663296 }
+  { name: 'Metaspace', used: 50331648, total: 100663296 },
 ];
 
 const tableData = computed(() => {

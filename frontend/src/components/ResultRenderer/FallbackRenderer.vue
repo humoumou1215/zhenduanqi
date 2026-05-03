@@ -13,18 +13,13 @@
       "
       >{{ formattedData }}</pre
     >
-    <div v-if="isExample" style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic">
+    <div
+      v-if="isExample"
+      style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic"
+    >
       (示例数据)
     </div>
-    <div
-      v-else
-      style="
-        margin-top: 8px;
-        font-size: 12px;
-        color: #909399;
-        font-style: italic;
-      "
-    >
+    <div v-else style="margin-top: 8px; font-size: 12px; color: #909399; font-style: italic">
       后续版本将支持结构化展示
     </div>
   </div>
@@ -36,8 +31,8 @@ import { computed } from 'vue';
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 });
 
 const defaultData = {
@@ -48,9 +43,9 @@ const defaultData = {
     field1: '示例值1',
     field2: '示例值2',
     nested: {
-      key: 'value'
-    }
-  }
+      key: 'value',
+    },
+  },
 };
 
 const currentData = computed(() => {
