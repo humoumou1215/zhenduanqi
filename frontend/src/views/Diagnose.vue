@@ -71,7 +71,11 @@
         <component :is="getRenderer(r.type)" :data="r.data" />
       </div>
 
-      <div v-if="result.results && result.results.length > 0 && !result.structuredResults" v-for="(r, i) in result.results" :key="'raw-' + i">
+      <div
+        v-if="result.results && result.results.length > 0 && !result.structuredResults"
+        v-for="(r, i) in result.results"
+        :key="'raw-' + i"
+      >
         <pre
           style="
             background: #f5f7fa;

@@ -6,7 +6,10 @@
     <span v-if="message" style="margin-left: 8px; color: #606266; font-size: 13px">
       {{ message }}
     </span>
-    <div v-if="isExample" style="margin-top: 4px; font-size: 11px; color: #909399; font-style: italic">
+    <div
+      v-if="isExample"
+      style="margin-top: 4px; font-size: 11px; color: #909399; font-style: italic"
+    >
       (示例数据)
     </div>
   </div>
@@ -18,13 +21,13 @@ import { computed } from 'vue';
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 });
 
 const defaultData = {
   statusCode: 0,
-  message: '命令执行成功'
+  message: '命令执行成功',
 };
 
 const currentData = computed(() => {

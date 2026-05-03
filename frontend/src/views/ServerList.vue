@@ -9,9 +9,9 @@
       "
     >
       <h3>服务器管理</h3>
-      <el-button v-if="userStore.role === 'ADMIN'" type="primary" @click="openDialog()"
-        >添加服务器</el-button
-      >
+      <el-button v-if="userStore.role === 'ADMIN'" type="primary" @click="openDialog()">
+        添加服务器
+      </el-button>
     </div>
 
     <el-table :data="store.list" v-loading="store.loading" stripe style="width: 100%">
@@ -50,10 +50,7 @@
           <el-input-number v-model="form.httpPort" :min="1" :max="65535" />
         </el-form-item>
         <el-form-item label="用户名">
-          <el-input
-            v-model="form.username"
-            placeholder="Arthas HTTP 认证用户名，默认 arthas"
-          />
+          <el-input v-model="form.username" placeholder="Arthas HTTP 认证用户名，默认 arthas" />
         </el-form-item>
         <el-form-item label="密码">
           <el-input
