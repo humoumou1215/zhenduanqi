@@ -76,6 +76,42 @@ class SensitiveDataConverterTest {
         assertThat(result).isEqualTo(original);
     }
 
+    @Test
+    void masksPasswordInNestedJson() {
+        String result = converter.convert(eventWithMessage("{\"user\":{\"password\":\"secret\",\"name\":\"admin\"}}"));
+        assertThat(result).isEqualTo("{\"user\":{\"password\":\"******\",\"name\":\"admin\"}}");
+    }
+
+    @Test
+    void masksTokenInNestedJson() {
+        String result = converter.convert(eventWithMessage("{\"data\":{\"auth\":{\"token\":\"abc123\"}}}"));
+        assertThat(result).isEqualTo("{\"data\":{\"auth\":{\"token\":\"******\"}}}");
+    }
+
+    @Test
+    void masksPasswordInUrl() {
+        String result = converter.convert(eventWithMessage("Login URL: /api/login?password=secret123&username=admin"));
+        assertThat(result).isEqualTo("Login URL: /api/login?password=******&username=admin");
+    }
+
+    @Test
+    void masksTokenInUrl() {
+        String result = converter.convert(eventWithMessage("API call: /api/data?token=abc-def-ghi&action=query"));
+        assertThat(result).isEqualTo("API call: /api/data?token=******&action=query");
+    }
+
+    @Test
+    void handlesMalformedJsonGracefully() {
+        String result = converter.convert(eventWithMessage("{invalid json with password=secret"));
+        assertThat(result).contains("password=******");
+    }
+
+    @Test
+    void masksNullOrEmptyMessage() {
+        assertThat(converter.convert(eventWithMessage(null))).isNull();
+        assertThat(converter.convert(eventWithMessage(""))).isEqualTo("");
+    }
+
     private ILoggingEvent eventWithMessage(String message) {
         ILoggingEvent event = mock(ILoggingEvent.class);
         when(event.getFormattedMessage()).thenReturn(message);

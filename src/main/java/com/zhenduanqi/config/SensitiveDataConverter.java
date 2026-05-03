@@ -10,10 +10,10 @@ import java.util.regex.Pattern;
 public class SensitiveDataConverter extends MessageConverter {
 
     private static final List<MaskRule> MASK_RULES = List.of(
-            new MaskRule(Pattern.compile("(password=)[^,\\s}]*"), "$1******"),
-            new MaskRule(Pattern.compile("(password\":\")[^\"]*\""), "$1******\""),
-            new MaskRule(Pattern.compile("(token=)[^,\\s}]*"), "$1******"),
-            new MaskRule(Pattern.compile("(token\":\")[^\"]*\""), "$1******\""),
+            new MaskRule(Pattern.compile("(password=)[^,\\s}&]*"), "$1******"),
+            new MaskRule(Pattern.compile("(\"password\"\\s*:\\s*\")[^\"]*\""), "$1******\""),
+            new MaskRule(Pattern.compile("(token=)[^,\\s}&]*"), "$1******"),
+            new MaskRule(Pattern.compile("(\"token\"\\s*:\\s*\")[^\"]*\""), "$1******\""),
             new MaskRule(Pattern.compile("(Authorization:\\s*Bearer\\s+)\\S+"), "$1******")
     );
 
