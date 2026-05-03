@@ -673,6 +673,7 @@ public class ArthasResult {
 | `status` | StatusRenderer | `statusCode` (0=成功, 非0=失败), `message` |
 | `thread` | ThreadRenderer | `busyThreads` 数组（`thread -n`）或 `threads` 数组，每个线程含 `name`, `state`(状态), `cpu`, `deltaTime`, `id`(线程ID), `lockedMonitors` |
 | `memory` | MemoryRenderer | `memory` 数组或单个内存区域对象，每个包含 `name`, `used`, `total` |
+| `dashboard` | DashboardRenderer | `threads`, `memory`, `gc` 等综合信息 |
 | `enhancer` | EnhancerRenderer | `success` (boolean), `effect` { `cost`, `classCount`, `methodCount` }, `message` |
 | 其他 | FallbackRenderer | 原始 JSON 展示 |
 

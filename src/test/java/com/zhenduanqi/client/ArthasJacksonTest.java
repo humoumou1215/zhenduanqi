@@ -118,4 +118,56 @@ public class ArthasJacksonTest {
         assertThat(result.getType()).isEqualTo("enhancer");
         assertThat(result.getData()).containsEntry("success", true);
     }
+
+    @Test
+    void parseDashboardResponse_withDashboardType_extractsResults() throws Exception {
+        String dashboardResponse = """
+            {
+              "state": "SUCCEEDED",
+              "body": {
+                "results": [
+                  {
+                    "type": "dashboard",
+                    "data": {
+                      "threads": [
+                        {
+                          "name": "main",
+                          "state": "RUNNABLE",
+                          "cpu": 0.5,
+                          "deltaTime": 100,
+                          "threadId": 1
+                        }
+                      ],
+                      "memory": [
+                        {
+                          "name": "Heap Memory",
+                          "used": 268435456,
+                          "total": 536870912
+                        }
+                      ],
+                      "gc": [
+                        {
+                          "name": "Copy",
+                          "count": 15,
+                          "time": 120
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+            """;
+
+        ArthasApiResponse response = objectMapper.readValue(dashboardResponse, ArthasApiResponse.class);
+
+        assertThat(response.getState()).isEqualTo("SUCCEEDED");
+        assertThat(response.getBody().getResults()).isNotEmpty();
+
+        ArthasResult result = response.getBody().getResults().get(0);
+        assertThat(result.getType()).isEqualTo("dashboard");
+        assertThat(result.getData()).containsKey("threads");
+        assertThat(result.getData()).containsKey("memory");
+        assertThat(result.getData()).containsKey("gc");
+    }
 }
