@@ -1,6 +1,7 @@
 package com.zhenduanqi.config;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
@@ -44,8 +45,11 @@ public class JwtUtil {
                     .parseSignedClaims(token)
                     .getPayload();
             return claims.getSubject();
+        } catch (ExpiredJwtException e) {
+            log.warn("Token已过期: {}", e.getClass().getSimpleName());
+            throw e;
         } catch (Exception e) {
-            log.warn("Token校验异常: {}", e.getClass().getSimpleName());
+            log.warn("Token无效: {}", e.getClass().getSimpleName());
             throw e;
         }
     }

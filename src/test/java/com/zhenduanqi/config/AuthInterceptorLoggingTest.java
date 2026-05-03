@@ -104,7 +104,7 @@ class AuthInterceptorLoggingTest {
 
             List<ILoggingEvent> events = appender.list;
             assertThat(events.stream().anyMatch(e ->
-                    e.getLevel() == Level.WARN && e.getFormattedMessage().contains("Token无效或缺失"))).isTrue();
+                    e.getLevel() == Level.WARN && e.getFormattedMessage().contains("Token缺失"))).isTrue();
         } finally {
             removeAppender(appender);
         }
@@ -123,7 +123,7 @@ class AuthInterceptorLoggingTest {
 
             List<ILoggingEvent> events = appender.list;
             assertThat(events.stream().anyMatch(e ->
-                    e.getLevel() == Level.WARN && e.getFormattedMessage().contains("Token无效或缺失"))).isTrue();
+                    e.getLevel() == Level.WARN && e.getFormattedMessage().contains("Token无效"))).isTrue();
         } finally {
             removeAppender(appender);
         }
