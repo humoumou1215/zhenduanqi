@@ -84,4 +84,70 @@ class UserServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("密码至少8位");
     }
+
+    @Test
+    void create_withPasswordWithoutLetter_throwsException() {
+        userService = new UserService(userRepository, roleRepository, passwordEncoder);
+
+        CreateUserRequest req = new CreateUserRequest();
+        req.setUsername("zhangsan");
+        req.setPassword("12345678");
+
+        assertThatThrownBy(() -> userService.create(req))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("密码必须包含字母和数字");
+    }
+
+    @Test
+    void create_withPasswordWithoutDigit_throwsException() {
+        userService = new UserService(userRepository, roleRepository, passwordEncoder);
+
+        CreateUserRequest req = new CreateUserRequest();
+        req.setUsername("zhangsan");
+        req.setPassword("abcdefgh");
+
+        assertThatThrownBy(() -> userService.create(req))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("密码必须包含字母和数字");
+    }
+
+    @Test
+    void create_withShortUsername_throwsException() {
+        userService = new UserService(userRepository, roleRepository, passwordEncoder);
+
+        CreateUserRequest req = new CreateUserRequest();
+        req.setUsername("a");
+        req.setPassword("Abcd1234");
+
+        assertThatThrownBy(() -> userService.create(req))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("用户名长度需在2-50位之间");
+    }
+
+    @Test
+    void create_withEmptyUsername_throwsException() {
+        userService = new UserService(userRepository, roleRepository, passwordEncoder);
+
+        CreateUserRequest req = new CreateUserRequest();
+        req.setUsername("");
+        req.setPassword("Abcd1234");
+
+        assertThatThrownBy(() -> userService.create(req))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("用户名不能为空");
+    }
+
+    @Test
+    void create_withLongRealName_throwsException() {
+        userService = new UserService(userRepository, roleRepository, passwordEncoder);
+
+        CreateUserRequest req = new CreateUserRequest();
+        req.setUsername("zhangsan");
+        req.setPassword("Abcd1234");
+        req.setRealName("a".repeat(101));
+
+        assertThatThrownBy(() -> userService.create(req))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("真实姓名不能超过100位");
+    }
 }
