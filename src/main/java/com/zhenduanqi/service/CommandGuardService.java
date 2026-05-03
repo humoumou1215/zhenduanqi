@@ -42,23 +42,32 @@ public class CommandGuardService {
         String commandName = trimmedCommand.split("\\s+")[0].toLowerCase();
         
         if (SYSTEM_COMMANDS.contains(commandName)) {
-            log.debug("系统命令豁免: {}", commandName);
+            log.debug("CommandGuard: 系统命令豁免, commandName={}", commandName);
             return new GuardResult(false, null);
         }
         
         for (CompiledRule rule : whitelistRules) {
             if (rule.pattern.matcher(trimmedCommand).find()) {
+                log.debug("CommandGuard: 白名单匹配通过, command={}", summarizeCommand(trimmedCommand));
                 return new GuardResult(false, null);
             }
         }
         for (CompiledRule rule : blacklistRules) {
             if (rule.pattern.matcher(trimmedCommand).find()) {
-                log.warn("高危命令拦截: command=\"{}\", pattern={}, description={}", 
-                        command, rule.pattern.pattern(), rule.description);
+                log.warn("CommandGuard: 高危命令拦截, command=\"{}\", pattern={}, description={}", 
+                        trimmedCommand, rule.pattern.pattern(), rule.description);
                 return new GuardResult(true, "高危命令已被拦截: " + commandName);
             }
         }
+        log.debug("CommandGuard: 校验通过, command={}", summarizeCommand(trimmedCommand));
         return new GuardResult(false, null);
+    }
+    
+    private String summarizeCommand(String command) {
+        if (command == null) return "";
+        if (command.length() <= 50) return command;
+        String firstWord = command.split("\\s+")[0];
+        return firstWord + "...";
     }
 
     public List<CommandGuardRule> getAllRules() {

@@ -47,20 +47,34 @@ public class ArthasExecuteService {
     }
 
     public ExecuteResponse execute(String serverId, String command) {
-        log.info("命令执行开始: serverId={}, command={}", serverId, command.length() > 50 ? command.substring(0, 50) + "..." : command);
+        String commandSummary = summarizeCommand(command);
+        log.info("CommandChain: 接收命令执行请求, serverId={}, command={}", serverId, commandSummary);
         long start = System.currentTimeMillis();
 
         CommandGuardService.GuardResult guardResult = commandGuardService.check(command);
         if (guardResult.isBlocked()) {
+            log.warn("CommandChain: 命令被拦截, serverId={}, command={}, reason={}", 
+                    serverId, commandSummary, guardResult.getReason());
             ExecuteResponse resp = new ExecuteResponse();
             resp.setState("blocked");
             resp.setError(guardResult.getReason());
             return resp;
         }
+        
+        log.info("CommandChain: 校验通过，发送到 Arthas, serverId={}, command={}", serverId, commandSummary);
         ExecuteResponse result = doExecute(serverId, command);
         long duration = System.currentTimeMillis() - start;
-        log.info("命令执行完成: serverId={}, state={}, duration={}ms", serverId, result.getState(), duration);
+        
+        log.info("CommandChain: 收到响应, serverId={}, state={}, duration={}ms, command={}", 
+                serverId, result.getState(), duration, commandSummary);
         return result;
+    }
+    
+    private String summarizeCommand(String command) {
+        if (command == null) return "";
+        if (command.length() <= 50) return command;
+        String firstWord = command.split("\\s+")[0];
+        return firstWord + "...";
     }
 
     public ExecuteResponse executeSystemCommand(String serverId, String command) {
