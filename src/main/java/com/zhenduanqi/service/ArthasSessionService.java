@@ -11,6 +11,8 @@ import com.zhenduanqi.model.SessionInfo;
 import com.zhenduanqi.repository.ArthasSessionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -232,6 +234,18 @@ public class ArthasSessionService {
         }
         if (!staleSessions.isEmpty()) {
             log.info("会话级超时清理完成: count={}", staleSessions.size());
+        }
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void cleanupOnStartup() {
+        log.info("服务启动，开始清理所有遗留的活跃会话...");
+        try {
+            cleanupOrphanSessions();
+            cleanupStaleSessions();
+            log.info("启动清理完成");
+        } catch (Exception e) {
+            log.error("启动清理失败", e);
         }
     }
 }
