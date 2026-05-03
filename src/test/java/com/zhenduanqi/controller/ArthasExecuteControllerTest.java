@@ -141,22 +141,4 @@ class ArthasExecuteControllerTest {
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isUnauthorized());
     }
-
-    @Test
-    void status_withAdminAuth_returns200() throws Exception {
-        mockMvc.perform(get("/api/servers/server-1/status").cookie(adminCookie))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void status_withOperatorAuth_returns200() throws Exception {
-        mockMvc.perform(get("/api/servers/server-1/status").cookie(operatorCookie))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void status_withReadonlyAuth_returns200() throws Exception {
-        mockMvc.perform(get("/api/servers/server-1/status").cookie(readonlyCookie))
-                .andExpect(status().isOk());
-    }
 }

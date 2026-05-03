@@ -31,7 +31,10 @@
             <el-tag type="info" size="small">检测中...</el-tag>
           </div>
           <div v-else-if="statusMap[row.id]">
-            <el-tooltip :content="statusMap[row.id].error || statusMap[row.id].message" placement="top">
+            <el-tooltip
+              :content="statusMap[row.id].error || statusMap[row.id].message"
+              placement="top"
+            >
               <el-tag :type="statusMap[row.id].connected ? 'success' : 'danger'" size="small">
                 {{ statusMap[row.id].connected ? '已连接' : '未连接' }}
               </el-tag>
@@ -44,7 +47,13 @@
       </el-table-column>
       <el-table-column v-if="userStore.role === 'ADMIN'" label="操作" width="240">
         <template #default="{ row }">
-          <el-button size="small" @click="checkSingleStatus(row.id)" :loading="statusMap[row.id]?.loading">检测</el-button>
+          <el-button
+            size="small"
+            @click="checkSingleStatus(row.id)"
+            :loading="statusMap[row.id]?.loading"
+          >
+            检测
+          </el-button>
           <el-button size="small" @click="openDialog(row)">编辑</el-button>
           <el-button size="small" type="danger" @click="handleDelete(row.id)">删除</el-button>
         </template>
@@ -132,7 +141,11 @@ async function checkStatus(id) {
     const res = await getServerStatus(id);
     statusMap[id] = { ...res.data, loading: false };
   } catch (e) {
-    statusMap[id] = { connected: false, error: e.response?.data?.message || '检测失败', loading: false };
+    statusMap[id] = {
+      connected: false,
+      error: e.response?.data?.message || '检测失败',
+      loading: false,
+    };
   }
 }
 
