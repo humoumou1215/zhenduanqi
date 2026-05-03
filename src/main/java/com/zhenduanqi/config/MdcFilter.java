@@ -23,7 +23,7 @@ public class MdcFilter implements Filter {
         try {
             MDC.put("requestId", UUID.randomUUID().toString());
             MDC.put("username", extractUsername(req));
-            MDC.put("clientIp", extractClientIp(req));
+            MDC.put("clientIp", ClientIpUtil.extractClientIp(req));
             chain.doFilter(request, response);
         } finally {
             MDC.clear();
@@ -52,17 +52,5 @@ public class MdcFilter implements Filter {
             }
         }
         return null;
-    }
-
-    private String extractClientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isEmpty()) {
-            return xff.split(",")[0].trim();
-        }
-        String xri = request.getHeader("X-Real-IP");
-        if (xri != null && !xri.isEmpty()) {
-            return xri;
-        }
-        return request.getRemoteAddr();
     }
 }
