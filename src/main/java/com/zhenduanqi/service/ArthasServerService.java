@@ -1,5 +1,6 @@
 package com.zhenduanqi.service;
 
+import com.zhenduanqi.client.ArthasHttpClient;
 import com.zhenduanqi.config.TokenEncryptionUtil;
 import com.zhenduanqi.dto.ArthasServerDTO;
 import com.zhenduanqi.entity.ArthasServerEntity;
@@ -20,10 +21,12 @@ public class ArthasServerService {
 
     private final ArthasServerRepository repository;
     private final TokenEncryptionUtil encryptionUtil;
+    private final ArthasHttpClient arthasHttpClient;
 
-    public ArthasServerService(ArthasServerRepository repository, TokenEncryptionUtil encryptionUtil) {
+    public ArthasServerService(ArthasServerRepository repository, TokenEncryptionUtil encryptionUtil, ArthasHttpClient arthasHttpClient) {
         this.repository = repository;
         this.encryptionUtil = encryptionUtil;
+        this.arthasHttpClient = arthasHttpClient;
     }
 
     public List<ArthasServerDTO> findAll() {
@@ -121,5 +124,13 @@ public class ArthasServerService {
         }
         repository.deleteById(id);
         log.info("服务器删除: id={}", id);
+    }
+
+    public boolean checkConnection(String id) {
+        Optional<ServerInfo> serverInfoOpt = findServerInfoById(id);
+        if (serverInfoOpt.isEmpty()) {
+            return false;
+        }
+        return arthasHttpClient.checkConnection(serverInfoOpt.get());
     }
 }

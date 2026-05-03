@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.zhenduanqi.client.ArthasHttpClient;
 import com.zhenduanqi.config.TokenEncryptionUtil;
 import com.zhenduanqi.dto.ArthasServerDTO;
 import com.zhenduanqi.repository.ArthasServerRepository;
@@ -29,11 +30,14 @@ class ArthasServerServiceLoggingTest {
     @Mock
     private TokenEncryptionUtil encryptionUtil;
 
+    @Mock
+    private ArthasHttpClient arthasHttpClient;
+
     private ArthasServerService service;
 
     @BeforeEach
     void setUp() {
-        service = new ArthasServerService(repository, encryptionUtil);
+        service = new ArthasServerService(repository, encryptionUtil, arthasHttpClient);
     }
 
     private ListAppender<ILoggingEvent> createListAppender() {

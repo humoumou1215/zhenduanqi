@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/servers")
@@ -30,6 +31,12 @@ public class ArthasServerController {
         return serverService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/status")
+    public ResponseEntity<Map<String, Boolean>> getStatus(@PathVariable String id) {
+        boolean connected = serverService.checkConnection(id);
+        return ResponseEntity.ok(Map.of("connected", connected));
     }
 
     @PostMapping
