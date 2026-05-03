@@ -35,7 +35,12 @@
         style="text-align: center; padding: 60px 0; color: #909399"
       >
         <el-icon :size="48"><Folder /></el-icon>
-        <p style="margin-top: 16px">暂无场景数据</p>
+        <p style="margin-top: 16px">
+          {{ searchKeyword ? `未找到与"${searchKeyword}"相关的场景` : '暂无场景数据' }}
+        </p>
+        <p v-if="searchKeyword" style="margin-top: 8px; font-size: 13px">
+          请尝试其他关键词
+        </p>
       </div>
 
       <div v-else>
@@ -67,14 +72,14 @@
                 shadow="hover"
                 @click="enterScene(scene)"
               >
-                <h4 class="scene-title">{{ scene.name }}</h4>
-                <p class="scene-desc">{{ scene.description || '暂无描述' }}</p>
+                <h4 class="scene-title" v-html="highlightText(scene.name)"></h4>
+                <p class="scene-desc" v-html="highlightText(scene.description || '暂无描述')"></p>
                 <div class="scene-meta">
                   <span class="step-count">{{ scene.stepCount || 0 }} 个步骤</span>
                 </div>
                 <p v-if="scene.businessScenario" class="scene-business">
                   <el-icon><Location /></el-icon>
-                  {{ scene.businessScenario }}
+                  <span v-html="highlightText(scene.businessScenario)"></span>
                 </p>
               </el-card>
             </el-col>
@@ -231,6 +236,19 @@ async function fetchScenes() {
 
 function handleSearch() {}
 
+function highlightText(text) {
+  if (!text) return '';
+  if (!searchKeyword.value) return text;
+  
+  const keyword = searchKeyword.value;
+  const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
+  return text.replace(regex, '<mark class="highlight">$1</mark>');
+}
+
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function enterScene(scene) {
   pendingScene.value = scene;
   selectedServerId.value = diagnoseStore.selectedServerId || '';
@@ -361,5 +379,12 @@ onMounted(() => {
 
 .scene-business .el-icon {
   flex-shrink: 0;
+}
+
+:deep(.highlight) {
+  background-color: #fef0f0;
+  color: #f56c6c;
+  padding: 0 2px;
+  border-radius: 2px;
 }
 </style>
