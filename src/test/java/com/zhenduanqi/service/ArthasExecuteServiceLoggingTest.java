@@ -70,7 +70,7 @@ class ArthasExecuteServiceLoggingTest {
 
             List<ILoggingEvent> events = appender.list;
             assertThat(events.stream().anyMatch(e ->
-                    e.getLevel() == Level.INFO && e.getFormattedMessage().contains("命令执行开始"))).isTrue();
+                    e.getLevel() == Level.INFO && e.getFormattedMessage().contains("CommandChain: 接收命令执行请求"))).isTrue();
         } finally {
             removeAppender(appender);
         }

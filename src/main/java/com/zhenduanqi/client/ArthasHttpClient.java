@@ -56,7 +56,7 @@ public class ArthasHttpClient {
             
             HttpRequest request = requestBuilder.build();
 
-            log.info("Executing command on {}: {}", server.getName(), command);
+            log.debug("ArthasClient: 正在发送命令到 Arthas, server={}, command={}", server.getName(), summarizeCommand(command));
             HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             String body = httpResponse.body();
@@ -79,20 +79,22 @@ public class ArthasHttpClient {
             response.setState("failed");
             response.setError("无法连接到服务器: " + e.getMessage());
             response.setRawResponse("连接错误: " + e.getClass().getSimpleName() + " - " + e.getMessage());
-            log.error("Connection failed: {}", e.getMessage());
+            log.error("ArthasClient: 连接失败, server={}, error={}", server.getName(), e.getMessage());
         } catch (java.net.http.HttpConnectTimeoutException e) {
             response.setState("failed");
             response.setError("连接超时: " + e.getMessage());
             response.setRawResponse("连接超时: " + e.getMessage());
+            log.warn("ArthasClient: 连接超时, server={}", server.getName());
         } catch (java.net.http.HttpTimeoutException e) {
             response.setState("failed");
             response.setError("请求超时: " + e.getMessage());
             response.setRawResponse("请求超时: " + e.getMessage());
+            log.warn("ArthasClient: 请求超时, server={}", server.getName());
         } catch (Exception e) {
             response.setState("failed");
             response.setError("请求异常: " + e.getMessage());
             response.setRawResponse("请求异常: " + e.getClass().getSimpleName() + " - " + e.getMessage());
-            log.error("Arthas API request failed", e);
+            log.error("ArthasClient: 请求异常, server={}", server.getName(), e);
         }
 
         return response;
@@ -157,6 +159,13 @@ public class ArthasHttpClient {
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
+    }
+    
+    private String summarizeCommand(String command) {
+        if (command == null) return "";
+        if (command.length() <= 50) return command;
+        String firstWord = command.split("\\s+")[0];
+        return firstWord + "...";
     }
 
     public boolean checkConnection(ServerInfo server) {
