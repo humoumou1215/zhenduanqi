@@ -19,7 +19,14 @@
       </div>
     </div>
 
-    <el-table :data="store.list" v-loading="store.loading" stripe style="width: 100%" @sort-change="handleSortChange" :default-sort="{ prop: 'id', order: 'ascending' }">
+    <el-table
+      :data="store.list"
+      v-loading="store.loading"
+      stripe
+      style="width: 100%"
+      @sort-change="handleSortChange"
+      :default-sort="{ prop: 'id', order: 'ascending' }"
+    >
       <el-table-column prop="id" label="ID" width="120" sortable />
       <el-table-column prop="name" label="名称" width="200" sortable />
       <el-table-column prop="host" label="主机" width="150" sortable />
