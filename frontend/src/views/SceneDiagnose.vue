@@ -77,7 +77,10 @@
             >
               <template #append>
                 <el-button
-                  v-if="!step.continuous"
+                  v-if="
+                    !step.continuous &&
+                    (userStore.role === 'OPERATOR' || userStore.role === 'ADMIN')
+                  "
                   :loading="stepStates[index]?.state === 'executing'"
                   :disabled="
                     !diagnoseStore.selectedServerId || stepStates[index]?.state === 'executing'
@@ -87,7 +90,11 @@
                   <el-icon v-if="!stepStates[index]?.state"><VideoPlay /></el-icon>
                   执行
                 </el-button>
-                <template v-else>
+                <template
+                  v-else-if="
+                    step.continuous && (userStore.role === 'OPERATOR' || userStore.role === 'ADMIN')
+                  "
+                >
                   <el-button
                     v-if="stepStates[index]?.state !== 'executing'"
                     :disabled="!diagnoseStore.selectedServerId"
@@ -101,6 +108,7 @@
                     停止
                   </el-button>
                 </template>
+                <el-tag v-else type="info" size="small">只读</el-tag>
               </template>
             </el-input>
             <div
@@ -231,12 +239,14 @@ import {
 } from '../api';
 import { useDiagnoseStore } from '../stores/diagnose';
 import { useServerStore } from '../stores/servers';
+import { useUserStore } from '../stores/user';
 import { getRenderer } from '../components/ResultRenderer';
 
 const router = useRouter();
 const route = useRoute();
 const diagnoseStore = useDiagnoseStore();
 const serverStore = useServerStore();
+const userStore = useUserStore();
 
 const stepCommands = ref([]);
 const stepStates = ref([]);
