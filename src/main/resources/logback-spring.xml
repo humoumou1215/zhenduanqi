@@ -3,6 +3,9 @@
 
     <conversionRule conversionWord="maskedMsg" converterClass="com.zhenduanqi.config.SensitiveDataConverter"/>
 
+    <springProperty scope="context" name="ROOT_LEVEL" source="logging.level.root" defaultValue="INFO"/>
+    <springProperty scope="context" name="APP_LEVEL" source="logging.level.com.zhenduanqi" defaultValue="DEBUG"/>
+
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId},%X{username}] - %maskedMsg%n"/>
     <property name="LOG_FILE" value="./logs/zhenduanqi.log"/>
 
@@ -26,25 +29,25 @@
     </appender>
 
     <springProfile name="default | dev">
-        <root level="INFO">
+        <root level="${ROOT_LEVEL}">
             <appender-ref ref="CONSOLE"/>
         </root>
-        <logger name="com.zhenduanqi" level="DEBUG"/>
+        <logger name="com.zhenduanqi" level="${APP_LEVEL}"/>
     </springProfile>
 
     <springProfile name="prod">
-        <root level="WARN">
+        <root level="${ROOT_LEVEL}">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </root>
-        <logger name="com.zhenduanqi" level="INFO"/>
+        <logger name="com.zhenduanqi" level="${APP_LEVEL}"/>
     </springProfile>
 
     <springProfile name="render">
-        <root level="WARN">
+        <root level="${ROOT_LEVEL}">
             <appender-ref ref="CONSOLE"/>
         </root>
-        <logger name="com.zhenduanqi" level="INFO"/>
+        <logger name="com.zhenduanqi" level="${APP_LEVEL}"/>
     </springProfile>
 
 </configuration>
