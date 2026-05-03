@@ -275,4 +275,50 @@ public class AuthServiceTest {
             removeAppender(appender);
         }
     }
+
+    @Test
+    void login_withUsernameWhitespace_trimsAndLogin() {
+        String password = "Abcd1234";
+        String hashed = passwordEncoder.encode(password);
+        SysRole adminRole = new SysRole();
+        adminRole.setRoleCode("ADMIN");
+        adminRole.setRoleName("管理员");
+        SysUser user = new SysUser();
+        user.setId(1L);
+        user.setUsername("admin");
+        user.setPassword(hashed);
+        user.setRealName("管理员");
+        user.setStatus("ACTIVE");
+        user.setRoles(Set.of(adminRole));
+
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
+
+        LoginResponse loginResponse = authService.login("  admin  ", password, "127.0.0.1", response);
+
+        assertThat(loginResponse).isNotNull();
+        assertThat(loginResponse.getUsername()).isEqualTo("admin");
+    }
+
+    @Test
+    void login_withPasswordWhitespace_trimsAndLogin() {
+        String password = "Abcd1234";
+        String hashed = passwordEncoder.encode(password);
+        SysRole adminRole = new SysRole();
+        adminRole.setRoleCode("ADMIN");
+        adminRole.setRoleName("管理员");
+        SysUser user = new SysUser();
+        user.setId(1L);
+        user.setUsername("admin");
+        user.setPassword(hashed);
+        user.setRealName("管理员");
+        user.setStatus("ACTIVE");
+        user.setRoles(Set.of(adminRole));
+
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
+
+        LoginResponse loginResponse = authService.login("admin", "  Abcd1234  ", "127.0.0.1", response);
+
+        assertThat(loginResponse).isNotNull();
+        assertThat(loginResponse.getUsername()).isEqualTo("admin");
+    }
 }
