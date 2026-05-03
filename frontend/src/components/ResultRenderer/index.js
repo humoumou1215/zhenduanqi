@@ -6,6 +6,7 @@ import FallbackRenderer from './FallbackRenderer.vue';
 import DashboardRenderer from './DashboardRenderer.vue';
 import VmoptionRenderer from './VmoptionRenderer.vue';
 import SysenvRenderer from './SysenvRenderer.vue';
+import HeapRenderer from './HeapRenderer.vue';
 
 const rendererMap = {
   thread: ThreadRenderer,
@@ -15,6 +16,7 @@ const rendererMap = {
   dashboard: DashboardRenderer,
   vmoption: VmoptionRenderer,
   sysenv: SysenvRenderer,
+  heap: HeapRenderer,
 };
 
 export function getRenderer(type) {
