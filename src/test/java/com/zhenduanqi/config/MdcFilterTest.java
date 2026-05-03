@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class MdcFilterTest {
@@ -211,5 +212,53 @@ class MdcFilterTest {
         }).when(filterChain).doFilter(any(HttpServletRequest.class), any(HttpServletResponse.class));
 
         mdcFilter.doFilter(request, response, filterChain);
+    }
+
+    @Test
+    void doFilter_multipleConsecutiveRequests_noMdcAccumulation() throws ServletException, IOException {
+        MockHttpServletRequest request1 = new MockHttpServletRequest();
+        MockHttpServletRequest request2 = new MockHttpServletRequest();
+        MockHttpServletRequest request3 = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        doAnswer(invocation -> {
+            assertThat(MDC.get("requestId")).isNotBlank();
+            assertThat(MDC.get("username")).isEqualTo("-");
+            assertThat(MDC.get("clientIp")).isNotBlank();
+            return null;
+        }).when(filterChain).doFilter(any(), any());
+
+        mdcFilter.doFilter(request1, response, filterChain);
+        assertThat(MDC.get("requestId")).isNull();
+
+        mdcFilter.doFilter(request2, response, filterChain);
+        assertThat(MDC.get("requestId")).isNull();
+
+        mdcFilter.doFilter(request3, response, filterChain);
+        assertThat(MDC.get("requestId")).isNull();
+    }
+
+    @Test
+    void doFilter_multipleConsecutiveRequestsWithExceptions_noMdcAccumulation() throws ServletException, IOException {
+        MockHttpServletRequest request1 = new MockHttpServletRequest();
+        MockHttpServletRequest request2 = new MockHttpServletRequest();
+        MockHttpServletRequest request3 = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        doAnswer(invocation -> null).when(filterChain).doFilter(any(), any());
+
+        mdcFilter.doFilter(request1, response, filterChain);
+        assertThat(MDC.get("requestId")).isNull();
+
+        lenient().doThrow(new RuntimeException("Simulated error")).when(filterChain).doFilter(any(), any());
+        try {
+            mdcFilter.doFilter(request2, response, filterChain);
+        } catch (RuntimeException ignored) {
+        }
+        assertThat(MDC.get("requestId")).isNull();
+
+        doAnswer(invocation -> null).when(filterChain).doFilter(any(), any());
+        mdcFilter.doFilter(request3, response, filterChain);
+        assertThat(MDC.get("requestId")).isNull();
     }
 }
