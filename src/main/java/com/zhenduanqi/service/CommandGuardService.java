@@ -20,8 +20,8 @@ public class CommandGuardService {
     private static final List<String> SYSTEM_COMMANDS = List.of("reset", "version");
 
     private final CommandGuardRuleRepository ruleRepository;
-    private List<Pattern> blacklistPatterns = new ArrayList<>();
-    private List<Pattern> whitelistPatterns = new ArrayList<>();
+    private List<CompiledRule> blacklistRules = new ArrayList<>();
+    private List<CompiledRule> whitelistRules = new ArrayList<>();
 
     public CommandGuardService(CommandGuardRuleRepository ruleRepository) {
         this.ruleRepository = ruleRepository;
@@ -30,11 +30,11 @@ public class CommandGuardService {
     @EventListener(ApplicationReadyEvent.class)
     public void reloadRules() {
         if (ruleRepository == null) return;
-        blacklistPatterns = ruleRepository.findByRuleTypeAndEnabledTrue("BLACKLIST")
-                .stream().map(r -> Pattern.compile(r.getPattern())).toList();
-        whitelistPatterns = ruleRepository.findByRuleTypeAndEnabledTrue("WHITELIST")
-                .stream().map(r -> Pattern.compile(r.getPattern())).toList();
-        log.info("规则加载完成: blacklist={}, whitelist={}", blacklistPatterns.size(), whitelistPatterns.size());
+        blacklistRules = ruleRepository.findByRuleTypeAndEnabledTrue("BLACKLIST")
+                .stream().map(r -> new CompiledRule(r.getPattern(), r.getDescription())).toList();
+        whitelistRules = ruleRepository.findByRuleTypeAndEnabledTrue("WHITELIST")
+                .stream().map(r -> new CompiledRule(r.getPattern(), r.getDescription())).toList();
+        log.info("规则加载完成: blacklist={}, whitelist={}", blacklistRules.size(), whitelistRules.size());
     }
 
     public GuardResult check(String command) {
@@ -46,14 +46,15 @@ public class CommandGuardService {
             return new GuardResult(false, null);
         }
         
-        for (Pattern p : whitelistPatterns) {
-            if (p.matcher(trimmedCommand).find()) {
+        for (CompiledRule rule : whitelistRules) {
+            if (rule.pattern.matcher(trimmedCommand).find()) {
                 return new GuardResult(false, null);
             }
         }
-        for (Pattern p : blacklistPatterns) {
-            if (p.matcher(trimmedCommand).find()) {
-                log.warn("命令拦截: command={}, pattern={}", commandName, p.pattern());
+        for (CompiledRule rule : blacklistRules) {
+            if (rule.pattern.matcher(trimmedCommand).find()) {
+                log.warn("高危命令拦截: command=\"{}\", pattern={}, description={}", 
+                        command, rule.pattern.pattern(), rule.description);
                 return new GuardResult(true, "高危命令已被拦截: " + commandName);
             }
         }
@@ -98,5 +99,15 @@ public class CommandGuardService {
 
         public boolean isBlocked() { return blocked; }
         public String getReason() { return reason; }
+    }
+
+    private static class CompiledRule {
+        final Pattern pattern;
+        final String description;
+
+        CompiledRule(String pattern, String description) {
+            this.pattern = Pattern.compile(pattern);
+            this.description = description != null ? description : "";
+        }
     }
 }

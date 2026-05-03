@@ -135,20 +135,34 @@ class CommandGuardServiceTest {
     }
 
     @Test
-    void check_commandBlocked_logsWarn() {
+    void check_commandBlocked_logsWarnWithFullCommandAndDescription() {
         ListAppender<ILoggingEvent> appender = createListAppender();
         try {
-            setupRules(List.of("^ognl\\b"), List.of());
+            setupRulesWithDescription("^ognl\\b", "OGNL 表达式可执行任意代码");
 
             guard.check("ognl -x 1");
 
             List<ILoggingEvent> events = appender.list;
             assertThat(events.stream().anyMatch(e ->
-                    e.getLevel() == Level.WARN && e.getFormattedMessage().contains("命令拦截"))).isTrue();
+                    e.getLevel() == Level.WARN && e.getFormattedMessage().contains("高危命令拦截"))).isTrue();
             assertThat(events.stream().anyMatch(e ->
-                    e.getFormattedMessage().contains("ognl"))).isTrue();
+                    e.getFormattedMessage().contains("ognl -x 1"))).isTrue();
+            assertThat(events.stream().anyMatch(e ->
+                    e.getFormattedMessage().contains("OGNL"))).isTrue();
         } finally {
             removeAppender(appender);
         }
+    }
+
+    private void setupRulesWithDescription(String pattern, String description) {
+        CommandGuardRule rule = new CommandGuardRule();
+        rule.setRuleType("BLACKLIST");
+        rule.setPattern(pattern);
+        rule.setDescription(description);
+        rule.setEnabled(true);
+
+        when(ruleRepository.findByRuleTypeAndEnabledTrue("BLACKLIST")).thenReturn(List.of(rule));
+        when(ruleRepository.findByRuleTypeAndEnabledTrue("WHITELIST")).thenReturn(List.of());
+        guard.reloadRules();
     }
 }
