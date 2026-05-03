@@ -27,6 +27,8 @@ jobs:
 
       - name: Run tests
         run: mvn test -B
+        env:
+          MAVEN_OPTS: "-Duser.timezone=Asia/Shanghai"
 
   frontend:
     name: Frontend Build & Format Check
