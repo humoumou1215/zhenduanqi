@@ -24,9 +24,28 @@
           >
             <el-option label="执行命令" value="EXECUTE_COMMAND" />
             <el-option label="登录" value="LOGIN" />
+            <el-option label="登出" value="LOGOUT" />
             <el-option label="管理服务器" value="MANAGE_SERVER" />
             <el-option label="管理用户" value="MANAGE_USER" />
             <el-option label="管理场景" value="MANAGE_SCENE" />
+            <el-option label="管理会话" value="MANAGE_SESSION" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="目标服务器">
+          <el-select
+            v-model="filters.target"
+            placeholder="全部"
+            clearable
+            filterable
+            style="width: 180px"
+            @change="search"
+          >
+            <el-option
+              v-for="server in servers"
+              :key="server.id"
+              :label="server.name"
+              :value="server.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="时间">
@@ -53,14 +72,18 @@
       stripe
       style="width: 100%"
       @sort-change="onSortChange"
+      :empty-text="emptyText"
     >
       <el-table-column prop="createdAt" label="时间" width="170" sortable="custom">
         <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
       </el-table-column>
       <el-table-column prop="username" label="操作人" width="100" />
       <el-table-column prop="userIp" label="IP" width="130" />
-      <el-table-column prop="action" label="操作类型" width="140" />
+      <el-table-column prop="action" label="操作类型" width="140">
+        <template #default="{ row }">{{ getActionLabel(row.action) }}</template>
+      </el-table-column>
       <el-table-column prop="target" label="目标" width="140" />
+      <el-table-column prop="command" label="指令内容" min-width="180" show-overflow-tooltip />
       <el-table-column prop="result" label="结果" width="90">
         <template #default="{ row }">
           <el-tag
@@ -81,6 +104,12 @@
               <strong>指令：</strong>
               <pre style="background: #f5f7fa; padding: 8px; margin: 4px 0">{{ row.command }}</pre>
             </div>
+            <div v-if="row.params">
+              <strong>请求参数：</strong>
+              <pre style="background: #f5f7fa; padding: 8px; margin: 4px 0">{{
+                formatParams(row.params)
+              }}</pre>
+            </div>
             <div v-if="row.resultDetail">
               <strong>结果详情：</strong>
               <pre style="background: #f5f7fa; padding: 8px; margin: 4px 0">{{
@@ -97,7 +126,7 @@
         v-model:current-page="page"
         v-model:page-size="pageSize"
         :total="total"
-        :page-sizes="[10, 20, 50]"
+        :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next"
         @size-change="fetchLogs"
         @current-change="fetchLogs"
@@ -107,10 +136,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { getAuditLogs } from '../api';
+import { ref, reactive, onMounted, computed } from 'vue';
+import { getAuditLogs, getServers } from '../api';
 
 const logs = ref([]);
+const servers = ref([]);
 const loading = ref(false);
 const page = ref(1);
 const pageSize = ref(20);
@@ -121,11 +151,57 @@ const timeRange = ref(null);
 
 const filters = reactive({ username: '', action: '', target: '' });
 
-onMounted(() => fetchLogs());
+const actionLabels = {
+  EXECUTE_COMMAND: '执行命令',
+  LOGIN: '登录',
+  LOGOUT: '登出',
+  MANAGE_SERVER: '管理服务器',
+  MANAGE_USER: '管理用户',
+  MANAGE_SCENE: '管理场景',
+  MANAGE_SESSION: '管理会话',
+};
+
+const emptyText = computed(() => {
+  if (loading.value) return '加载中...';
+  if (total.value === 0) {
+    if (filters.username || filters.action || filters.target || timeRange.value) {
+      return '没有符合筛选条件的日志';
+    }
+    return '暂无审计日志';
+  }
+  return '暂无数据';
+});
+
+onMounted(() => {
+  fetchServers();
+  fetchLogs();
+});
+
+async function fetchServers() {
+  try {
+    const res = await getServers();
+    servers.value = res.data;
+  } catch (e) {
+    console.error('Failed to fetch servers:', e);
+  }
+}
 
 function formatTime(t) {
   if (!t) return '';
   return t.replace('T', ' ').substring(0, 19);
+}
+
+function formatParams(params) {
+  if (!params) return '';
+  try {
+    return JSON.stringify(JSON.parse(params), null, 2);
+  } catch {
+    return params;
+  }
+}
+
+function getActionLabel(action) {
+  return actionLabels[action] || action;
 }
 
 async function fetchLogs() {
@@ -138,6 +214,7 @@ async function fetchLogs() {
     };
     if (filters.username) params.username = filters.username;
     if (filters.action) params.action = filters.action;
+    if (filters.target) params.target = filters.target;
     if (timeRange.value) {
       params.startTime = timeRange.value[0];
       params.endTime = timeRange.value[1];
