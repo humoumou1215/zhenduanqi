@@ -9,3 +9,6 @@ Thumbs.db
 # Temp test/debug scripts
 test_*.py
 *.pyc
+
+# Multi-Agent worktrees
+.worktrees/
