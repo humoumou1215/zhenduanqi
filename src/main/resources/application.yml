@@ -36,7 +36,17 @@ arthas:
 
 logging:
   level:
-    root: INFO
-    com.zhenduanqi: DEBUG
+    root: ${LOGGING_LEVEL_ROOT:INFO}
+    com.zhenduanqi: ${LOGGING_LEVEL_COM_ZHENDUANQI:DEBUG}
   file:
-    name: ./logs/zhenduanqi.log
+    name: ${LOGGING_FILE_NAME:./logs/zhenduanqi.log}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: loggers,health
+  endpoint:
+    loggers:
+      enabled: true
+      show-details: when_authorized

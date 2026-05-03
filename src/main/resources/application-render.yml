@@ -35,5 +35,5 @@ arthas:
 
 logging:
   level:
-    root: WARN
-    com.zhenduanqi: INFO
+    root: ${LOGGING_LEVEL_ROOT:WARN}
+    com.zhenduanqi: ${LOGGING_LEVEL_COM_ZHENDUANQI:INFO}
