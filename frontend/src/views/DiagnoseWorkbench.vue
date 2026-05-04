@@ -62,8 +62,13 @@
         </div>
       </div>
       <el-card v-loading="dashboardLoading" class="dashboard-card">
-        <DashboardRenderer v-if="dashboardData" :data="dashboardData" />
-        <el-empty v-else description="请选择服务器并开始刷新以查看监控数据" :image-size="80" />
+        <DashboardRenderer :data="dashboardData" />
+        <div
+          v-if="!dashboardData"
+          style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic"
+        >
+          (请选择服务器并点击"开始刷新"查看真实数据)
+        </div>
       </el-card>
     </div>
 
