@@ -145,8 +145,18 @@ const exampleTypeStats = [
 
 const exampleInstanceStats = [
   { name: 'BootstrapClassLoader', loadedCount: 200, hash: '@N/A', parent: 'null' },
-  { name: 'sun.misc.Launcher$ExtClassLoader', loadedCount: 50, hash: '@12345678', parent: 'BootstrapClassLoader' },
-  { name: 'sun.misc.Launcher$AppClassLoader', loadedCount: 150, hash: '@abcdef12', parent: 'sun.misc.Launcher$ExtClassLoader@12345678' },
+  {
+    name: 'sun.misc.Launcher$ExtClassLoader',
+    loadedCount: 50,
+    hash: '@12345678',
+    parent: 'BootstrapClassLoader',
+  },
+  {
+    name: 'sun.misc.Launcher$AppClassLoader',
+    loadedCount: 150,
+    hash: '@abcdef12',
+    parent: 'sun.misc.Launcher$ExtClassLoader@12345678',
+  },
 ];
 
 const exampleTreeData = [
@@ -185,13 +195,8 @@ const exampleUrlStats = [
   {
     name: 'sun.misc.Launcher$AppClassLoader',
     hash: '@abcdef12',
-    usedUrls: [
-      'file:/path/to/classes/',
-      'file:/path/to/lib/spring-core-5.3.0.jar',
-    ],
-    unusedUrls: [
-      'file:/path/to/lib/commons-lang3-3.12.0.jar',
-    ],
+    usedUrls: ['file:/path/to/classes/', 'file:/path/to/lib/spring-core-5.3.0.jar'],
+    unusedUrls: ['file:/path/to/lib/commons-lang3-3.12.0.jar'],
   },
 ];
 
