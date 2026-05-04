@@ -3,22 +3,11 @@
     <div class="header-main">
       <span class="command-label">{{ titleLabel }}:</span>
       <span class="command-value">{{ command }}</span>
-      <el-button
-        v-if="isRunning"
-        type="danger"
-        size="small"
-        @click="$emit('stop')"
-      >
-        停止
-      </el-button>
+      <el-button v-if="isRunning" type="danger" size="small" @click="$emit('stop')">停止</el-button>
     </div>
     <div class="header-stats">
-      <span class="stat-item">
-        {{ statLabel }}: {{ sampleCount }} 次
-      </span>
-      <span v-if="mode === 'trace'" class="stat-item">
-        耗时阈值: {{ costThreshold || '-' }}
-      </span>
+      <span class="stat-item">{{ statLabel }}: {{ sampleCount }} 次</span>
+      <span v-if="mode === 'trace'" class="stat-item">耗时阈值: {{ costThreshold || '-' }}</span>
     </div>
   </div>
 </template>

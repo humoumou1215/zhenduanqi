@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="stack-node-row"
-    :style="{ paddingLeft: depth * 20 + 'px' }"
-  >
+  <div class="stack-node-row" :style="{ paddingLeft: depth * 20 + 'px' }">
     <span class="prefix">{{ prefix }}</span>
     <template v-if="isRoot">
       <span class="target-marker">@</span>
@@ -11,12 +8,7 @@
     <template v-else>
       <span class="caller-label">at</span>
       <span class="method-name">{{ callerMethod }}</span>
-      <span
-        v-if="node.line"
-        class="line-info"
-      >
-        ({{ lineInfo }})
-      </span>
+      <span v-if="node.line" class="line-info">({{ lineInfo }})</span>
     </template>
   </div>
 </template>

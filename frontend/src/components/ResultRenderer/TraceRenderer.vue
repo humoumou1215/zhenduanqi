@@ -149,8 +149,7 @@ function calculateTotalCost(nodes) {
   }, 0);
 }
 
-function handleFocus(index) {
-}
+function handleFocus(index) {}
 
 watch(
   () => props.data,

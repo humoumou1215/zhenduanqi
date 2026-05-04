@@ -1,10 +1,6 @@
 <template>
   <div class="trace-node">
-    <div
-      v-for="(node, index) in nodes"
-      :key="index"
-      class="trace-node-item"
-    >
+    <div v-for="(node, index) in nodes" :key="index" class="trace-node-item">
       <TraceNodeRow
         :node="node"
         :depth="node.depth || 0"

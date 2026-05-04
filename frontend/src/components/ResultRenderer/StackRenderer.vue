@@ -92,11 +92,14 @@ const parsedSamples = computed(() => {
 
 function normalizeStackNodes(stackItem) {
   if (typeof stackItem === 'string') {
-    return stackItem.split('\n').filter((line) => line.trim()).map((line) => ({
-      method: line,
-      depth: 0,
-      children: [],
-    }));
+    return stackItem
+      .split('\n')
+      .filter((line) => line.trim())
+      .map((line) => ({
+        method: line,
+        depth: 0,
+        children: [],
+      }));
   }
 
   if (Array.isArray(stackItem)) {
@@ -126,17 +129,14 @@ function normalizeStackNodes(stackItem) {
   }
 
   if (stackItem.stack) {
-    const lines = Array.isArray(stackItem.stack)
-      ? stackItem.stack
-      : stackItem.stack.split('\n');
+    const lines = Array.isArray(stackItem.stack) ? stackItem.stack : stackItem.stack.split('\n');
     lines.forEach(addLine);
   }
 
   return nodes;
 }
 
-function handleFocus(index) {
-}
+function handleFocus(index) {}
 
 watch(
   () => props.data,

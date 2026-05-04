@@ -1,9 +1,5 @@
 <template>
-  <div
-    class="sample-card"
-    :class="{ 'is-focused': isFocused }"
-    @click="$emit('click')"
-  >
+  <div class="sample-card" :class="{ 'is-focused': isFocused }" @click="$emit('click')">
     <div class="sample-header" @click.stop="toggleExpand">
       <el-icon class="expand-icon" :class="{ expanded: isExpanded }">
         <ArrowDown />
@@ -17,27 +13,14 @@
         <span v-if="sample.threadName" class="sample-thread">线程: {{ sample.threadName }}</span>
         <span v-if="sample.priority" class="sample-priority">优先级: {{ sample.priority }}</span>
       </template>
-      <el-button
-        v-if="isFocused"
-        size="small"
-        link
-        type="primary"
-        class="focus-indicator"
-      >
+      <el-button v-if="isFocused" size="small" link type="primary" class="focus-indicator">
         聚焦
       </el-button>
     </div>
 
     <div v-if="isExpanded" class="sample-content">
-      <TraceNode
-        v-if="mode === 'trace'"
-        :nodes="parsedNodes"
-        :max-cost="maxCost"
-      />
-      <StackNode
-        v-else
-        :nodes="parsedNodes"
-      />
+      <TraceNode v-if="mode === 'trace'" :nodes="parsedNodes" :max-cost="maxCost" />
+      <StackNode v-else :nodes="parsedNodes" />
     </div>
   </div>
 </template>
@@ -112,11 +95,14 @@ function parseStackNodes(sample) {
 
 function normalizeStackNodes(stack) {
   if (typeof stack === 'string') {
-    return stack.split('\n').filter((line) => line.trim()).map((line) => ({
-      method: line,
-      depth: 0,
-      children: [],
-    }));
+    return stack
+      .split('\n')
+      .filter((line) => line.trim())
+      .map((line) => ({
+        method: line,
+        depth: 0,
+        children: [],
+      }));
   }
   if (!Array.isArray(stack)) return [];
   return stack.map((item) => ({

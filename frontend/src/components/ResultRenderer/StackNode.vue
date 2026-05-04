@@ -1,20 +1,13 @@
 <template>
   <div class="stack-node">
-    <div
-      v-for="(node, index) in nodes"
-      :key="index"
-      class="stack-node-item"
-    >
+    <div v-for="(node, index) in nodes" :key="index" class="stack-node-item">
       <StackNodeRow
         :node="node"
         :depth="node.depth || 0"
         :prefix="getPrefix(index, nodes.length)"
         :is-root="index === 0"
       />
-      <StackNode
-        v-if="node.children && node.children.length > 0"
-        :nodes="node.children"
-      />
+      <StackNode v-if="node.children && node.children.length > 0" :nodes="node.children" />
     </div>
   </div>
 </template>

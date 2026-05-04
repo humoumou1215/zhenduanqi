@@ -27,10 +27,7 @@
       @click="scrollToLatest"
     />
 
-    <div
-      v-if="samples.length === 0"
-      class="empty-state"
-    >
+    <div v-if="samples.length === 0" class="empty-state">
       <el-empty :description="emptyDescription" :image-size="60" />
     </div>
   </div>

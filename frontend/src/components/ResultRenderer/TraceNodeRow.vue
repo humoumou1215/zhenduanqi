@@ -1,35 +1,17 @@
 <template>
-  <div
-    class="trace-node-row"
-    :style="{ paddingLeft: depth * 20 + 'px' }"
-  >
+  <div class="trace-node-row" :style="{ paddingLeft: depth * 20 + 'px' }">
     <span class="prefix">{{ prefix }}</span>
     <span class="method-name">{{ node.method }}</span>
-    <span
-      v-if="node.line"
-      class="line-number"
-    >
-      #{{ node.line }}
-    </span>
-    <span
-      v-if="node.cost != null"
-      class="cost-bar"
-      :style="costBarStyle"
-    >
+    <span v-if="node.line" class="line-number">#{{ node.line }}</span>
+    <span v-if="node.cost != null" class="cost-bar" :style="costBarStyle">
       <span class="cost-bar-fill" :class="costBarClass"></span>
       <span class="cost-value">{{ formatCost(node.cost) }}</span>
     </span>
-    <span
-      v-if="node.throws"
-      class="throws-indicator"
-    >
-      [throws {{ node.throws }}]
-    </span>
-    <span
-      v-if="node.aggregated"
-      class="aggregated-info"
-    >
-      [min={{ formatCost(node.aggregated.min) }},max={{ formatCost(node.aggregated.max) }},total={{ formatCost(node.aggregated.total) }},count={{ node.aggregated.count }}]
+    <span v-if="node.throws" class="throws-indicator">[throws {{ node.throws }}]</span>
+    <span v-if="node.aggregated" class="aggregated-info">
+      [min={{ formatCost(node.aggregated.min) }},max={{ formatCost(node.aggregated.max) }},total={{
+        formatCost(node.aggregated.total)
+      }},count={{ node.aggregated.count }}]
     </span>
   </div>
 </template>
