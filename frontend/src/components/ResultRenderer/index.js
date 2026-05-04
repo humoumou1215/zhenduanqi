@@ -11,6 +11,8 @@ import ClassloaderRenderer from './ClassloaderRenderer.vue';
 import JadRenderer from './JadRenderer.vue';
 import MonitorRenderer from './MonitorRenderer.vue';
 import StackRenderer from './StackRenderer.vue';
+import TraceRenderer from './TraceRenderer.vue';
+import WatchRenderer from './WatchRenderer.vue';
 
 const rendererMap = {
   thread: ThreadRenderer,
@@ -27,6 +29,8 @@ const rendererMap = {
   jad: JadRenderer,
   monitor: MonitorRenderer,
   stack: StackRenderer,
+  trace: TraceRenderer,
+  watch: WatchRenderer,
 };
 
 export function getRenderer(type) {
@@ -47,4 +51,6 @@ export {
   JadRenderer,
   MonitorRenderer,
   StackRenderer,
+  TraceRenderer,
+  WatchRenderer,
 };
