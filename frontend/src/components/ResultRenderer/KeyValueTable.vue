@@ -1,10 +1,6 @@
 <template>
   <el-descriptions :column="columns" border size="small">
-    <el-descriptions-item
-      v-for="(value, key) in data"
-      :key="key"
-      :label="labelMap[key] || key"
-    >
+    <el-descriptions-item v-for="(value, key) in data" :key="key" :label="labelMap[key] || key">
       <template v-if="Array.isArray(value)">
         <el-tag v-for="(item, i) in value" :key="i" size="small" style="margin-right: 4px">
           {{ item }}

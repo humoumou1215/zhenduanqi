@@ -21,15 +21,15 @@
 
     <div v-else-if="isMultiDetailMode" class="sm-container">
       <el-collapse accordion>
-        <el-collapse-item
-          v-for="(method, index) in methodList"
-          :key="index"
-          :name="index"
-        >
+        <el-collapse-item v-for="(method, index) in methodList" :key="index" :name="index">
           <template #title>
             <div class="collapse-title">
               <el-tag size="small" type="info">{{ method.modifier || '-' }}</el-tag>
-              <code>{{ method.declaringClass || method.declaringclass }}.{{ method.methodName || method.methodname }}</code>
+              <code>
+                {{ method.declaringClass || method.declaringclass }}.{{
+                  method.methodName || method.methodname
+                }}
+              </code>
             </div>
           </template>
           <KeyValueTable :data="method" :label-map="labelMap" />
@@ -60,26 +60,26 @@ const props = defineProps({
 
 const labelMap = {
   'declaring-class': '声明类',
-  'declaringClass': '声明类',
-  'declaringclass': '声明类',
+  declaringClass: '声明类',
+  declaringclass: '声明类',
   'method-name': '方法名',
-  'methodName': '方法名',
-  'methodname': '方法名',
-  'modifier': '修饰符',
-  'annotation': '注解',
-  'annotations': '注解',
-  'parameters': '参数',
+  methodName: '方法名',
+  methodname: '方法名',
+  modifier: '修饰符',
+  annotation: '注解',
+  annotations: '注解',
+  parameters: '参数',
   'parameter-types': '参数类型',
-  'parameterTypes': '参数类型',
-  'parametertypes': '参数类型',
-  'return': '返回类型',
+  parameterTypes: '参数类型',
+  parametertypes: '参数类型',
+  return: '返回类型',
   'return-type': '返回类型',
-  'returnType': '返回类型',
-  'returntype': '返回类型',
-  'exceptions': '异常',
+  returnType: '返回类型',
+  returntype: '返回类型',
+  exceptions: '异常',
   'exception-types': '异常类型',
-  'exceptionTypes': '异常类型',
-  'exceptiontypes': '异常类型',
+  exceptionTypes: '异常类型',
+  exceptiontypes: '异常类型',
 };
 
 const defaultSimpleList = [
@@ -91,37 +91,46 @@ const defaultSimpleList = [
 const defaultMethodDetail = {
   'declaring-class': 'java.lang.String',
   'method-name': 'length',
-  'modifier': 'public',
-  'annotation': [],
-  'parameters': [],
-  'return': 'int',
-  'exceptions': [],
+  modifier: 'public',
+  annotation: [],
+  parameters: [],
+  return: 'int',
+  exceptions: [],
 };
 
 const defaultMethodList = [
   {
     'declaring-class': 'java.lang.String',
     'method-name': 'length',
-    'modifier': 'public',
-    'return': 'int',
+    modifier: 'public',
+    return: 'int',
   },
   {
     'declaring-class': 'java.lang.String',
     'method-name': 'charAt',
-    'modifier': 'public',
-    'parameters': ['int'],
-    'return': 'char',
+    modifier: 'public',
+    parameters: ['int'],
+    return: 'char',
   },
 ];
 
 const isExample = computed(() => {
-  return !props.data || (Array.isArray(props.data) && props.data.length === 0) || (typeof props.data === 'object' && Object.keys(props.data).length === 0);
+  return (
+    !props.data ||
+    (Array.isArray(props.data) && props.data.length === 0) ||
+    (typeof props.data === 'object' && Object.keys(props.data).length === 0)
+  );
 });
 
 const isSimpleMode = computed(() => {
   if (!props.data) return false;
   if (Array.isArray(props.data)) {
-    return props.data.length > 0 && (props.data[0].methodName || props.data[0].methodname) && !props.data[0]['declaring-class'] && !props.data[0].declaringClass;
+    return (
+      props.data.length > 0 &&
+      (props.data[0].methodName || props.data[0].methodname) &&
+      !props.data[0]['declaring-class'] &&
+      !props.data[0].declaringClass
+    );
   }
   return false;
 });
@@ -129,7 +138,10 @@ const isSimpleMode = computed(() => {
 const isDetailMode = computed(() => {
   if (!props.data) return false;
   if (typeof props.data === 'object' && !Array.isArray(props.data)) {
-    return (props.data['declaring-class'] || props.data.declaringClass || props.data.declaringclass) && (props.data['method-name'] || props.data.methodName || props.data.methodname);
+    return (
+      (props.data['declaring-class'] || props.data.declaringClass || props.data.declaringclass) &&
+      (props.data['method-name'] || props.data.methodName || props.data.methodname)
+    );
   }
   return false;
 });
@@ -137,7 +149,12 @@ const isDetailMode = computed(() => {
 const isMultiDetailMode = computed(() => {
   if (!props.data) return false;
   if (Array.isArray(props.data)) {
-    return props.data.length > 0 && (props.data[0]['declaring-class'] || props.data[0].declaringClass || props.data[0].declaringclass);
+    return (
+      props.data.length > 0 &&
+      (props.data[0]['declaring-class'] ||
+        props.data[0].declaringClass ||
+        props.data[0].declaringclass)
+    );
   }
   return false;
 });
