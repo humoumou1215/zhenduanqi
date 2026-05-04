@@ -124,9 +124,9 @@ import {
   Location,
   Odometer,
   DataAnalysis,
-  Box,
   Connection,
-  Monitor,
+  Clock,
+  Refresh,
 } from '@element-plus/icons-vue';
 import { getScenes, getSceneSteps } from '../api';
 import { useServerStore } from '../stores/servers';
@@ -145,39 +145,46 @@ const pendingScene = ref(null);
 
 const categoryDefinitions = [
   {
-    code: 'THREAD',
-    name: '线程问题',
-    description: '死锁、CPU飙高等',
-    color: '#409EFF',
+    code: 'SLOW_RESPONSE',
+    name: '接口响应慢',
+    description: 'HTTP请求响应时间过长',
+    color: '#E6A23C',
+    icon: Clock,
+  },
+  {
+    code: 'CPU_HIGH',
+    name: 'CPU 使用率高',
+    description: 'CPU占用持续过高',
+    color: '#F56C6C',
     icon: Odometer,
   },
   {
-    code: 'MEMORY',
-    name: '内存问题',
-    description: 'OOM、内存泄漏、GC频繁等',
-    color: '#67C23A',
+    code: 'MEMORY_HIGH',
+    name: '内存使用率高',
+    description: 'JVM堆内存使用率过高',
+    color: '#9B59B6',
     icon: DataAnalysis,
   },
   {
-    code: 'JVM',
-    name: 'JVM 基础',
-    description: '配置确认、环境信息等',
-    color: '#E6A23C',
-    icon: Box,
+    code: 'GC_FREQUENT',
+    name: 'GC 频繁',
+    description: '垃圾回收频繁影响性能',
+    color: '#67C23A',
+    icon: Refresh,
   },
   {
-    code: 'METHOD',
-    name: '方法调试',
-    description: '耗时追踪、调用监控等',
-    color: '#9B59B6',
-    icon: Monitor,
-  },
-  {
-    code: 'CLASSLOADER',
-    name: '类加载问题',
-    description: '类冲突、ClassNotFoundException等',
-    color: '#F56C6C',
+    code: 'THREAD_POOL_HIGH',
+    name: '线程池使用率高',
+    description: '线程池资源耗尽',
+    color: '#409EFF',
     icon: Connection,
+  },
+  {
+    code: 'CLASS_LOAD_ERROR',
+    name: '类加载异常',
+    description: '类冲突、ClassNotFoundException等',
+    color: '#909399',
+    icon: Search,
   },
 ];
 
