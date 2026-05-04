@@ -234,8 +234,6 @@ import { ElMessage } from 'element-plus';
 import { CopyDocument, ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
 import arthasCommands from '../data/arthas-commands.json';
 
-const STORAGE_KEY = 'zhenduanqi_selected_server';
-
 const serverStore = useServerStore();
 const userStore = useUserStore();
 const commandCacheStore = useCommandCacheStore();
@@ -292,14 +290,14 @@ watch(
 );
 
 function restoreSelectedServer() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved && serverStore.list.some((s) => s.id === saved)) {
-    form.value.serverId = saved;
+  serverStore.restoreCurrentServer();
+  if (serverStore.currentServerId) {
+    form.value.serverId = serverStore.currentServerId;
   }
 }
 
 function handleServerChange(serverId) {
-  localStorage.setItem(STORAGE_KEY, serverId);
+  serverStore.setCurrentServer(serverId);
 }
 
 function filterCommands(queryString, cb) {
