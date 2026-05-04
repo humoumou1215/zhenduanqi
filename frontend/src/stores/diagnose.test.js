@@ -168,6 +168,81 @@ describe('useDiagnoseStore', () => {
 
       expect(store.getVariable('threadId')).toBe('123');
     });
+
+    it('should try fallback jsonpaths when first path fails', () => {
+      const store = useDiagnoseStore();
+
+      const scene = {
+        id: 1,
+        name: 'Test Scene',
+        steps: [
+          {
+            id: 101,
+            command: 'thread -n 5',
+            extract_rules: JSON.stringify([
+              {
+                variable: 'threadId',
+                jsonPath: '$[?(@.type=="thread")][0].data.id',
+                description: 'First try using id field',
+              },
+              {
+                variable: 'threadId',
+                jsonPath: '$[?(@.type=="thread")][0].data.threadId',
+                description: 'Fallback using threadId field',
+              },
+            ]),
+          },
+        ],
+      };
+
+      store.initScene(scene, 'server-1');
+
+      const results = [
+        { type: 'thread', data: { threadId: 987, name: 'Thread-1' } },
+      ];
+
+      store.extractVariables(101, results);
+
+      expect(store.getVariable('threadId')).toBe('987');
+    });
+
+    it('should skip subsequent rules for same variable once extracted', () => {
+      const store = useDiagnoseStore();
+
+      const scene = {
+        id: 1,
+        name: 'Test Scene',
+        steps: [
+          {
+            id: 101,
+            command: 'thread -n 5',
+            extract_rules: JSON.stringify([
+              {
+                variable: 'threadId',
+                jsonPath: '$[?(@.type=="thread")][0].data.id',
+                description: 'First path that succeeds',
+              },
+              {
+                variable: 'threadId',
+                jsonPath: '$[?(@.type=="thread")][0].data.threadId',
+                description: 'This should be skipped',
+              },
+            ]),
+          },
+        ],
+      };
+
+      store.initScene(scene, 'server-1');
+
+      const results = [
+        { type: 'thread', data: { id: 456, threadId: 789, name: 'Thread-1' } },
+      ];
+
+      store.extractVariables(101, results);
+
+      // Should use the value from the first successful rule, not the second one
+      expect(store.getVariable('threadId')).toBe('456');
+    });
   });
 
   describe('fillCommand', () => {
