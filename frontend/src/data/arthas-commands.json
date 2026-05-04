@@ -1,0 +1,307 @@
+[
+  {
+    "name": "dashboard",
+    "description": "显示当前系统的实时数据面板，包括内存、CPU、线程信息",
+    "params": "无参数",
+    "examples": ["dashboard"]
+  },
+  {
+    "name": "thread",
+    "description": "查看当前 JVM 的线程堆栈信息",
+    "params": "-n [数量] 显示最忙的N个线程\n-i [毫秒] 指定采样间隔\n--state [状态] 按线程状态过滤\n[id] 查看指定线程的堆栈",
+    "examples": [
+      "thread",
+      "thread -n 5",
+      "thread -n 3 -i 1000",
+      "thread 1",
+      "thread --state BLOCKED"
+    ]
+  },
+  {
+    "name": "jvm",
+    "description": "查看当前 JVM 的基本信息",
+    "params": "无参数",
+    "examples": ["jvm"]
+  },
+  {
+    "name": "sysprop",
+    "description": "查看和修改 JVM 的系统属性",
+    "params": "[属性名] 查看指定属性\n[属性名] [值] 设置属性值",
+    "examples": ["sysprop", "sysprop user.home", "sysprop user.home /tmp"]
+  },
+  {
+    "name": "sysenv",
+    "description": "查看 JVM 的环境变量",
+    "params": "[变量名] 查看指定环境变量",
+    "examples": ["sysenv", "sysenv PATH"]
+  },
+  {
+    "name": "vmoption",
+    "description": "查看和修改 JVM 的诊断选项",
+    "params": "[选项名] 查看指定选项\n[选项名] [值] 设置选项值",
+    "examples": ["vmoption", "vmoption PrintGC", "vmoption PrintGC true"]
+  },
+  {
+    "name": "perfcounter",
+    "description": "查看 JVM 的性能计数器信息",
+    "params": "无参数",
+    "examples": ["perfcounter"]
+  },
+  {
+    "name": "getstatic",
+    "description": "查看类的静态属性",
+    "params": "[类名] [属性名]",
+    "examples": ["getstatic com.example.MyClass FIELD_NAME"]
+  },
+  {
+    "name": "ognl",
+    "description": "执行 OGNL 表达式",
+    "params": "[表达式] OGNL 表达式\n-c [类加载器hash] 指定类加载器\n-x [深度] 指定对象展开深度",
+    "examples": [
+      "ognl @com.example.MyClass@FIELD",
+      "ognl '@System@out.println(\"hello\")'",
+      "ognl -x 2 @com.example.MyClass@instance"
+    ]
+  },
+  {
+    "name": "sc",
+    "description": "查看已加载的类信息",
+    "params": "-d 显示类详情\n-E 使用正则匹配\n-f 显示类成员\n[classPattern] 类名模式",
+    "examples": ["sc com.example.*", "sc -d com.example.MyClass", "sc -f com.example.MyClass"]
+  },
+  {
+    "name": "sm",
+    "description": "查看已加载类的方法信息",
+    "params": "-d 显示方法详情\n-E 使用正则匹配\n[classPattern] [methodPattern]",
+    "examples": [
+      "sm com.example.MyClass",
+      "sm -d com.example.MyClass methodName",
+      "sm com.example.* method*"
+    ]
+  },
+  {
+    "name": "jad",
+    "description": "反编译已加载类的源码",
+    "params": "[类名] 反编译整个类\n[类名] [方法名] 反编译指定方法\n--source-only 只显示源码",
+    "examples": [
+      "jad com.example.MyClass",
+      "jad com.example.MyClass methodName",
+      "jad --source-only com.example.MyClass"
+    ]
+  },
+  {
+    "name": "mc",
+    "description": "内存编译器，编译 Java 源码",
+    "params": "-d [目录] 指定输出目录\n[源码文件或目录]",
+    "examples": ["mc /tmp/Test.java", "mc -d /tmp/output /tmp/Test.java"]
+  },
+  {
+    "name": "retransform",
+    "description": "重新加载外部的 .class 文件",
+    "params": "[class文件路径]",
+    "examples": ["retransform /tmp/Test.class"]
+  },
+  {
+    "name": "dump",
+    "description": "dump 已加载类的字节码到文件",
+    "params": "-d [目录] 指定输出目录\n[classPattern] 类名模式",
+    "examples": ["dump com.example.MyClass", "dump -d /tmp com.example.*"]
+  },
+  {
+    "name": "classloader",
+    "description": "查看类加载器的继承结构",
+    "params": "-t 显示类加载器树\n-l 按类加载器实例统计\n-c [hash] 查看指定类加载器加载的类",
+    "examples": ["classloader", "classloader -t", "classloader -l", "classloader -c 3d4eac69"]
+  },
+  {
+    "name": "monitor",
+    "description": "监控方法的执行统计",
+    "params": "-c [秒] 统计周期\n-b 在方法调用前后打印耗时\n[classPattern] [methodPattern]",
+    "examples": ["monitor -c 5 com.example.MyClass methodName", "monitor -b com.example.MyClass *"]
+  },
+  {
+    "name": "stack",
+    "description": "输出方法被调用的调用路径",
+    "params": "-n [次数] 限制输出次数\n[classPattern] [methodPattern] [condition]",
+    "examples": [
+      "stack com.example.MyClass methodName",
+      "stack -n 2 com.example.MyClass methodName"
+    ]
+  },
+  {
+    "name": "trace",
+    "description": "追踪方法内部调用路径和耗时",
+    "params": "-n [次数] 限制输出次数\n#cost [毫秒] 按耗时过滤\n[classPattern] [methodPattern]",
+    "examples": [
+      "trace com.example.MyClass methodName",
+      "trace -n 3 com.example.MyClass methodName",
+      "trace com.example.MyClass methodName '#cost > 100'"
+    ]
+  },
+  {
+    "name": "tt",
+    "description": "时间隧道，记录方法调用的入参和返回值",
+    "params": "-t 记录方法调用\n-l 列出记录\n-i [index] 查看指定记录\n-p 重放调用\n-d 删除记录",
+    "examples": ["tt -t com.example.MyClass methodName", "tt -l", "tt -i 1000 -p", "tt -d -i 1000"]
+  },
+  {
+    "name": "watch",
+    "description": "观察方法的入参、返回值、异常",
+    "params": "-b 在方法调用前观察\n-s 在方法返回后观察\n-e 在方法异常后观察\n-x [深度] 对象展开深度\n[classPattern] [methodPattern] [expression]",
+    "examples": [
+      "watch com.example.MyClass methodName '{params, returnObj}'",
+      "watch -b com.example.MyClass methodName params",
+      "watch -e com.example.MyClass methodName '{params, throwExp}'"
+    ]
+  },
+  {
+    "name": "heapdump",
+    "description": "dump Java 堆到文件",
+    "params": "[文件路径] 输出文件路径\n--live 只 dump 存活对象",
+    "examples": ["heapdump /tmp/dump.hprof", "heapdump --live /tmp/live.hprof"]
+  },
+  {
+    "name": "memory",
+    "description": "查看 JVM 内存信息",
+    "params": "无参数",
+    "examples": ["memory"]
+  },
+  {
+    "name": "vmtool",
+    "description": "JVMTI 工具，可以获取内存中的对象",
+    "params": "--action getInstances 获取对象实例\n--action forceGc 强制GC\n--className [类名]",
+    "examples": [
+      "vmtool --action getInstances --className com.example.MyClass",
+      "vmtool --action forceGc"
+    ]
+  },
+  {
+    "name": "profiler",
+    "description": "使用 async-profiler 进行性能分析",
+    "params": "start 开始采样\nstop 停止采样并输出\n--event [事件] 采样事件(cpu/alloc/lock)\n--duration [秒] 采样时长\n--file [路径] 输出文件",
+    "examples": [
+      "profiler start",
+      "profiler stop",
+      "profiler start --event alloc",
+      "profiler --duration 30 --file /tmp/flamegraph.html start"
+    ]
+  },
+  {
+    "name": "mbean",
+    "description": "查看 MBean 的属性和方法",
+    "params": "[MBean名称] 查看指定MBean\n[name] [attribute] 查看属性",
+    "examples": [
+      "mbean",
+      "mbean java.lang:type=Memory",
+      "mbean java.lang:type=Memory HeapMemoryUsage"
+    ]
+  },
+  {
+    "name": "options",
+    "description": "查看和设置 Arthas 全局选项",
+    "params": "[选项名] 查看选项\n[选项名] [值] 设置选项",
+    "examples": ["options", "options unsafe true", "options json-format true"]
+  },
+  {
+    "name": "logger",
+    "description": "查看和修改 logger 配置",
+    "params": "-n [logger名] 指定logger\n-l [level] 设置日志级别\n--name [logger名]",
+    "examples": ["logger", "logger --name ROOT -l DEBUG", "logger -n com.example -l INFO"]
+  },
+  {
+    "name": "grep",
+    "description": "管道过滤命令输出",
+    "params": "-n 显示行号\n-i 忽略大小写\n-v 反向匹配\n-E 使用正则表达式",
+    "examples": ["thread | grep BLOCKED", "sc com.example.* | grep -i service"]
+  },
+  {
+    "name": "cat",
+    "description": "查看文件内容",
+    "params": "[文件路径]",
+    "examples": ["cat /tmp/test.log"]
+  },
+  {
+    "name": "pwd",
+    "description": "显示当前工作目录",
+    "params": "无参数",
+    "examples": ["pwd"]
+  },
+  {
+    "name": "cls",
+    "description": "清空屏幕",
+    "params": "无参数",
+    "examples": ["cls"]
+  },
+  {
+    "name": "echo",
+    "description": "输出文本",
+    "params": "[文本]",
+    "examples": ["echo hello", "echo $USER"]
+  },
+  {
+    "name": "reset",
+    "description": "重置增强的类",
+    "params": "[类名] 重置指定类\n-E 使用正则匹配",
+    "examples": ["reset", "reset com.example.MyClass", "reset -E com.example.*"]
+  },
+  {
+    "name": "session",
+    "description": "查看当前会话信息",
+    "params": "无参数",
+    "examples": ["session"]
+  },
+  {
+    "name": "version",
+    "description": "查看 Arthas 版本信息",
+    "params": "无参数",
+    "examples": ["version"]
+  },
+  {
+    "name": "quit",
+    "description": "退出 Arthas 客户端",
+    "params": "无参数",
+    "examples": ["quit"]
+  },
+  {
+    "name": "stop",
+    "description": "停止 Arthas 服务端",
+    "params": "无参数",
+    "examples": ["stop"]
+  },
+  {
+    "name": "help",
+    "description": "查看命令帮助",
+    "params": "[命令名] 查看指定命令帮助",
+    "examples": ["help", "help thread"]
+  },
+  {
+    "name": "keymap",
+    "description": "查看和设置快捷键映射",
+    "params": "[快捷键] [命令]",
+    "examples": ["keymap"]
+  },
+  {
+    "name": "history",
+    "description": "查看命令历史",
+    "params": "-c 清空历史\n[n] 显示最近n条",
+    "examples": ["history", "history 10", "history -c"]
+  },
+  {
+    "name": "ttreplay",
+    "description": "重放 tt 命令记录的方法调用",
+    "params": "-i [index] 指定记录索引",
+    "examples": ["ttreplay -i 1000"]
+  },
+  {
+    "name": "ttwatch",
+    "description": "观察 tt 记录",
+    "params": "-i [index] 指定记录索引\n-w [表达式] 观察表达式",
+    "examples": ["ttwatch -i 1000 -w 'target.method(params)'"]
+  },
+  {
+    "name": "heap",
+    "description": "查看堆内存中的对象信息",
+    "params": "--class [类名] 查看指定类的对象",
+    "examples": ["heap --class com.example.MyClass"]
+  }
+]

@@ -1035,7 +1035,10 @@ zhenduanqi/
 │       │   ├── servers.js           # 服务器 Pinia store
 │       │   ├── user.js              # 当前用户 store (登录/角色/权限)
 │       │   ├── scene.js             # 场景 store
-│       │   └── diagnose.js          # 诊断会话 store（步骤状态、变量缓存）
+│       │   ├── diagnose.js          # 诊断会话 store（步骤状态、变量缓存）
+│       │   └── commandCache.js      # 命令历史缓存 store
+│       ├── data/
+│       │   └── arthas-commands.json # Arthas 命令清单数据（46个常用命令）
 │       └── views/
 │           ├── Login.vue            # 登录页面
 │           ├── SceneList.vue        # 场景列表页（按分类卡片展示）
