@@ -13,6 +13,7 @@ import MonitorRenderer from './MonitorRenderer.vue';
 import StackRenderer from './StackRenderer.vue';
 import TraceRenderer from './TraceRenderer.vue';
 import WatchRenderer from './WatchRenderer.vue';
+import HeapRenderer from './HeapRenderer.vue';
 
 const rendererMap = {
   thread: ThreadRenderer,
@@ -31,6 +32,7 @@ const rendererMap = {
   stack: StackRenderer,
   trace: TraceRenderer,
   watch: WatchRenderer,
+  heap: HeapRenderer,
 };
 
 export function getRenderer(type) {
@@ -53,4 +55,5 @@ export {
   StackRenderer,
   TraceRenderer,
   WatchRenderer,
+  HeapRenderer,
 };
