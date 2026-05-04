@@ -12,7 +12,9 @@
       <div class="line-numbers">
         <span v-for="n in lineCount" :key="n" class="line-number">{{ n }}</span>
       </div>
-      <pre class="code-content"><code ref="codeElement" :class="`language-${language}`">{{ code }}</code></pre>
+      <pre
+        class="code-content"
+      ><code ref="codeElement" :class="`language-${language}`">{{ code }}</code></pre>
     </div>
   </div>
 </template>
@@ -65,9 +67,12 @@ onMounted(() => {
   highlightCode();
 });
 
-watch(() => props.code, () => {
-  highlightCode();
-});
+watch(
+  () => props.code,
+  () => {
+    highlightCode();
+  }
+);
 </script>
 
 <style scoped>

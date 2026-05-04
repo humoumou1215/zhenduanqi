@@ -37,7 +37,10 @@ const flatClassLoaders = computed(() => {
       loaders.forEach((loader, index) => {
         const isLast = index === loaders.length - 1;
         flatList.push({
-          name: typeof loader === 'string' ? loader : (loader.name || loader.className || JSON.stringify(loader)),
+          name:
+            typeof loader === 'string'
+              ? loader
+              : loader.name || loader.className || JSON.stringify(loader),
           level,
           isLast,
           parent: level > 0 ? level - 1 : undefined,

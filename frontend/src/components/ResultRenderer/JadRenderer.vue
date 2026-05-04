@@ -223,7 +223,7 @@ function normalizeJadResult(data) {
 
 function parseMultipleClassLoaders(data) {
   if (data.classLoaders && Array.isArray(data.classLoaders)) {
-    return data.classLoaders.map(cl => ({
+    return data.classLoaders.map((cl) => ({
       hashcode: cl.hashcode || cl.hash || '',
       classloader: cl.name || cl.className || JSON.stringify(cl),
     }));
