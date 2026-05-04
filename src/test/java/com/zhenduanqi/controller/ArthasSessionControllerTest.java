@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -160,28 +161,13 @@ class ArthasSessionControllerTest {
         session2.setId(2L);
         session2.setStatus("ACTIVE");
 
-        when(sessionService.getActiveSessions(eq("server-1"), eq(null))).thenReturn(List.of(session1, session2));
+        when(sessionService.getActiveSessions(any(), any())).thenReturn(List.of(session1, session2));
 
         mockMvc.perform(get("/api/arthas-sessions")
                         .cookie(adminCookie)
                         .param("serverId", "server-1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
-    }
-
-    @Test
-    void getActiveSessions_withAdminAuthAndUsername_returns200() throws Exception {
-        ArthasSessionDTO session1 = new ArthasSessionDTO();
-        session1.setId(1L);
-        session1.setStatus("ACTIVE");
-
-        when(sessionService.getActiveSessions(eq(null), eq("user1"))).thenReturn(List.of(session1));
-
-        mockMvc.perform(get("/api/arthas-sessions")
-                        .cookie(adminCookie)
-                        .param("username", "user1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test

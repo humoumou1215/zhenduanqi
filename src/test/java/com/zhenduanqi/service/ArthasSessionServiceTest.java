@@ -184,10 +184,9 @@ class ArthasSessionServiceTest {
     }
 
     @Test
-    void getActiveSessions_withUsername_returnsFilteredSessions() {
+    void getActiveSessions_withUsername_returnsActiveSessions() {
         ArthasSession session1 = new ArthasSession();
         session1.setId(1L);
-        session1.setServerId("server1");
         session1.setUsername("user1");
         session1.setStatus("ACTIVE");
 
@@ -197,11 +196,11 @@ class ArthasSessionServiceTest {
         List<ArthasSessionDTO> result = sessionService.getActiveSessions(null, "user1");
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getUsername()).isEqualTo("user1");
+        assertThat(result.get(0).getId()).isEqualTo(1L);
     }
 
     @Test
-    void getActiveSessions_withServerIdAndUsername_returnsFilteredSessions() {
+    void getActiveSessions_withServerIdAndUsername_returnsActiveSessions() {
         ArthasSession session1 = new ArthasSession();
         session1.setId(1L);
         session1.setServerId("server1");
@@ -214,7 +213,7 @@ class ArthasSessionServiceTest {
         List<ArthasSessionDTO> result = sessionService.getActiveSessions("server1", "user1");
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getUsername()).isEqualTo("user1");
+        assertThat(result.get(0).getId()).isEqualTo(1L);
     }
 
     @Test

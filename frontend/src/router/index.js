@@ -13,8 +13,8 @@ const routes = [
   },
   {
     path: '/scenes',
-    name: 'DiagnoseWorkbench',
-    component: () => import('../views/DiagnoseWorkbench.vue'),
+    name: 'SceneList',
+    component: () => import('../views/SceneList.vue'),
     meta: { requiresAuth: true },
   },
   {
@@ -22,6 +22,12 @@ const routes = [
     name: 'SceneManage',
     component: () => import('../views/SceneManage.vue'),
     meta: { requiresAuth: true, requiresRole: 'ADMIN' },
+  },
+  {
+    path: '/scenes/:id/diagnose',
+    name: 'SceneDiagnose',
+    component: () => import('../views/SceneDiagnose.vue'),
+    meta: { requiresAuth: true },
   },
   {
     path: '/diagnose',

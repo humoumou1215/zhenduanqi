@@ -35,9 +35,8 @@ public class ArthasSessionController {
 
     @GetMapping
     @RequireRole("ADMIN")
-    public ResponseEntity<List<ArthasSessionDTO>> getActiveSessions(
-            @RequestParam(required = false) String serverId,
-            @RequestParam(required = false) String username) {
+    public ResponseEntity<List<ArthasSessionDTO>> getActiveSessions(@RequestParam(required = false) String serverId,
+                                                                 @RequestParam(required = false) String username) {
         List<ArthasSessionDTO> sessions = sessionService.getActiveSessions(serverId, username);
         return ResponseEntity.ok(sessions);
     }
@@ -54,9 +53,6 @@ public class ArthasSessionController {
     @AuditLog(action = "中断 Arthas 任务")
     public ResponseEntity<Map<String, Boolean>> interruptJob(@PathVariable Long id) {
         boolean result = sessionService.interruptJob(id);
-        if (!result) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(Map.of("success", result));
     }
 
@@ -65,9 +61,6 @@ public class ArthasSessionController {
     @AuditLog(action = "关闭 Arthas 会话")
     public ResponseEntity<Map<String, Boolean>> closeSession(@PathVariable Long id) {
         boolean result = sessionService.closeSession(id);
-        if (!result) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(Map.of("success", result));
     }
 

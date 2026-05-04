@@ -19,8 +19,6 @@ public interface ArthasSessionRepository extends JpaRepository<ArthasSession, Lo
 
     List<ArthasSession> findByUsernameAndStatusOrderByCreatedAtDesc(String username, String status);
 
-    List<ArthasSession> findByServerIdAndUsernameAndStatusOrderByCreatedAtDesc(String serverId, String username, String status);
-
     List<ArthasSession> findByStatusOrderByCreatedAtDesc(String status);
 
     Optional<ArthasSession> findByIdAndStatus(Long id, String status);
@@ -28,4 +26,6 @@ public interface ArthasSessionRepository extends JpaRepository<ArthasSession, Lo
     List<ArthasSession> findByLastActiveAtBeforeAndStatus(LocalDateTime before, String status);
 
     List<ArthasSession> findByCreatedAtBeforeAndStatus(LocalDateTime before, String status);
+
+    List<ArthasSession> findByServerIdAndUsernameAndStatusOrderByCreatedAtDesc(String serverId, String username, String status);
 }

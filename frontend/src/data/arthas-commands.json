@@ -1,307 +1,1366 @@
 [
   {
     "name": "dashboard",
-    "description": "显示当前系统的实时数据面板，包括内存、CPU、线程信息",
-    "params": "无参数",
-    "examples": ["dashboard"]
+    "description": "当前系统的实时数据面板",
+    "category": "jvm",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "-i",
+        "description": "刷新间隔（毫秒）",
+        "required": false,
+        "example": "dashboard -i 1000"
+      },
+      {
+        "name": "-n",
+        "description": "刷新次数",
+        "required": false,
+        "example": "dashboard -n 3"
+      }
+    ],
+    "examples": [
+      {
+        "command": "dashboard",
+        "description": "显示实时数据面板，默认5秒刷新一次"
+      },
+      {
+        "command": "dashboard -i 1000",
+        "description": "1秒刷新一次"
+      },
+      {
+        "command": "dashboard -n 5",
+        "description": "刷新5次后退出"
+      }
+    ],
+    "notes": "建议使用 -n 参数来控制刷新次数"
   },
   {
     "name": "thread",
     "description": "查看当前 JVM 的线程堆栈信息",
-    "params": "-n [数量] 显示最忙的N个线程\n-i [毫秒] 指定采样间隔\n--state [状态] 按线程状态过滤\n[id] 查看指定线程的堆栈",
+    "category": "jvm",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "id",
+        "description": "线程 id",
+        "required": false,
+        "example": "thread 1"
+      },
+      {
+        "name": "-n",
+        "description": "显示 cpu 最高的 n 个线程",
+        "required": false,
+        "example": "thread -n 5"
+      },
+      {
+        "name": "-b",
+        "description": "阻塞死锁检测",
+        "required": false,
+        "example": "thread -b"
+      }
+    ],
     "examples": [
-      "thread",
-      "thread -n 5",
-      "thread -n 3 -i 1000",
-      "thread 1",
-      "thread --state BLOCKED"
-    ]
+      {
+        "command": "thread -n 5",
+        "description": "查看 CPU 最高的 5 个线程"
+      },
+      {
+        "command": "thread -b",
+        "description": "检测死锁线程"
+      },
+      {
+        "command": "thread 1",
+        "description": "查看线程 1 的详细堆栈"
+      }
+    ],
+    "notes": "执行时间过长时请使用 -n 参数限制输出"
+  },
+  {
+    "name": "memory",
+    "description": "查看 JVM 的内存信息",
+    "category": "jvm",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "memory",
+        "description": "显示内存使用情况"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "jvm",
-    "description": "查看当前 JVM 的基本信息",
-    "params": "无参数",
-    "examples": ["jvm"]
-  },
-  {
-    "name": "sysprop",
-    "description": "查看和修改 JVM 的系统属性",
-    "params": "[属性名] 查看指定属性\n[属性名] [值] 设置属性值",
-    "examples": ["sysprop", "sysprop user.home", "sysprop user.home /tmp"]
+    "description": "查看当前 JVM 的信息",
+    "category": "jvm",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "jvm",
+        "description": "显示 JVM 基本信息"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "sysenv",
     "description": "查看 JVM 的环境变量",
-    "params": "[变量名] 查看指定环境变量",
-    "examples": ["sysenv", "sysenv PATH"]
+    "category": "jvm",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "name",
+        "description": "环境变量名",
+        "required": false,
+        "example": "sysenv PATH"
+      }
+    ],
+    "examples": [
+      {
+        "command": "sysenv",
+        "description": "显示所有环境变量"
+      },
+      {
+        "command": "sysenv PATH",
+        "description": "查看 PATH 环境变量"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "sysprop",
+    "description": "查看和修改 JVM 的系统属性",
+    "category": "jvm",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "name",
+        "description": "属性名",
+        "required": false,
+        "example": "sysprop user.home"
+      },
+      {
+        "name": "value",
+        "description": "属性值",
+        "required": false,
+        "example": "sysprop user.home /tmp"
+      }
+    ],
+    "examples": [
+      {
+        "command": "sysprop",
+        "description": "显示所有系统属性"
+      },
+      {
+        "command": "sysprop user.home",
+        "description": "查看 user.home 属性"
+      },
+      {
+        "command": "sysprop user.home /tmp",
+        "description": "设置 user.home 属性"
+      }
+    ],
+    "notes": "修改系统属性可能影响应用运行"
   },
   {
     "name": "vmoption",
-    "description": "查看和修改 JVM 的诊断选项",
-    "params": "[选项名] 查看指定选项\n[选项名] [值] 设置选项值",
-    "examples": ["vmoption", "vmoption PrintGC", "vmoption PrintGC true"]
+    "description": "查看和修改 JVM 里诊断相关的 option",
+    "category": "jvm",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "name",
+        "description": "选项名",
+        "required": false,
+        "example": "vmoption PrintGC"
+      },
+      {
+        "name": "value",
+        "description": "选项值",
+        "required": false,
+        "example": "vmoption PrintGC true"
+      }
+    ],
+    "examples": [
+      {
+        "command": "vmoption",
+        "description": "显示所有诊断选项"
+      },
+      {
+        "command": "vmoption PrintGC",
+        "description": "查看 PrintGC 选项"
+      },
+      {
+        "command": "vmoption PrintGC true",
+        "description": "启用 PrintGC 选项"
+      }
+    ],
+    "notes": "修改 VM 选项可能影响 JVM 行为"
   },
   {
-    "name": "perfcounter",
-    "description": "查看 JVM 的性能计数器信息",
-    "params": "无参数",
-    "examples": ["perfcounter"]
+    "name": "mbean",
+    "description": "查看 MBean 的信息",
+    "category": "jvm",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "name",
+        "description": "MBean 名称",
+        "required": false,
+        "example": "mbean java.lang:type=Memory"
+      }
+    ],
+    "examples": [
+      {
+        "command": "mbean",
+        "description": "显示所有 MBean 信息"
+      },
+      {
+        "command": "mbean java.lang:type=Memory",
+        "description": "查看内存相关 MBean"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "logger",
+    "description": "查看和修改 logger",
+    "category": "jvm",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "-n",
+        "description": "Logger 名称",
+        "required": false,
+        "example": "logger -n com.example"
+      },
+      {
+        "name": "-l",
+        "description": "日志级别",
+        "required": false,
+        "example": "logger -n com.example -l INFO"
+      }
+    ],
+    "examples": [
+      {
+        "command": "logger",
+        "description": "显示所有 Logger 信息"
+      },
+      {
+        "command": "logger -n com.example",
+        "description": "查看特定 Logger"
+      },
+      {
+        "command": "logger -n com.example -l INFO",
+        "description": "设置 Logger 级别"
+      }
+    ],
+    "notes": "修改日志级别会改变应用日志输出"
   },
   {
     "name": "getstatic",
     "description": "查看类的静态属性",
-    "params": "[类名] [属性名]",
-    "examples": ["getstatic com.example.MyClass FIELD_NAME"]
+    "category": "jvm",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "class name",
+        "description": "类名",
+        "required": true,
+        "example": "getstatic com.example.MyClass FIELD"
+      },
+      {
+        "name": "field name",
+        "description": "静态字段名",
+        "required": true,
+        "example": "getstatic com.example.MyClass FIELD"
+      }
+    ],
+    "examples": [
+      {
+        "command": "getstatic com.example.MyClass FIELD",
+        "description": "查看静态字段值"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "heapdump",
+    "description": "dump java heap，类似 jmap",
+    "category": "jvm",
+    "riskLevel": "high",
+    "params": [
+      {
+        "name": "--live",
+        "description": "只 dump 存活对象",
+        "required": false,
+        "example": "heapdump --live /tmp/dump.hprof"
+      },
+      {
+        "name": "path",
+        "description": "输出文件路径",
+        "required": false,
+        "example": "heapdump /tmp/dump.hprof"
+      }
+    ],
+    "examples": [
+      {
+        "command": "heapdump /tmp/dump.hprof",
+        "description": "dump 整个堆到文件"
+      },
+      {
+        "command": "heapdump --live /tmp/live.hprof",
+        "description": "只 dump 存活对象"
+      }
+    ],
+    "notes": "dump 大堆可能产生大文件并影响性能"
+  },
+  {
+    "name": "vmtool",
+    "description": "从 jvm 里查询对象，执行 forceGc",
+    "category": "jvm",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "--action",
+        "description": "动作类型（getInstances/forceGc）",
+        "required": true,
+        "example": "vmtool --action forceGc"
+      },
+      {
+        "name": "--className",
+        "description": "类名",
+        "required": false,
+        "example": "vmtool --action getInstances --className com.example.MyClass"
+      }
+    ],
+    "examples": [
+      {
+        "command": "vmtool --action forceGc",
+        "description": "强制垃圾回收"
+      },
+      {
+        "command": "vmtool --action getInstances --className com.example.MyClass",
+        "description": "获取类的所有实例"
+      }
+    ],
+    "notes": "强制 GC 可能会短暂影响性能"
   },
   {
     "name": "ognl",
-    "description": "执行 OGNL 表达式",
-    "params": "[表达式] OGNL 表达式\n-c [类加载器hash] 指定类加载器\n-x [深度] 指定对象展开深度",
+    "description": "执行 ognl 表达式",
+    "category": "jvm",
+    "riskLevel": "critical",
+    "params": [
+      {
+        "name": "expression",
+        "description": "OGNL 表达式",
+        "required": true,
+        "example": "ognl '@com.example.MyClass@FIELD'"
+      }
+    ],
     "examples": [
-      "ognl @com.example.MyClass@FIELD",
-      "ognl '@System@out.println(\"hello\")'",
-      "ognl -x 2 @com.example.MyClass@instance"
-    ]
+      {
+        "command": "ognl '@com.example.MyClass@FIELD'",
+        "description": "访问静态字段"
+      },
+      {
+        "command": "ognl '@System@out.println(\"hello\")'",
+        "description": "执行任意代码"
+      }
+    ],
+    "notes": "危险！OGNL 可以执行任意代码，请谨慎使用"
+  },
+  {
+    "name": "perfcounter",
+    "description": "查看当前 JVM 的 Perf Counter 信息",
+    "category": "jvm",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "perfcounter",
+        "description": "显示 Perf Counter 信息"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "sc",
-    "description": "查看已加载的类信息",
-    "params": "-d 显示类详情\n-E 使用正则匹配\n-f 显示类成员\n[classPattern] 类名模式",
-    "examples": ["sc com.example.*", "sc -d com.example.MyClass", "sc -f com.example.MyClass"]
+    "description": "查看 JVM 已加载的类信息",
+    "category": "classloader",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "-d",
+        "description": "显示类详情",
+        "required": false,
+        "example": "sc -d com.example.MyClass"
+      },
+      {
+        "name": "-f",
+        "description": "显示类成员",
+        "required": false,
+        "example": "sc -f com.example.MyClass"
+      },
+      {
+        "name": "pattern",
+        "description": "类名模式",
+        "required": true,
+        "example": "sc com.example.MyClass"
+      }
+    ],
+    "examples": [
+      {
+        "command": "sc com.example.*",
+        "description": "查找匹配的类"
+      },
+      {
+        "command": "sc -d com.example.MyClass",
+        "description": "查看类详情"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "sm",
     "description": "查看已加载类的方法信息",
-    "params": "-d 显示方法详情\n-E 使用正则匹配\n[classPattern] [methodPattern]",
+    "category": "classloader",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "-d",
+        "description": "显示方法详情",
+        "required": false,
+        "example": "sm -d com.example.MyClass methodName"
+      },
+      {
+        "name": "class pattern",
+        "description": "类名模式",
+        "required": true,
+        "example": "sm com.example.MyClass"
+      },
+      {
+        "name": "method pattern",
+        "description": "方法名模式",
+        "required": false,
+        "example": "sm com.example.MyClass methodName"
+      }
+    ],
     "examples": [
-      "sm com.example.MyClass",
-      "sm -d com.example.MyClass methodName",
-      "sm com.example.* method*"
-    ]
+      {
+        "command": "sm com.example.MyClass",
+        "description": "查看类的方法列表"
+      },
+      {
+        "command": "sm -d com.example.MyClass methodName",
+        "description": "查看方法详情"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "jad",
-    "description": "反编译已加载类的源码",
-    "params": "[类名] 反编译整个类\n[类名] [方法名] 反编译指定方法\n--source-only 只显示源码",
+    "description": "反编译指定已加载类的源码",
+    "category": "classloader",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "--source-only",
+        "description": "只显示源码",
+        "required": false,
+        "example": "jad --source-only com.example.MyClass"
+      },
+      {
+        "name": "class name",
+        "description": "类名",
+        "required": true,
+        "example": "jad com.example.MyClass"
+      }
+    ],
     "examples": [
-      "jad com.example.MyClass",
-      "jad com.example.MyClass methodName",
-      "jad --source-only com.example.MyClass"
-    ]
-  },
-  {
-    "name": "mc",
-    "description": "内存编译器，编译 Java 源码",
-    "params": "-d [目录] 指定输出目录\n[源码文件或目录]",
-    "examples": ["mc /tmp/Test.java", "mc -d /tmp/output /tmp/Test.java"]
-  },
-  {
-    "name": "retransform",
-    "description": "重新加载外部的 .class 文件",
-    "params": "[class文件路径]",
-    "examples": ["retransform /tmp/Test.class"]
+      {
+        "command": "jad com.example.MyClass",
+        "description": "反编译类"
+      },
+      {
+        "command": "jad --source-only com.example.MyClass",
+        "description": "只显示源码"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "dump",
-    "description": "dump 已加载类的字节码到文件",
-    "params": "-d [目录] 指定输出目录\n[classPattern] 类名模式",
-    "examples": ["dump com.example.MyClass", "dump -d /tmp com.example.*"]
+    "description": "dump 已加载类的 byte code 到特定目录",
+    "category": "classloader",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "-d",
+        "description": "输出目录",
+        "required": false,
+        "example": "dump -d /tmp com.example.MyClass"
+      },
+      {
+        "name": "pattern",
+        "description": "类名模式",
+        "required": true,
+        "example": "dump com.example.MyClass"
+      }
+    ],
+    "examples": [
+      {
+        "command": "dump com.example.MyClass",
+        "description": "dump 类字节码"
+      },
+      {
+        "command": "dump -d /tmp com.example.MyClass",
+        "description": "dump 到指定目录"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "classloader",
-    "description": "查看类加载器的继承结构",
-    "params": "-t 显示类加载器树\n-l 按类加载器实例统计\n-c [hash] 查看指定类加载器加载的类",
-    "examples": ["classloader", "classloader -t", "classloader -l", "classloader -c 3d4eac69"]
+    "description": "查看 classloader 的继承树，urls，类加载信息",
+    "category": "classloader",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "-t",
+        "description": "显示继承树",
+        "required": false,
+        "example": "classloader -t"
+      },
+      {
+        "name": "-l",
+        "description": "按实例统计",
+        "required": false,
+        "example": "classloader -l"
+      }
+    ],
+    "examples": [
+      {
+        "command": "classloader",
+        "description": "显示 classloader 信息"
+      },
+      {
+        "command": "classloader -t",
+        "description": "显示继承树"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "mc",
+    "description": "内存编译器，内存编译 .java 文件为 .class 文件",
+    "category": "classloader",
+    "riskLevel": "critical",
+    "params": [
+      {
+        "name": "-d",
+        "description": "输出目录",
+        "required": false,
+        "example": "mc -d /tmp /tmp/Test.java"
+      },
+      {
+        "name": "file",
+        "description": "Java 源文件",
+        "required": true,
+        "example": "mc /tmp/Test.java"
+      }
+    ],
+    "examples": [
+      {
+        "command": "mc /tmp/Test.java",
+        "description": "编译 Java 源文件"
+      },
+      {
+        "command": "mc -d /tmp /tmp/Test.java",
+        "description": "编译到指定目录"
+      }
+    ],
+    "notes": "危险！可以编译恶意代码，请谨慎使用"
+  },
+  {
+    "name": "redefine",
+    "description": "加载外部的 .class 文件，redefine 到 JVM 里",
+    "category": "classloader",
+    "riskLevel": "critical",
+    "params": [
+      {
+        "name": "path",
+        "description": "class 文件路径",
+        "required": true,
+        "example": "redefine /tmp/Test.class"
+      }
+    ],
+    "examples": [
+      {
+        "command": "redefine /tmp/Test.class",
+        "description": "重新定义类"
+      }
+    ],
+    "notes": "危险！可以热替换类字节码，请谨慎使用"
+  },
+  {
+    "name": "retransform",
+    "description": "加载外部的 .class 文件，retransform 到 JVM 里",
+    "category": "classloader",
+    "riskLevel": "critical",
+    "params": [
+      {
+        "name": "path",
+        "description": "class 文件路径",
+        "required": true,
+        "example": "retransform /tmp/Test.class"
+      }
+    ],
+    "examples": [
+      {
+        "command": "retransform /tmp/Test.class",
+        "description": "重新转换类"
+      }
+    ],
+    "notes": "危险！可以热替换类字节码，请谨慎使用"
   },
   {
     "name": "monitor",
-    "description": "监控方法的执行统计",
-    "params": "-c [秒] 统计周期\n-b 在方法调用前后打印耗时\n[classPattern] [methodPattern]",
-    "examples": ["monitor -c 5 com.example.MyClass methodName", "monitor -b com.example.MyClass *"]
-  },
-  {
-    "name": "stack",
-    "description": "输出方法被调用的调用路径",
-    "params": "-n [次数] 限制输出次数\n[classPattern] [methodPattern] [condition]",
+    "description": "方法执行监控",
+    "category": "monitor",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "-c",
+        "description": "统计周期（秒）",
+        "required": false,
+        "example": "monitor -c 5 com.example.MyClass methodName"
+      },
+      {
+        "name": "class pattern",
+        "description": "类名模式",
+        "required": true,
+        "example": "monitor com.example.MyClass methodName"
+      },
+      {
+        "name": "method pattern",
+        "description": "方法名模式",
+        "required": true,
+        "example": "monitor com.example.MyClass methodName"
+      }
+    ],
     "examples": [
-      "stack com.example.MyClass methodName",
-      "stack -n 2 com.example.MyClass methodName"
-    ]
-  },
-  {
-    "name": "trace",
-    "description": "追踪方法内部调用路径和耗时",
-    "params": "-n [次数] 限制输出次数\n#cost [毫秒] 按耗时过滤\n[classPattern] [methodPattern]",
-    "examples": [
-      "trace com.example.MyClass methodName",
-      "trace -n 3 com.example.MyClass methodName",
-      "trace com.example.MyClass methodName '#cost > 100'"
-    ]
-  },
-  {
-    "name": "tt",
-    "description": "时间隧道，记录方法调用的入参和返回值",
-    "params": "-t 记录方法调用\n-l 列出记录\n-i [index] 查看指定记录\n-p 重放调用\n-d 删除记录",
-    "examples": ["tt -t com.example.MyClass methodName", "tt -l", "tt -i 1000 -p", "tt -d -i 1000"]
+      {
+        "command": "monitor -c 5 com.example.MyClass methodName",
+        "description": "监控方法执行"
+      }
+    ],
+    "notes": "监控可能会轻微影响性能"
   },
   {
     "name": "watch",
-    "description": "观察方法的入参、返回值、异常",
-    "params": "-b 在方法调用前观察\n-s 在方法返回后观察\n-e 在方法异常后观察\n-x [深度] 对象展开深度\n[classPattern] [methodPattern] [expression]",
+    "description": "方法执行数据观测",
+    "category": "monitor",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "-b",
+        "description": "在方法调用前观察",
+        "required": false,
+        "example": "watch -b com.example.MyClass methodName params"
+      },
+      {
+        "name": "-s",
+        "description": "在方法返回后观察",
+        "required": false,
+        "example": "watch -s com.example.MyClass methodName returnObj"
+      },
+      {
+        "name": "-e",
+        "description": "在方法异常后观察",
+        "required": false,
+        "example": "watch -e com.example.MyClass methodName throwExp"
+      },
+      {
+        "name": "class pattern",
+        "description": "类名模式",
+        "required": true,
+        "example": "watch com.example.MyClass methodName params"
+      },
+      {
+        "name": "method pattern",
+        "description": "方法名模式",
+        "required": true,
+        "example": "watch com.example.MyClass methodName params"
+      }
+    ],
     "examples": [
-      "watch com.example.MyClass methodName '{params, returnObj}'",
-      "watch -b com.example.MyClass methodName params",
-      "watch -e com.example.MyClass methodName '{params, throwExp}'"
-    ]
+      {
+        "command": "watch com.example.MyClass methodName '{params, returnObj}'",
+        "description": "观察方法参数和返回值"
+      }
+    ],
+    "notes": "观测可能会轻微影响性能"
   },
   {
-    "name": "heapdump",
-    "description": "dump Java 堆到文件",
-    "params": "[文件路径] 输出文件路径\n--live 只 dump 存活对象",
-    "examples": ["heapdump /tmp/dump.hprof", "heapdump --live /tmp/live.hprof"]
-  },
-  {
-    "name": "memory",
-    "description": "查看 JVM 内存信息",
-    "params": "无参数",
-    "examples": ["memory"]
-  },
-  {
-    "name": "vmtool",
-    "description": "JVMTI 工具，可以获取内存中的对象",
-    "params": "--action getInstances 获取对象实例\n--action forceGc 强制GC\n--className [类名]",
+    "name": "trace",
+    "description": "方法内部调用路径，并输出方法路径上的每个节点上耗时",
+    "category": "monitor",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "-n",
+        "description": "限制输出次数",
+        "required": false,
+        "example": "trace -n 3 com.example.MyClass methodName"
+      },
+      {
+        "name": "class pattern",
+        "description": "类名模式",
+        "required": true,
+        "example": "trace com.example.MyClass methodName"
+      },
+      {
+        "name": "method pattern",
+        "description": "方法名模式",
+        "required": true,
+        "example": "trace com.example.MyClass methodName"
+      }
+    ],
     "examples": [
-      "vmtool --action getInstances --className com.example.MyClass",
-      "vmtool --action forceGc"
-    ]
+      {
+        "command": "trace com.example.MyClass methodName",
+        "description": "追踪方法调用"
+      }
+    ],
+    "notes": "追踪可能会轻微影响性能"
+  },
+  {
+    "name": "stack",
+    "description": "输出当前方法被调用的调用路径",
+    "category": "monitor",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "-n",
+        "description": "限制输出次数",
+        "required": false,
+        "example": "stack -n 3 com.example.MyClass methodName"
+      },
+      {
+        "name": "class pattern",
+        "description": "类名模式",
+        "required": true,
+        "example": "stack com.example.MyClass methodName"
+      },
+      {
+        "name": "method pattern",
+        "description": "方法名模式",
+        "required": true,
+        "example": "stack com.example.MyClass methodName"
+      }
+    ],
+    "examples": [
+      {
+        "command": "stack com.example.MyClass methodName",
+        "description": "查看调用堆栈"
+      }
+    ],
+    "notes": "可能会轻微影响性能"
+  },
+  {
+    "name": "tt",
+    "description": "方法执行数据的时空隧道",
+    "category": "monitor",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "-t",
+        "description": "记录方法调用",
+        "required": false,
+        "example": "tt -t com.example.MyClass methodName"
+      },
+      {
+        "name": "-l",
+        "description": "列出记录",
+        "required": false,
+        "example": "tt -l"
+      },
+      {
+        "name": "-i",
+        "description": "查看指定记录",
+        "required": false,
+        "example": "tt -i 1000"
+      },
+      {
+        "name": "-p",
+        "description": "重放调用",
+        "required": false,
+        "example": "tt -i 1000 -p"
+      }
+    ],
+    "examples": [
+      {
+        "command": "tt -t com.example.MyClass methodName",
+        "description": "开始记录方法调用"
+      },
+      {
+        "command": "tt -l",
+        "description": "列出所有记录"
+      }
+    ],
+    "notes": "记录和重放可能会影响性能"
   },
   {
     "name": "profiler",
-    "description": "使用 async-profiler 进行性能分析",
-    "params": "start 开始采样\nstop 停止采样并输出\n--event [事件] 采样事件(cpu/alloc/lock)\n--duration [秒] 采样时长\n--file [路径] 输出文件",
+    "description": "使用 async-profiler 对应用采样，生成火焰图",
+    "category": "profiler",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "start",
+        "description": "开始采样",
+        "required": false,
+        "example": "profiler start"
+      },
+      {
+        "name": "stop",
+        "description": "停止采样",
+        "required": false,
+        "example": "profiler stop"
+      },
+      {
+        "name": "--event",
+        "description": "采样事件（cpu/alloc/lock）",
+        "required": false,
+        "example": "profiler start --event cpu"
+      },
+      {
+        "name": "--duration",
+        "description": "采样时长（秒）",
+        "required": false,
+        "example": "profiler start --duration 30"
+      },
+      {
+        "name": "--file",
+        "description": "输出文件路径",
+        "required": false,
+        "example": "profiler stop --file /tmp/flamegraph.html"
+      }
+    ],
     "examples": [
-      "profiler start",
-      "profiler stop",
-      "profiler start --event alloc",
-      "profiler --duration 30 --file /tmp/flamegraph.html start"
-    ]
+      {
+        "command": "profiler start",
+        "description": "开始性能采样"
+      },
+      {
+        "command": "profiler stop",
+        "description": "停止采样并生成火焰图"
+      }
+    ],
+    "notes": "采样期间可能会轻微影响性能"
   },
   {
-    "name": "mbean",
-    "description": "查看 MBean 的属性和方法",
-    "params": "[MBean名称] 查看指定MBean\n[name] [attribute] 查看属性",
+    "name": "jfr",
+    "description": "动态开启关闭 JFR 记录",
+    "category": "profiler",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "start",
+        "description": "开始记录",
+        "required": false,
+        "example": "jfr start"
+      },
+      {
+        "name": "stop",
+        "description": "停止记录",
+        "required": false,
+        "example": "jfr stop"
+      }
+    ],
     "examples": [
-      "mbean",
-      "mbean java.lang:type=Memory",
-      "mbean java.lang:type=Memory HeapMemoryUsage"
-    ]
-  },
-  {
-    "name": "options",
-    "description": "查看和设置 Arthas 全局选项",
-    "params": "[选项名] 查看选项\n[选项名] [值] 设置选项",
-    "examples": ["options", "options unsafe true", "options json-format true"]
-  },
-  {
-    "name": "logger",
-    "description": "查看和修改 logger 配置",
-    "params": "-n [logger名] 指定logger\n-l [level] 设置日志级别\n--name [logger名]",
-    "examples": ["logger", "logger --name ROOT -l DEBUG", "logger -n com.example -l INFO"]
+      {
+        "command": "jfr start",
+        "description": "开始 JFR 记录"
+      },
+      {
+        "command": "jfr stop",
+        "description": "停止 JFR 记录"
+      }
+    ],
+    "notes": "记录期间可能会轻微影响性能"
   },
   {
     "name": "grep",
-    "description": "管道过滤命令输出",
-    "params": "-n 显示行号\n-i 忽略大小写\n-v 反向匹配\n-E 使用正则表达式",
-    "examples": ["thread | grep BLOCKED", "sc com.example.* | grep -i service"]
+    "description": "搜索满足条件的结果",
+    "category": "pipeline",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "-n",
+        "description": "显示行号",
+        "required": false,
+        "example": "thread | grep -n BLOCKED"
+      },
+      {
+        "name": "-i",
+        "description": "忽略大小写",
+        "required": false,
+        "example": "thread | grep -i blocked"
+      },
+      {
+        "name": "-v",
+        "description": "反向匹配",
+        "required": false,
+        "example": "thread | grep -v RUNNABLE"
+      }
+    ],
+    "examples": [
+      {
+        "command": "thread | grep BLOCKED",
+        "description": "搜索阻塞线程"
+      }
+    ],
+    "notes": "配合管道使用"
   },
   {
-    "name": "cat",
-    "description": "查看文件内容",
-    "params": "[文件路径]",
-    "examples": ["cat /tmp/test.log"]
+    "name": "plaintext",
+    "description": "将命令的结果去除 ANSI 颜色",
+    "category": "pipeline",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "thread | plaintext",
+        "description": "输出纯文本"
+      }
+    ],
+    "notes": "配合管道使用"
+  },
+  {
+    "name": "wc",
+    "description": "按行统计输出结果",
+    "category": "pipeline",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "-l",
+        "description": "统计行数",
+        "required": false,
+        "example": "sc com.example.* | wc -l"
+      }
+    ],
+    "examples": [
+      {
+        "command": "sc com.example.* | wc -l",
+        "description": "统计类数量"
+      }
+    ],
+    "notes": "配合管道使用"
+  },
+  {
+    "name": "jobs",
+    "description": "列出所有 job",
+    "category": "job",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "jobs",
+        "description": "列出所有后台任务"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "kill",
+    "description": "强制终止任务",
+    "category": "job",
+    "riskLevel": "medium",
+    "params": [
+      {
+        "name": "job id",
+        "description": "任务 ID",
+        "required": true,
+        "example": "kill 1"
+      }
+    ],
+    "examples": [
+      {
+        "command": "kill 1",
+        "description": "终止任务 1"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "fg",
+    "description": "将暂停的任务拉到前台执行",
+    "category": "job",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "job id",
+        "description": "任务 ID",
+        "required": true,
+        "example": "fg 1"
+      }
+    ],
+    "examples": [
+      {
+        "command": "fg 1",
+        "description": "将任务 1 拉到前台"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "bg",
+    "description": "将暂停的任务放到后台执行",
+    "category": "job",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "job id",
+        "description": "任务 ID",
+        "required": true,
+        "example": "bg 1"
+      }
+    ],
+    "examples": [
+      {
+        "command": "bg 1",
+        "description": "将任务 1 放到后台"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "help",
+    "description": "查看命令帮助信息",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "command name",
+        "description": "命令名",
+        "required": false,
+        "example": "help thread"
+      }
+    ],
+    "examples": [
+      {
+        "command": "help",
+        "description": "显示所有命令帮助"
+      },
+      {
+        "command": "help thread",
+        "description": "查看 thread 命令帮助"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "history",
+    "description": "打印命令历史",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "-c",
+        "description": "清空历史",
+        "required": false,
+        "example": "history -c"
+      },
+      {
+        "name": "n",
+        "description": "显示最近 n 条",
+        "required": false,
+        "example": "history 10"
+      }
+    ],
+    "examples": [
+      {
+        "command": "history",
+        "description": "显示命令历史"
+      },
+      {
+        "command": "history 10",
+        "description": "显示最近 10 条"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "pwd",
-    "description": "显示当前工作目录",
-    "params": "无参数",
-    "examples": ["pwd"]
+    "description": "返回当前的工作目录",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "pwd",
+        "description": "显示当前工作目录"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "cls",
-    "description": "清空屏幕",
-    "params": "无参数",
-    "examples": ["cls"]
-  },
-  {
-    "name": "echo",
-    "description": "输出文本",
-    "params": "[文本]",
-    "examples": ["echo hello", "echo $USER"]
-  },
-  {
-    "name": "reset",
-    "description": "重置增强的类",
-    "params": "[类名] 重置指定类\n-E 使用正则匹配",
-    "examples": ["reset", "reset com.example.MyClass", "reset -E com.example.*"]
-  },
-  {
-    "name": "session",
-    "description": "查看当前会话信息",
-    "params": "无参数",
-    "examples": ["session"]
-  },
-  {
-    "name": "version",
-    "description": "查看 Arthas 版本信息",
-    "params": "无参数",
-    "examples": ["version"]
+    "description": "清空当前屏幕区域",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "cls",
+        "description": "清空屏幕"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "quit",
-    "description": "退出 Arthas 客户端",
-    "params": "无参数",
-    "examples": ["quit"]
+    "description": "退出当前 Arthas 客户端",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "quit",
+        "description": "退出客户端"
+      }
+    ],
+    "notes": "服务端继续运行"
   },
   {
     "name": "stop",
     "description": "停止 Arthas 服务端",
-    "params": "无参数",
-    "examples": ["stop"]
+    "category": "basic",
+    "riskLevel": "high",
+    "params": [],
+    "examples": [
+      {
+        "command": "stop",
+        "description": "停止 Arthas 服务"
+      }
+    ],
+    "notes": "停止后需要重新启动 Arthas 服务"
   },
   {
-    "name": "help",
-    "description": "查看命令帮助",
-    "params": "[命令名] 查看指定命令帮助",
-    "examples": ["help", "help thread"]
+    "name": "reset",
+    "description": "重置增强类",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "class pattern",
+        "description": "类名模式",
+        "required": false,
+        "example": "reset com.example.MyClass"
+      }
+    ],
+    "examples": [
+      {
+        "command": "reset",
+        "description": "重置所有增强类"
+      },
+      {
+        "command": "reset com.example.MyClass",
+        "description": "重置指定类"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "session",
+    "description": "查看当前会话的信息",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "session",
+        "description": "显示会话信息"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "version",
+    "description": "输出当前目标 Java 进程所加载的 Arthas 版本号",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "version",
+        "description": "显示版本号"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "auth",
+    "description": "鉴权",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "token",
+        "description": "认证令牌",
+        "required": false,
+        "example": "auth your_token"
+      }
+    ],
+    "examples": [
+      {
+        "command": "auth",
+        "description": "认证当前会话"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "base64",
+    "description": "base64 编码转换",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "-d",
+        "description": "解码",
+        "required": false,
+        "example": "base64 -d encoded_string"
+      },
+      {
+        "name": "string",
+        "description": "输入字符串",
+        "required": true,
+        "example": "base64 test_string"
+      }
+    ],
+    "examples": [
+      {
+        "command": "base64 test_string",
+        "description": "编码字符串"
+      },
+      {
+        "command": "base64 -d encoded_string",
+        "description": "解码字符串"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "cat",
+    "description": "打印文件内容",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "path",
+        "description": "文件路径",
+        "required": true,
+        "example": "cat /tmp/test.txt"
+      }
+    ],
+    "examples": [
+      {
+        "command": "cat /tmp/test.txt",
+        "description": "显示文件内容"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "name": "echo",
+    "description": "打印参数",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "string",
+        "description": "输出字符串",
+        "required": false,
+        "example": "echo hello"
+      }
+    ],
+    "examples": [
+      {
+        "command": "echo hello",
+        "description": "打印 hello"
+      }
+    ],
+    "notes": ""
   },
   {
     "name": "keymap",
-    "description": "查看和设置快捷键映射",
-    "params": "[快捷键] [命令]",
-    "examples": ["keymap"]
+    "description": "Arthas 快捷键列表及自定义快捷键",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [],
+    "examples": [
+      {
+        "command": "keymap",
+        "description": "显示快捷键列表"
+      }
+    ],
+    "notes": ""
   },
   {
-    "name": "history",
-    "description": "查看命令历史",
-    "params": "-c 清空历史\n[n] 显示最近n条",
-    "examples": ["history", "history 10", "history -c"]
+    "name": "tee",
+    "description": "复制标准输入到标准输出和指定的文件",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "path",
+        "description": "输出文件路径",
+        "required": true,
+        "example": "tee /tmp/output.txt"
+      }
+    ],
+    "examples": [
+      {
+        "command": "thread | tee /tmp/thread.txt",
+        "description": "保存到文件并输出"
+      }
+    ],
+    "notes": "配合管道使用"
   },
   {
-    "name": "ttreplay",
-    "description": "重放 tt 命令记录的方法调用",
-    "params": "-i [index] 指定记录索引",
-    "examples": ["ttreplay -i 1000"]
-  },
-  {
-    "name": "ttwatch",
-    "description": "观察 tt 记录",
-    "params": "-i [index] 指定记录索引\n-w [表达式] 观察表达式",
-    "examples": ["ttwatch -i 1000 -w 'target.method(params)'"]
-  },
-  {
-    "name": "heap",
-    "description": "查看堆内存中的对象信息",
-    "params": "--class [类名] 查看指定类的对象",
-    "examples": ["heap --class com.example.MyClass"]
+    "name": "options",
+    "description": "查看或设置 Arthas 全局开关",
+    "category": "basic",
+    "riskLevel": "low",
+    "params": [
+      {
+        "name": "name",
+        "description": "选项名",
+        "required": false,
+        "example": "options unsafe"
+      },
+      {
+        "name": "value",
+        "description": "选项值",
+        "required": false,
+        "example": "options unsafe true"
+      }
+    ],
+    "examples": [
+      {
+        "command": "options",
+        "description": "显示所有选项"
+      },
+      {
+        "command": "options unsafe",
+        "description": "查看 unsafe 选项"
+      }
+    ],
+    "notes": ""
   }
 ]
