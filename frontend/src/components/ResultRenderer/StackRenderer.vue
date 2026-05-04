@@ -1,35 +1,17 @@
 <template>
-  <div>
-    <div style="margin-bottom: 8px; font-weight: 500; font-size: 14px">方法调用栈</div>
-    <div v-if="timestamp" style="margin-bottom: 8px; font-size: 12px; color: #909399">
-      时间: {{ formatTimestamp(timestamp) }}
-    </div>
-    <div
-      v-if="stackValue"
-      style="
-        background: #f5f7fa;
-        padding: 12px;
-        border-radius: 4px;
-        font-size: 13px;
-        line-height: 1.8;
-        overflow-x: auto;
-        white-space: pre-wrap;
-        word-break: break-all;
-      "
-    >
-      {{ stackValue }}
-    </div>
-    <div
-      v-if="isExample"
-      style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic"
-    >
-      (示例数据)
-    </div>
-  </div>
+  <CallStackRenderer
+    mode="stack"
+    :command="commandText"
+    :samples="parsedSamples"
+    :is-running="isRunning"
+    @stop="$emit('stop')"
+    @focus="handleFocus"
+  />
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import CallStackRenderer from './CallStackRenderer.vue';
 
 const props = defineProps({
   data: {
@@ -38,12 +20,20 @@ const props = defineProps({
   },
 });
 
+defineEmits(['stop']);
+
+const isRunning = ref(false);
+
 const defaultData = {
+  className: 'com.example.TestClass',
+  methodName: 'testMethod',
   value:
     'at com.example.TestClass.testMethod(TestClass.java:10)\n' +
     'at com.example.Caller.call(Caller.java:20)\n' +
     'at java.lang.Thread.run(Thread.java:748)',
   ts: Date.now(),
+  threadName: 'main',
+  priority: 5,
 };
 
 const currentData = computed(() => {
@@ -57,17 +47,102 @@ const isExample = computed(() => {
   return !props.data || Object.keys(props.data).length === 0;
 });
 
-const stackValue = computed(() => {
-  return currentData.value.value || currentData.value.stackTrace || '';
+const commandText = computed(() => {
+  const cls = currentData.value.className || currentData.value.class || '';
+  const method = currentData.value.methodName || currentData.value.method || '';
+  return `${cls}.${method}()`;
 });
 
-const timestamp = computed(() => {
-  return currentData.value.ts || currentData.value.timestamp;
+const parsedSamples = computed(() => {
+  const data = currentData.value;
+  const samples = [];
+  const stackValue = data.value || data.stackTrace || data.stack || '';
+
+  if (stackValue) {
+    const lines = stackValue.split('\n').filter((line) => line.trim());
+    const nodes = lines.map((line) => ({
+      method: line,
+      depth: 0,
+      children: [],
+    }));
+
+    samples.push({
+      id: 1,
+      timestamp: data.ts || data.timestamp || Date.now(),
+      threadName: data.threadName || data.thread || '',
+      priority: data.priority || 5,
+      nodes: nodes,
+    });
+  }
+
+  if (data.stack && Array.isArray(data.stack)) {
+    data.stack.forEach((s, idx) => {
+      samples.push({
+        id: s.id || idx + 1,
+        timestamp: s.ts || s.timestamp || Date.now(),
+        threadName: s.threadName || s.thread || '',
+        priority: s.priority || 5,
+        nodes: normalizeStackNodes(s),
+      });
+    });
+  }
+
+  return samples;
 });
 
-function formatTimestamp(ts) {
-  if (!ts) return '-';
-  const date = new Date(ts);
-  return date.toLocaleString();
+function normalizeStackNodes(stackItem) {
+  if (typeof stackItem === 'string') {
+    return stackItem.split('\n').filter((line) => line.trim()).map((line) => ({
+      method: line,
+      depth: 0,
+      children: [],
+    }));
+  }
+
+  if (Array.isArray(stackItem)) {
+    return stackItem.map((line) => ({
+      method: typeof line === 'string' ? line : line.method || line.classMethod || '',
+      depth: 0,
+      children: [],
+    }));
+  }
+
+  const nodes = [];
+  const addLine = (line) => {
+    if (line) {
+      nodes.push({
+        method: line.method || line.classMethod || line,
+        depth: 0,
+        children: [],
+      });
+    }
+  };
+
+  if (stackItem.stackTrace) {
+    const lines = Array.isArray(stackItem.stackTrace)
+      ? stackItem.stackTrace
+      : stackItem.stackTrace.split('\n');
+    lines.forEach(addLine);
+  }
+
+  if (stackItem.stack) {
+    const lines = Array.isArray(stackItem.stack)
+      ? stackItem.stack
+      : stackItem.stack.split('\n');
+    lines.forEach(addLine);
+  }
+
+  return nodes;
 }
+
+function handleFocus(index) {
+}
+
+watch(
+  () => props.data,
+  (newData) => {
+    isRunning.value = newData?.isRunning || false;
+  },
+  { immediate: true }
+);
 </script>

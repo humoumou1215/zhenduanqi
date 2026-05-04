@@ -14,6 +14,7 @@ import StackRenderer from './StackRenderer.vue';
 import TraceRenderer from './TraceRenderer.vue';
 import WatchRenderer from './WatchRenderer.vue';
 import HeapRenderer from './HeapRenderer.vue';
+import CallStackRenderer from './CallStackRenderer.vue';
 
 const rendererMap = {
   thread: ThreadRenderer,
@@ -56,4 +57,5 @@ export {
   TraceRenderer,
   WatchRenderer,
   HeapRenderer,
+  CallStackRenderer,
 };
