@@ -4,6 +4,8 @@ import com.zhenduanqi.annotation.RequireRole;
 import com.zhenduanqi.entity.DiagnoseScene;
 import com.zhenduanqi.entity.SceneStep;
 import com.zhenduanqi.service.SceneService;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -59,6 +61,8 @@ public class SceneController {
             @RequestBody DiagnoseScene scene) {
         try {
             return ResponseEntity.ok(sceneService.updateScene(id, scene));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -67,8 +71,12 @@ public class SceneController {
     @DeleteMapping("/{id}")
     @RequireRole("ADMIN")
     public ResponseEntity<Void> deleteScene(@PathVariable Long id) {
-        sceneService.deleteScene(id);
-        return ResponseEntity.noContent().build();
+        try {
+            sceneService.deleteScene(id);
+            return ResponseEntity.noContent().build();
+        } catch (EmptyResultDataAccessException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/{id}/steps")
@@ -79,6 +87,8 @@ public class SceneController {
         try {
             SceneStep created = sceneService.addStep(id, step);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -91,6 +101,8 @@ public class SceneController {
             @RequestBody SceneStep step) {
         try {
             return ResponseEntity.ok(sceneService.updateStep(stepId, step));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -99,8 +111,12 @@ public class SceneController {
     @DeleteMapping("/steps/{stepId}")
     @RequireRole("ADMIN")
     public ResponseEntity<Void> deleteStep(@PathVariable Long stepId) {
-        sceneService.deleteStep(stepId);
-        return ResponseEntity.noContent().build();
+        try {
+            sceneService.deleteStep(stepId);
+            return ResponseEntity.noContent().build();
+        } catch (EmptyResultDataAccessException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PutMapping("/{id}/steps/reorder")
@@ -111,6 +127,8 @@ public class SceneController {
         try {
             sceneService.reorderSteps(id, request.get("stepIds"));
             return ResponseEntity.ok().build();
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }

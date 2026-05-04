@@ -6,6 +6,11 @@ import FallbackRenderer from './FallbackRenderer.vue';
 import DashboardRenderer from './DashboardRenderer.vue';
 import VmoptionRenderer from './VmoptionRenderer.vue';
 import SysenvRenderer from './SysenvRenderer.vue';
+import ClassInfoRenderer from './ClassInfoRenderer.vue';
+import ClassloaderRenderer from './ClassloaderRenderer.vue';
+import JadRenderer from './JadRenderer.vue';
+import MonitorRenderer from './MonitorRenderer.vue';
+import StackRenderer from './StackRenderer.vue';
 
 const rendererMap = {
   thread: ThreadRenderer,
@@ -15,6 +20,13 @@ const rendererMap = {
   dashboard: DashboardRenderer,
   vmoption: VmoptionRenderer,
   sysenv: SysenvRenderer,
+  classinfo: ClassInfoRenderer,
+  sc: ClassInfoRenderer,
+  classloader: ClassloaderRenderer,
+  classloaderTree: ClassloaderRenderer,
+  jad: JadRenderer,
+  monitor: MonitorRenderer,
+  stack: StackRenderer,
 };
 
 export function getRenderer(type) {
@@ -30,4 +42,9 @@ export {
   DashboardRenderer,
   VmoptionRenderer,
   SysenvRenderer,
+  ClassInfoRenderer,
+  ClassloaderRenderer,
+  JadRenderer,
+  MonitorRenderer,
+  StackRenderer,
 };

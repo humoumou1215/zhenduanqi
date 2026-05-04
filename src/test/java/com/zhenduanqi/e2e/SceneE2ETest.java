@@ -172,4 +172,43 @@ class SceneE2ETest {
                 .andExpect(jsonPath("$[0].steps[1].continuous").value(false))
                 .andExpect(jsonPath("$[0].steps[2].continuous").value(false));
     }
+
+    @Test
+    void scene4_shouldHaveCorrectConfiguration() throws Exception {
+        DiagnoseScene scene4 = new DiagnoseScene();
+        scene4.setId(4L);
+        scene4.setName("GC 概况诊断");
+        scene4.setCategory("MEMORY");
+
+        SceneStep step1 = new SceneStep();
+        step1.setId(1L);
+        step1.setTitle("查看内存区");
+        step1.setCommand("memory");
+        step1.setContinuous(false);
+        step1.setMaxExecTime(10000);
+        step1.setScene(scene4);
+
+        SceneStep step2 = new SceneStep();
+        step2.setId(2L);
+        step2.setTitle("查看各内存池详情");
+        step2.setCommand("vmtool --action getInstances --className java.lang.management.MemoryPoolMXBean");
+        step2.setContinuous(false);
+        step2.setMaxExecTime(15000);
+        step2.setScene(scene4);
+
+        scene4.setSteps(Arrays.asList(step1, step2));
+
+        when(sceneService.getAllScenes()).thenReturn(Arrays.asList(scene4));
+
+        mockMvc.perform(get("/api/scenes").cookie(adminCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("GC 概况诊断"))
+                .andExpect(jsonPath("$[0].category").value("MEMORY"))
+                .andExpect(jsonPath("$[0].steps[0].command").value("memory"))
+                .andExpect(jsonPath("$[0].steps[0].continuous").value(false))
+                .andExpect(jsonPath("$[0].steps[0].maxExecTime").value(10000))
+                .andExpect(jsonPath("$[0].steps[1].command").value("vmtool --action getInstances --className java.lang.management.MemoryPoolMXBean"))
+                .andExpect(jsonPath("$[0].steps[1].continuous").value(false))
+                .andExpect(jsonPath("$[0].steps[1].maxExecTime").value(15000));
+    }
 }

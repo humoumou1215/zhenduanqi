@@ -19,6 +19,10 @@ api.interceptors.response.use(
         store.isLoggedIn = false;
       });
       window.location.hash = '#/login';
+    } else if (error.response?.status === 403) {
+      import('element-plus').then(({ ElMessage }) => {
+        ElMessage.error(error.response?.data?.error || '权限不足，无权访问此功能');
+      });
     }
     return Promise.reject(error);
   }
