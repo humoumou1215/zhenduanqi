@@ -5,6 +5,8 @@
       :command="command"
       :sample-count="samples.length"
       :is-running="isRunning"
+      :avg-cost="avgCost"
+      :max-cost="maxCost"
       @stop="$emit('stop')"
     />
 
@@ -73,6 +75,15 @@ const maxCost = computed(() => {
     if (cost > max) max = cost;
   }
   return max;
+});
+
+const avgCost = computed(() => {
+  if (props.mode !== 'trace' || props.samples.length === 0) return 0;
+  let total = 0;
+  for (const sample of props.samples) {
+    total += sample.cost || sample.totalCost || 0;
+  }
+  return total / props.samples.length;
 });
 
 const emptyDescription = computed(() => {
