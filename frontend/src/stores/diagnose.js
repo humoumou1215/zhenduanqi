@@ -51,9 +51,15 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
     }
 
     const data = results || [];
+    const extractedVariables = new Map();
 
     for (const rule of rules) {
       if (!rule.variable || !rule.jsonPath) {
+        continue;
+      }
+
+      // 如果这个变量已经提取成功了，就跳过后续规则
+      if (extractedVariables.has(rule.variable)) {
         continue;
       }
 
@@ -72,6 +78,7 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
         }
 
         if (value != null && value !== '') {
+          extractedVariables.set(rule.variable, String(value));
           variables.value.set(rule.variable, String(value));
         }
       } catch (error) {
