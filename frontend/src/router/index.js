@@ -12,20 +12,14 @@ const routes = [
   },
   {
     path: '/scenes',
-    name: 'SceneList',
-    component: () => import('../views/SceneList.vue'),
+    name: 'DiagnoseWorkbench',
+    component: () => import('../views/DiagnoseWorkbench.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/scenes/manage',
     name: 'SceneManage',
     component: () => import('../views/SceneManage.vue'),
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/scenes/:id/diagnose',
-    name: 'SceneDiagnose',
-    component: () => import('../views/SceneDiagnose.vue'),
     meta: { requiresAuth: true },
   },
   {
