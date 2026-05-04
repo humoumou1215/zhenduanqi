@@ -1,36 +1,17 @@
 <template>
-  <div>
-    <div style="margin-bottom: 8px; font-weight: 500; font-size: 14px">
-      方法调用追踪: {{ className }}.{{ methodName }}
-    </div>
-    <div v-if="timestamp" style="margin-bottom: 8px; font-size: 12px; color: #909399">
-      时间: {{ formatTimestamp(timestamp) }} | 总耗时: {{ totalCost }}ms
-    </div>
-    <div
-      style="
-        background: #f5f7fa;
-        padding: 12px;
-        border-radius: 4px;
-        font-size: 13px;
-        line-height: 1.8;
-        overflow-x: auto;
-        white-space: pre;
-        font-family: monospace;
-      "
-    >
-      {{ formattedTrace }}
-    </div>
-    <div
-      v-if="isExample"
-      style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic"
-    >
-      (示例数据)
-    </div>
-  </div>
+  <CallStackRenderer
+    mode="trace"
+    :command="commandText"
+    :samples="parsedSamples"
+    :is-running="isRunning"
+    @stop="$emit('stop')"
+    @focus="handleFocus"
+  />
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import CallStackRenderer from './CallStackRenderer.vue';
 
 const props = defineProps({
   data: {
@@ -38,6 +19,10 @@ const props = defineProps({
     default: () => ({}),
   },
 });
+
+defineEmits(['stop']);
+
+const isRunning = ref(false);
 
 const defaultData = {
   className: 'com.example.TestClass',
@@ -50,18 +35,30 @@ const defaultData = {
       methodName: 'testMethod',
       cost: 123.45,
       depth: 0,
+      line: 24,
     },
     {
       className: 'com.example.Helper',
       methodName: 'helperMethod',
       cost: 45.67,
       depth: 1,
+      line: 36,
     },
     {
       className: 'com.example.Helper',
       methodName: 'anotherMethod',
       cost: 23.45,
       depth: 1,
+      line: 52,
+      children: [
+        {
+          className: 'java.util.Random',
+          methodName: 'nextInt',
+          cost: 1.23,
+          depth: 2,
+          line: 45,
+        },
+      ],
     },
   ],
 };
@@ -77,59 +74,88 @@ const isExample = computed(() => {
   return !props.data || Object.keys(props.data).length === 0;
 });
 
-const className = computed(() => {
-  return currentData.value.className || currentData.value.class || '';
+const commandText = computed(() => {
+  const cls = currentData.value.className || currentData.value.class || '';
+  const method = currentData.value.methodName || currentData.value.method || '';
+  return `${cls}.${method}()`;
 });
 
-const methodName = computed(() => {
-  return currentData.value.methodName || currentData.value.method || '';
-});
+const parsedSamples = computed(() => {
+  const data = currentData.value;
+  const samples = [];
 
-const totalCost = computed(() => {
-  const cost = currentData.value.cost || currentData.value.totalCost || 0;
-  return typeof cost === 'number' ? cost.toFixed(2) : cost;
-});
-
-const timestamp = computed(() => {
-  return currentData.value.ts || currentData.value.timestamp;
-});
-
-const formattedTrace = computed(() => {
-  const trace = currentData.value.trace || currentData.value.children || [];
-  if (trace.length === 0) {
-    const rawValue = currentData.value.value || currentData.value.raw || '';
-    if (rawValue) return rawValue;
-    return formatSingleTrace(currentData.value);
+  if (data.trace) {
+    const sample = {
+      id: 1,
+      timestamp: data.ts || data.timestamp || Date.now(),
+      cost: data.cost || data.totalCost || calculateTotalCost(data.trace),
+      totalCost: data.cost || data.totalCost || calculateTotalCost(data.trace),
+      nodes: normalizeTraceNodes(data.trace),
+    };
+    samples.push(sample);
   }
-  return formatTraceTree(trace);
+
+  if (data.samples) {
+    data.samples.forEach((s, idx) => {
+      samples.push({
+        id: s.id || idx + 1,
+        timestamp: s.ts || s.timestamp || Date.now(),
+        cost: s.cost || s.totalCost || 0,
+        totalCost: s.cost || s.totalCost || 0,
+        nodes: s.nodes || normalizeTraceNodes(s.trace || []),
+      });
+    });
+  }
+
+  if (data.children && data.children.length > 0) {
+    const sample = {
+      id: 1,
+      timestamp: data.ts || Date.now(),
+      cost: data.cost || 0,
+      totalCost: data.cost || 0,
+      nodes: normalizeTraceNodes(data.children),
+    };
+    samples.push(sample);
+  }
+
+  return samples;
 });
 
-function formatSingleTrace(item) {
-  const cost = item.cost || 0;
+function normalizeTraceNodes(trace) {
+  if (!Array.isArray(trace)) return [];
+  return trace.map((item) => ({
+    method: formatMethodName(item),
+    cost: item.cost || item.time || 0,
+    line: item.line,
+    throws: item.throws,
+    depth: item.depth || 0,
+    children: item.children ? normalizeTraceNodes(item.children) : [],
+    aggregated: item.aggregated,
+  }));
+}
+
+function formatMethodName(item) {
   const cls = item.className || item.class || '';
   const method = item.methodName || item.method || '';
-  return `---[${cost.toFixed(2)}ms]${cls}:${method}()`;
+  return `${cls}:${method}()`;
 }
 
-function formatTraceTree(trace, depth = 0) {
-  let result = '';
-  for (const item of trace) {
-    const indent = '  '.repeat(depth);
-    const prefix = depth === 0 ? '`---' : '+---';
-    const cost = item.cost || 0;
-    const cls = item.className || item.class || '';
-    const method = item.methodName || item.method || '';
-    result += `${indent}${prefix}[${cost.toFixed(2)}ms]${cls}:${method}()\n`;
-    if (item.children && item.children.length > 0) {
-      result += formatTraceTree(item.children, depth + 1);
-    }
-  }
-  return result.trim();
+function calculateTotalCost(nodes) {
+  if (!Array.isArray(nodes) || nodes.length === 0) return 0;
+  return nodes.reduce((sum, node) => {
+    const cost = node.cost || 0;
+    const childCost = node.children ? calculateTotalCost(node.children) : 0;
+    return sum + Math.max(cost, childCost);
+  }, 0);
 }
 
-function formatTimestamp(ts) {
-  if (!ts) return '-';
-  const date = new Date(ts);
-  return date.toLocaleString();
-}
+function handleFocus(index) {}
+
+watch(
+  () => props.data,
+  (newData) => {
+    isRunning.value = newData?.isRunning || false;
+  },
+  { immediate: true }
+);
 </script>
