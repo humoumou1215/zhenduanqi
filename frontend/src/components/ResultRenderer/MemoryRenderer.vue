@@ -2,9 +2,7 @@
   <div class="memory-renderer">
     <div class="memory-header">
       <span>内存信息</span>
-      <el-button size="small" @click="refreshBaseline" :loading="refreshing">
-        刷新基线
-      </el-button>
+      <el-button size="small" @click="refreshBaseline" :loading="refreshing">刷新基线</el-button>
     </div>
 
     <el-table :data="tableData" stripe size="small">
@@ -49,9 +47,18 @@
     </div>
 
     <div class="trend-legend">
-      <span class="legend-item"><span class="trend-arrow">▲</span> 增长</span>
-      <span class="legend-item"><span class="trend-arrow">▼</span> 下降</span>
-      <span class="legend-item"><span class="trend-dash">—</span> 持平</span>
+      <span class="legend-item">
+        <span class="trend-arrow">▲</span>
+        增长
+      </span>
+      <span class="legend-item">
+        <span class="trend-arrow">▼</span>
+        下降
+      </span>
+      <span class="legend-item">
+        <span class="trend-dash">—</span>
+        持平
+      </span>
     </div>
   </div>
 </template>
@@ -175,10 +182,7 @@ function saveCurrentBaseline() {
   };
 
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ memory_baselines: baselines.value })
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ memory_baselines: baselines.value }));
   } catch (e) {
     console.warn('Failed to save memory baselines:', e);
   }
@@ -194,10 +198,7 @@ function refreshBaseline() {
   };
 
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ memory_baselines: baselines.value })
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ memory_baselines: baselines.value }));
   } catch (e) {
     console.warn('Failed to refresh baselines:', e);
   }
