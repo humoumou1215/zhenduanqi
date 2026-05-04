@@ -31,11 +31,7 @@
         <el-menu-item index="/command-guard" v-if="userStore.role === 'ADMIN'" style="color: white">
           命令守卫
         </el-menu-item>
-        <el-menu-item
-          index="/sessions"
-          v-if="userStore.role === 'ADMIN' || userStore.role === 'OPERATOR'"
-          style="color: white"
-        >
+        <el-menu-item index="/sessions" v-if="userStore.role === 'ADMIN'" style="color: white">
           会话管理
         </el-menu-item>
       </el-menu>
