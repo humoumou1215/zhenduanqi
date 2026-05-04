@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/servers")
@@ -36,25 +37,43 @@ public class ArthasServerController {
     @PostMapping
     @RequireRole("ADMIN")
     @AuditLog(action = "创建服务器")
-    public ResponseEntity<ArthasServerDTO> create(@RequestBody ArthasServerDTO dto) {
-        ArthasServerDTO created = serverService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<?> create(@RequestBody ArthasServerDTO dto) {
+        try {
+            ArthasServerDTO created = serverService.create(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
     @RequireRole("ADMIN")
     @AuditLog(action = "更新服务器")
-    public ResponseEntity<ArthasServerDTO> update(@PathVariable String id, @RequestBody ArthasServerDTO dto) {
-        ArthasServerDTO updated = serverService.update(id, dto);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<?> update(@PathVariable String id, @RequestBody ArthasServerDTO dto) {
+        try {
+            ArthasServerDTO updated = serverService.update(id, dto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("不存在")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            }
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @DeleteMapping("/{id}")
     @RequireRole("ADMIN")
     @AuditLog(action = "删除服务器")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        serverService.delete(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> delete(@PathVariable String id) {
+        try {
+            serverService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("不存在")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            }
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/{id}/status")

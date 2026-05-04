@@ -25,6 +25,7 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -233,5 +234,57 @@ class ArthasServerControllerTest {
     void checkStatus_withoutAuth_returns401() throws Exception {
         mockMvc.perform(get("/api/servers/server-1/status"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void createServer_withDuplicateId_returns400() throws Exception {
+        ArthasServerDTO dto = new ArthasServerDTO();
+        dto.setId("server-1");
+        dto.setName("测试服务器");
+        dto.setHost("192.168.1.102");
+        dto.setHttpPort(8563);
+
+        when(serverService.create(any())).thenThrow(new RuntimeException("服务器 ID 已存在: server-1"));
+
+        mockMvc.perform(post("/api/servers")
+                        .cookie(adminCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("服务器 ID 已存在: server-1"));
+    }
+
+    @Test
+    void updateServer_withNonExistentId_returns404() throws Exception {
+        ArthasServerDTO dto = new ArthasServerDTO();
+        dto.setName("更新名称");
+        dto.setHost("192.168.1.100");
+        dto.setHttpPort(8563);
+
+        when(serverService.update(eq("non-existent"), any())).thenThrow(new RuntimeException("服务器不存在: non-existent"));
+
+        mockMvc.perform(put("/api/servers/non-existent")
+                        .cookie(adminCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("服务器不存在: non-existent"));
+    }
+
+    @Test
+    void deleteServer_withNonExistentId_returns404() throws Exception {
+        doThrow(new RuntimeException("服务器不存在: non-existent")).when(serverService).delete("non-existent");
+
+        mockMvc.perform(delete("/api/servers/non-existent").cookie(adminCookie))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("服务器不存在: non-existent"));
+    }
+
+    @Test
+    void getServerById_withNonExistentId_returns404() throws Exception {
+        when(serverService.findById("non-existent")).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/servers/non-existent").cookie(adminCookie))
+                .andExpect(status().isNotFound());
     }
 }

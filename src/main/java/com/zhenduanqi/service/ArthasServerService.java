@@ -99,6 +99,10 @@ public class ArthasServerService {
     }
 
     public ArthasServerDTO create(ArthasServerDTO dto) {
+        if (repository.existsById(dto.getId())) {
+            throw new RuntimeException("服务器 ID 已存在: " + dto.getId());
+        }
+        validateServerDTO(dto);
         ArthasServerEntity entity = dto.toEntity();
         if (entity.getToken() != null) {
             entity.setToken(encryptionUtil.encrypt(entity.getToken()));
@@ -112,6 +116,41 @@ public class ArthasServerService {
         ArthasServerEntity saved = repository.save(entity);
         log.info("服务器创建: id={}, name={}", saved.getId(), saved.getName());
         return ArthasServerDTO.fromEntity(saved);
+    }
+
+    private void validateServerDTO(ArthasServerDTO dto) {
+        if (dto.getId() == null || dto.getId().isBlank()) {
+            throw new RuntimeException("服务器 ID 不能为空");
+        }
+        if (!dto.getId().matches("^[a-zA-Z0-9_-]{1,50}$")) {
+            throw new RuntimeException("服务器 ID 格式无效，仅允许字母、数字、下划线、连字符，长度 1-50");
+        }
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            throw new RuntimeException("服务器名称不能为空");
+        }
+        if (dto.getHost() == null || dto.getHost().isBlank()) {
+            throw new RuntimeException("主机地址不能为空");
+        }
+        if (!isValidHost(dto.getHost())) {
+            throw new RuntimeException("主机地址格式无效");
+        }
+        if (dto.getHttpPort() < 1 || dto.getHttpPort() > 65535) {
+            throw new RuntimeException("端口范围必须在 1-65535 之间");
+        }
+    }
+
+    private boolean isValidHost(String host) {
+        if (host.matches("^(\\d{1,3}\\.){3}\\d{1,3}$")) {
+            String[] parts = host.split("\\.");
+            for (String part : parts) {
+                int num = Integer.parseInt(part);
+                if (num < 0 || num > 255) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return host.matches("^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$");
     }
 
     public ArthasServerDTO update(String id, ArthasServerDTO dto) {
