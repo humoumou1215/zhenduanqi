@@ -33,7 +33,7 @@
         </el-menu-item>
         <el-menu-item
           index="/sessions"
-          v-if="userStore.role === 'ADMIN' || userStore.role === 'OPERATOR'"
+          v-if="userStore.role === 'ADMIN'"
           style="color: white"
         >
           会话管理
