@@ -1,5 +1,9 @@
 <template>
-  <div>
+  <div v-if="userStore.role !== 'ADMIN'" class="no-permission">
+    <el-result icon="error" title="权限不足" sub-title="只有管理员可以访问会话管理页面" />
+  </div>
+
+  <div v-else>
     <div
       style="
         display: flex;
@@ -12,9 +16,41 @@
       <el-button type="primary" @click="fetchSessions">刷新</el-button>
     </div>
 
+    <el-form :inline="true" :model="filters" class="filter-form">
+      <el-form-item label="服务器">
+        <el-select
+          v-model="filters.serverId"
+          placeholder="全部服务器"
+          clearable
+          @change="fetchSessions"
+        >
+          <el-option v-for="s in servers" :key="s.id" :label="s.name" :value="s.id" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="操作人">
+        <el-select
+          v-model="filters.username"
+          placeholder="全部用户"
+          clearable
+          @change="fetchSessions"
+        >
+          <el-option v-for="u in uniqueUsers" :key="u" :label="u" :value="u" />
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="resetFilters">重置筛选</el-button>
+      </el-form-item>
+    </el-form>
+
     <el-table :data="sessions" v-loading="loading" stripe style="width: 100%">
       <el-table-column prop="id" label="会话ID" width="80" />
-      <el-table-column prop="serverId" label="服务器" width="120" />
+      <el-table-column label="服务器" width="200">
+        <template #default="{ row }">
+          <el-tooltip :content="row.serverId" placement="top">
+            <span class="truncate-text">{{ getServerName(row.serverId) || row.serverId }}</span>
+          </el-tooltip>
+        </template>
+      </el-table-column>
       <el-table-column prop="arthasSessionId" label="Arthas会话ID" width="200">
         <template #default="{ row }">
           <el-tooltip :content="row.arthasSessionId || '-'" placement="top">
@@ -22,7 +58,7 @@
           </el-tooltip>
         </template>
       </el-table-column>
-      <el-table-column prop="username" label="用户" width="100" />
+      <el-table-column prop="username" label="用户" width="120" />
       <el-table-column prop="status" label="状态" width="100">
         <template #default="{ row }">
           <el-tag
@@ -82,14 +118,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { useUserStore } from '../stores/user';
+import { useServerStore } from '../stores/servers';
 import { getActiveSessions, interruptSessionJob, closeSession } from '../api';
 
+const userStore = useUserStore();
+const serverStore = useServerStore();
+
 const sessions = ref([]);
+const servers = ref([]);
 const loading = ref(false);
 const interruptingId = ref(null);
 const closingId = ref(null);
+const filters = ref({ serverId: '', username: '' });
 let refreshInterval = null;
 
 const statusTextMap = {
@@ -98,9 +141,26 @@ const statusTextMap = {
   CLOSED: '已关闭',
 };
 
-onMounted(() => {
-  fetchSessions();
-  refreshInterval = setInterval(fetchSessions, 30000);
+const uniqueUsers = computed(() => {
+  const users = new Set();
+  sessions.value.forEach((s) => {
+    if (s.username) users.add(s.username);
+  });
+  return Array.from(users);
+});
+
+function getServerName(serverId) {
+  const server = servers.value.find((s) => s.id === serverId);
+  return server ? server.name : serverId;
+}
+
+onMounted(async () => {
+  if (userStore.role === 'ADMIN') {
+    await serverStore.fetchServers();
+    servers.value = serverStore.list;
+    await fetchSessions();
+    refreshInterval = setInterval(fetchSessions, 30000);
+  }
 });
 
 onUnmounted(() => {
@@ -112,13 +172,25 @@ onUnmounted(() => {
 async function fetchSessions() {
   loading.value = true;
   try {
-    const res = await getActiveSessions();
+    const params = {};
+    if (filters.value.serverId) params.serverId = filters.value.serverId;
+    if (filters.value.username) params.username = filters.value.username;
+    const res = await getActiveSessions(params);
     sessions.value = res.data || [];
   } catch (e) {
-    ElMessage.error('获取会话列表失败: ' + (e.response?.data?.error || e.message));
+    if (e.response?.status === 403) {
+      ElMessage.error('权限不足，只有管理员可以访问会话管理');
+    } else {
+      ElMessage.error('获取会话列表失败: ' + (e.response?.data?.error || e.message));
+    }
   } finally {
     loading.value = false;
   }
+}
+
+function resetFilters() {
+  filters.value = { serverId: '', username: '' };
+  fetchSessions();
 }
 
 async function handleInterrupt(row) {
@@ -138,7 +210,11 @@ async function handleInterrupt(row) {
       ElMessage.error('中断失败');
     }
   } catch (e) {
-    ElMessage.error('中断失败: ' + (e.response?.data?.error || e.message));
+    if (e.response?.status === 404) {
+      ElMessage.error('会话不存在');
+    } else {
+      ElMessage.error('中断失败: ' + (e.response?.data?.error || e.message));
+    }
   } finally {
     interruptingId.value = null;
   }
@@ -164,7 +240,11 @@ async function handleClose(row) {
       ElMessage.error('关闭失败');
     }
   } catch (e) {
-    ElMessage.error('关闭失败: ' + (e.response?.data?.error || e.message));
+    if (e.response?.status === 404) {
+      ElMessage.error('会话不存在');
+    } else {
+      ElMessage.error('关闭失败: ' + (e.response?.data?.error || e.message));
+    }
   } finally {
     closingId.value = null;
   }
@@ -189,6 +269,17 @@ function formatDateTime(dateStr) {
 </script>
 
 <style scoped>
+.no-permission {
+  padding: 60px 20px;
+}
+
+.filter-form {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #f5f7fa;
+  border-radius: 4px;
+}
+
 .truncate-text {
   display: inline-block;
   max-width: 180px;

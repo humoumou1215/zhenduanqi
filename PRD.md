@@ -581,7 +581,7 @@ CREATE TABLE arthas_session (
 | 方法 | 路径 | 说明 | 角色 |
 |------|------|------|------|
 | POST | `/api/arthas-sessions` | 创建 Arthas 会话并执行命令 | OPERATOR, ADMIN |
-| GET | `/api/arthas-sessions?serverId=&sceneId=` | 查询活跃会话（用于刷新恢复和管理） | 已认证 |
+| GET | `/api/arthas-sessions?serverId=&username=` | 查询活跃会话（支持按服务器和用户筛选） | ADMIN |
 | GET | `/api/arthas-sessions/{id}/results` | 拉取增量结果 | OPERATOR, ADMIN |
 | POST | `/api/arthas-sessions/{id}/interrupt` | 中断当前命令 | OPERATOR, ADMIN |
 | POST | `/api/arthas-sessions/{id}/close` | 关闭会话（reset + close_session） | OPERATOR, ADMIN |

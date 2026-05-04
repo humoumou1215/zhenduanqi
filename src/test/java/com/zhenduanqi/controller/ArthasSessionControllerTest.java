@@ -161,7 +161,7 @@ class ArthasSessionControllerTest {
         session2.setId(2L);
         session2.setStatus("ACTIVE");
 
-        when(sessionService.getActiveSessions(anyString())).thenReturn(List.of(session1, session2));
+        when(sessionService.getActiveSessions(eq("server-1"), eq(null))).thenReturn(List.of(session1, session2));
 
         mockMvc.perform(get("/api/arthas-sessions")
                         .cookie(adminCookie)
@@ -171,29 +171,32 @@ class ArthasSessionControllerTest {
     }
 
     @Test
-    void getActiveSessions_withOperatorAuth_returns200() throws Exception {
-        ArthasSessionDTO session = new ArthasSessionDTO();
-        session.setId(1L);
-        session.setStatus("ACTIVE");
+    void getActiveSessions_withAdminAuthAndUsername_returns200() throws Exception {
+        ArthasSessionDTO session1 = new ArthasSessionDTO();
+        session1.setId(1L);
+        session1.setStatus("ACTIVE");
 
-        when(sessionService.getActiveSessions(anyString())).thenReturn(List.of(session));
+        when(sessionService.getActiveSessions(eq(null), eq("user1"))).thenReturn(List.of(session1));
 
         mockMvc.perform(get("/api/arthas-sessions")
-                        .cookie(operatorCookie))
-                .andExpect(status().isOk());
+                        .cookie(adminCookie)
+                        .param("username", "user1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test
-    void getActiveSessions_withReadonlyAuth_returns200() throws Exception {
-        ArthasSessionDTO session = new ArthasSessionDTO();
-        session.setId(1L);
-        session.setStatus("ACTIVE");
+    void getActiveSessions_withOperatorAuth_returns403() throws Exception {
+        mockMvc.perform(get("/api/arthas-sessions")
+                        .cookie(operatorCookie))
+                .andExpect(status().isForbidden());
+    }
 
-        when(sessionService.getActiveSessions(anyString())).thenReturn(List.of(session));
-
+    @Test
+    void getActiveSessions_withReadonlyAuth_returns403() throws Exception {
         mockMvc.perform(get("/api/arthas-sessions")
                         .cookie(readonlyCookie))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
     }
 
     @Test
