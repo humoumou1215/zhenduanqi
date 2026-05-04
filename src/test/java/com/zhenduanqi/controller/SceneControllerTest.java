@@ -64,13 +64,14 @@ class SceneControllerTest {
     void getScenes_withValidData_returnsScenes() throws Exception {
         DiagnoseScene scene = new DiagnoseScene();
         scene.setId(1L);
-        scene.setName("CPU 问题诊断");
-        scene.setDescription("诊断 CPU 使用率过高的问题");
+        scene.setName("接口响应慢排查");
+        scene.setDescription("排查接口响应时间长、超时等问题");
+        scene.setCategory("SLOW_RESPONSE");
 
         SceneStep step = new SceneStep();
         step.setId(1L);
-        step.setTitle("检查 CPU");
-        step.setCommand("top -n 1");
+        step.setTitle("查看 JVM 概览");
+        step.setCommand("dashboard -n 1");
         step.setStepOrder(1);
 
         scene.setSteps(Arrays.asList(step));
@@ -80,33 +81,36 @@ class SceneControllerTest {
         mockMvc.perform(get("/api/scenes").cookie(adminCookie))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].name").value("CPU 问题诊断"))
-                .andExpect(jsonPath("$[0].steps[0].title").value("检查 CPU"))
+                .andExpect(jsonPath("$[0].name").value("接口响应慢排查"))
+                .andExpect(jsonPath("$[0].category").value("SLOW_RESPONSE"))
+                .andExpect(jsonPath("$[0].steps[0].title").value("查看 JVM 概览"))
                 .andExpect(jsonPath("$[0].steps[0].scene").doesNotExist());
     }
 
     @Test
     void getScene_withValidId_returnsSceneWithSteps() throws Exception {
         DiagnoseScene scene = new DiagnoseScene();
-        scene.setId(1L);
-        scene.setName("内存问题诊断");
+        scene.setId(2L);
+        scene.setName("CPU 飙高排查");
+        scene.setCategory("CPU_HIGH");
 
         SceneStep step = new SceneStep();
         step.setId(1L);
-        step.setTitle("检查内存");
-        step.setCommand("free -m");
+        step.setTitle("查看 JVM 概览");
+        step.setCommand("dashboard -n 1");
         step.setStepOrder(1);
         step.setScene(scene);
 
         scene.setSteps(Arrays.asList(step));
 
-        when(sceneService.getSceneById(1L)).thenReturn(Optional.of(scene));
+        when(sceneService.getSceneById(2L)).thenReturn(Optional.of(scene));
 
-        mockMvc.perform(get("/api/scenes/1").cookie(adminCookie))
+        mockMvc.perform(get("/api/scenes/2").cookie(adminCookie))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("内存问题诊断"))
-                .andExpect(jsonPath("$.steps[0].title").value("检查内存"))
+                .andExpect(jsonPath("$.id").value(2))
+                .andExpect(jsonPath("$.name").value("CPU 飙高排查"))
+                .andExpect(jsonPath("$.category").value("CPU_HIGH"))
+                .andExpect(jsonPath("$.steps[0].title").value("查看 JVM 概览"))
                 .andExpect(jsonPath("$.steps[0].scene").doesNotExist());
     }
 }

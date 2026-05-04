@@ -58,34 +58,122 @@ class SceneE2ETest {
     }
 
     @Test
-    void scene6_shouldHaveCorrectStepConfiguration() throws Exception {
-        DiagnoseScene scene6 = new DiagnoseScene();
-        scene6.setId(6L);
-        scene6.setName("方法耗时追踪");
-        scene6.setCategory("METHOD");
+    void scene1_shouldHaveCorrectStepConfiguration() throws Exception {
+        DiagnoseScene scene1 = new DiagnoseScene();
+        scene1.setId(1L);
+        scene1.setName("接口响应慢排查");
+        scene1.setCategory("SLOW_RESPONSE");
 
         SceneStep step1 = new SceneStep();
         step1.setId(1L);
-        step1.setTitle("确认类已加载");
-        step1.setCommand("sc -d {className}");
+        step1.setTitle("查看 JVM 概览");
+        step1.setCommand("dashboard -n 1");
         step1.setContinuous(false);
-        step1.setMaxExecTime(10000);
+        step1.setMaxExecTime(15000);
+        step1.setScene(scene1);
+
+        SceneStep step2 = new SceneStep();
+        step2.setId(2L);
+        step2.setTitle("确认类已加载");
+        step2.setCommand("sc -d {className}");
+        step2.setContinuous(false);
+        step2.setMaxExecTime(10000);
+        step2.setScene(scene1);
+
+        SceneStep step3 = new SceneStep();
+        step3.setId(3L);
+        step3.setTitle("追踪方法调用路径");
+        step3.setCommand("trace {className} {methodName} -n 5");
+        step3.setContinuous(true);
+        step3.setMaxExecTime(30000);
+        step3.setScene(scene1);
+
+        SceneStep step4 = new SceneStep();
+        step4.setId(4L);
+        step4.setTitle("观察方法入参和返回值");
+        step4.setCommand("watch {className} {methodName} '{params, returnObj, throwExp}' -n 5 -x 2");
+        step4.setContinuous(true);
+        step4.setMaxExecTime(30000);
+        step4.setScene(scene1);
+
+        scene1.setSteps(Arrays.asList(step1, step2, step3, step4));
+
+        when(sceneService.getAllScenes()).thenReturn(Arrays.asList(scene1));
+
+        mockMvc.perform(get("/api/scenes").cookie(adminCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("接口响应慢排查"))
+                .andExpect(jsonPath("$[0].category").value("SLOW_RESPONSE"))
+                .andExpect(jsonPath("$[0].steps[0].continuous").value(false))
+                .andExpect(jsonPath("$[0].steps[2].continuous").value(true))
+                .andExpect(jsonPath("$[0].steps[3].continuous").value(true))
+                .andExpect(jsonPath("$[0].steps[2].maxExecTime").value(30000))
+                .andExpect(jsonPath("$[0].steps[3].maxExecTime").value(30000));
+    }
+
+    @Test
+    void scene2_shouldHaveCorrectStepConfiguration() throws Exception {
+        DiagnoseScene scene2 = new DiagnoseScene();
+        scene2.setId(2L);
+        scene2.setName("CPU 飙高排查");
+        scene2.setCategory("CPU_HIGH");
+
+        SceneStep step1 = new SceneStep();
+        step1.setId(1L);
+        step1.setContinuous(false);
+        step1.setMaxExecTime(15000);
+        step1.setScene(scene2);
+
+        SceneStep step2 = new SceneStep();
+        step2.setId(2L);
+        step2.setContinuous(false);
+        step2.setMaxExecTime(10000);
+        step2.setScene(scene2);
+
+        SceneStep step3 = new SceneStep();
+        step3.setId(3L);
+        step3.setContinuous(false);
+        step3.setMaxExecTime(10000);
+        step3.setScene(scene2);
+
+        SceneStep step4 = new SceneStep();
+        step4.setId(4L);
+        step4.setContinuous(false);
+        step4.setMaxExecTime(10000);
+        step4.setScene(scene2);
+
+        scene2.setSteps(Arrays.asList(step1, step2, step3, step4));
+
+        when(sceneService.getAllScenes()).thenReturn(Arrays.asList(scene2));
+
+        mockMvc.perform(get("/api/scenes").cookie(adminCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("CPU 飙高排查"))
+                .andExpect(jsonPath("$[0].category").value("CPU_HIGH"))
+                .andExpect(jsonPath("$[0].steps[0].continuous").value(false))
+                .andExpect(jsonPath("$[0].steps[1].continuous").value(false));
+    }
+
+    @Test
+    void scene6_shouldHaveAllSyncSteps() throws Exception {
+        DiagnoseScene scene6 = new DiagnoseScene();
+        scene6.setId(6L);
+        scene6.setName("类加载异常排查");
+        scene6.setCategory("CLASS_LOAD_ERROR");
+
+        SceneStep step1 = new SceneStep();
+        step1.setId(1L);
+        step1.setContinuous(false);
         step1.setScene(scene6);
 
         SceneStep step2 = new SceneStep();
         step2.setId(2L);
-        step2.setTitle("追踪方法调用路径");
-        step2.setCommand("trace {className} {methodName} -n 5");
-        step2.setContinuous(true);
-        step2.setMaxExecTime(30000);
+        step2.setContinuous(false);
         step2.setScene(scene6);
 
         SceneStep step3 = new SceneStep();
         step3.setId(3L);
-        step3.setTitle("观察方法入参和返回值");
-        step3.setCommand("watch {className} {methodName} '{params, returnObj, throwExp}' -n 5 -x 2");
-        step3.setContinuous(true);
-        step3.setMaxExecTime(30000);
+        step3.setContinuous(false);
         step3.setScene(scene6);
 
         scene6.setSteps(Arrays.asList(step1, step2, step3));
@@ -94,80 +182,8 @@ class SceneE2ETest {
 
         mockMvc.perform(get("/api/scenes").cookie(adminCookie))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("方法耗时追踪"))
-                .andExpect(jsonPath("$[0].category").value("METHOD"))
-                .andExpect(jsonPath("$[0].steps[0].continuous").value(false))
-                .andExpect(jsonPath("$[0].steps[1].continuous").value(true))
-                .andExpect(jsonPath("$[0].steps[2].continuous").value(true))
-                .andExpect(jsonPath("$[0].steps[1].maxExecTime").value(30000))
-                .andExpect(jsonPath("$[0].steps[2].maxExecTime").value(30000));
-    }
-
-    @Test
-    void scene7_shouldHaveCorrectStepConfiguration() throws Exception {
-        DiagnoseScene scene7 = new DiagnoseScene();
-        scene7.setId(7L);
-        scene7.setName("方法调用监控");
-        scene7.setCategory("METHOD");
-
-        SceneStep step1 = new SceneStep();
-        step1.setId(1L);
-        step1.setContinuous(false);
-        step1.setMaxExecTime(10000);
-        step1.setScene(scene7);
-
-        SceneStep step2 = new SceneStep();
-        step2.setId(2L);
-        step2.setContinuous(true);
-        step2.setMaxExecTime(60000);
-        step2.setScene(scene7);
-
-        SceneStep step3 = new SceneStep();
-        step3.setId(3L);
-        step3.setContinuous(true);
-        step3.setMaxExecTime(30000);
-        step3.setScene(scene7);
-
-        scene7.setSteps(Arrays.asList(step1, step2, step3));
-
-        when(sceneService.getAllScenes()).thenReturn(Arrays.asList(scene7));
-
-        mockMvc.perform(get("/api/scenes").cookie(adminCookie))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("方法调用监控"))
-                .andExpect(jsonPath("$[0].steps[1].continuous").value(true))
-                .andExpect(jsonPath("$[0].steps[1].maxExecTime").value(60000));
-    }
-
-    @Test
-    void scene8_shouldHaveAllSyncSteps() throws Exception {
-        DiagnoseScene scene8 = new DiagnoseScene();
-        scene8.setId(8L);
-        scene8.setName("类冲突排查");
-        scene8.setCategory("CLASSLOADER");
-
-        SceneStep step1 = new SceneStep();
-        step1.setId(1L);
-        step1.setContinuous(false);
-        step1.setScene(scene8);
-
-        SceneStep step2 = new SceneStep();
-        step2.setId(2L);
-        step2.setContinuous(false);
-        step2.setScene(scene8);
-
-        SceneStep step3 = new SceneStep();
-        step3.setId(3L);
-        step3.setContinuous(false);
-        step3.setScene(scene8);
-
-        scene8.setSteps(Arrays.asList(step1, step2, step3));
-
-        when(sceneService.getAllScenes()).thenReturn(Arrays.asList(scene8));
-
-        mockMvc.perform(get("/api/scenes").cookie(adminCookie))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("类冲突排查"))
+                .andExpect(jsonPath("$[0].name").value("类加载异常排查"))
+                .andExpect(jsonPath("$[0].category").value("CLASS_LOAD_ERROR"))
                 .andExpect(jsonPath("$[0].steps[0].continuous").value(false))
                 .andExpect(jsonPath("$[0].steps[1].continuous").value(false))
                 .andExpect(jsonPath("$[0].steps[2].continuous").value(false));
@@ -177,23 +193,23 @@ class SceneE2ETest {
     void scene4_shouldHaveCorrectConfiguration() throws Exception {
         DiagnoseScene scene4 = new DiagnoseScene();
         scene4.setId(4L);
-        scene4.setName("GC 概况诊断");
-        scene4.setCategory("MEMORY");
+        scene4.setName("GC 频繁排查");
+        scene4.setCategory("GC_FREQUENT");
 
         SceneStep step1 = new SceneStep();
         step1.setId(1L);
-        step1.setTitle("查看内存区");
-        step1.setCommand("memory");
+        step1.setTitle("查看 JVM 概览");
+        step1.setCommand("dashboard -n 1");
         step1.setContinuous(false);
-        step1.setMaxExecTime(10000);
+        step1.setMaxExecTime(15000);
         step1.setScene(scene4);
 
         SceneStep step2 = new SceneStep();
         step2.setId(2L);
-        step2.setTitle("查看各内存池详情");
-        step2.setCommand("vmtool --action getInstances --className java.lang.management.MemoryPoolMXBean");
+        step2.setTitle("查看内存区");
+        step2.setCommand("memory");
         step2.setContinuous(false);
-        step2.setMaxExecTime(15000);
+        step2.setMaxExecTime(10000);
         step2.setScene(scene4);
 
         scene4.setSteps(Arrays.asList(step1, step2));
@@ -202,13 +218,13 @@ class SceneE2ETest {
 
         mockMvc.perform(get("/api/scenes").cookie(adminCookie))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("GC 概况诊断"))
-                .andExpect(jsonPath("$[0].category").value("MEMORY"))
-                .andExpect(jsonPath("$[0].steps[0].command").value("memory"))
+                .andExpect(jsonPath("$[0].name").value("GC 频繁排查"))
+                .andExpect(jsonPath("$[0].category").value("GC_FREQUENT"))
+                .andExpect(jsonPath("$[0].steps[0].command").value("dashboard -n 1"))
                 .andExpect(jsonPath("$[0].steps[0].continuous").value(false))
-                .andExpect(jsonPath("$[0].steps[0].maxExecTime").value(10000))
-                .andExpect(jsonPath("$[0].steps[1].command").value("vmtool --action getInstances --className java.lang.management.MemoryPoolMXBean"))
+                .andExpect(jsonPath("$[0].steps[0].maxExecTime").value(15000))
+                .andExpect(jsonPath("$[0].steps[1].command").value("memory"))
                 .andExpect(jsonPath("$[0].steps[1].continuous").value(false))
-                .andExpect(jsonPath("$[0].steps[1].maxExecTime").value(15000));
+                .andExpect(jsonPath("$[0].steps[1].maxExecTime").value(10000));
     }
 }
