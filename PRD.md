@@ -1027,6 +1027,9 @@ zhenduanqi/
 │       │       ├── JadRenderer.vue        # jad 命令渲染
 │       │       ├── MonitorRenderer.vue    # monitor 命令渲染
 │       │       ├── StackRenderer.vue      # stack 命令渲染
+│       │       ├── HeapRenderer.vue      # heap 命令渲染
+│       │       ├── TraceRenderer.vue     # trace 命令渲染
+│       │       ├── WatchRenderer.vue     # watch 命令渲染
 │       │       └── FallbackRenderer.vue  # <pre> 降级渲染
 │       ├── stores/
 │       │   ├── servers.js           # 服务器 Pinia store
@@ -1108,7 +1111,7 @@ zhenduanqi/
         ├── application.yml
         ├── application-render.yml             # Render 专用 Profile 配置
         ├── logback-spring.xml
-        └── import.sql                         # 初始化数据（admin + 角色 + 默认规则 + 8个预置场景）
+        └── data.sql                         # 初始化数据（admin + 角色 + 默认规则 + 8个预置场景）
 ```
 
 ## Implementation Phasing
@@ -1131,8 +1134,8 @@ zhenduanqi/
 - ✅ 8 个预置场景（场景1-5 为一次性命令，场景6-8 为连续命令暂用 exec + -n 限制）
 - ✅ 场景列表页（按分类卡片展示 + 业务场景检索）
 - ✅ 场景诊断页（步骤列表 + 手动执行 + 结果渲染）
-- ✅ 前端渲染器：thread、memory、status、enhancer + 降级文本
-- ✅ 半自动变量填充（extract_rules + jsonpath-plus）
+- ✅ 前端渲染器：thread、memory、status、enhancer、dashboard、vmoption、sysenv、class、classloader、jad、monitor、stack、heap、trace、watch + 降级文本
+- ✅ 半自动变量填充（extract_rules + jsonpath-plus + fallback paths）
 - ✅ 前端 diagnose store（步骤状态管理、变量缓存）
 
 ### 第三阶段（P2）：场景模板引擎 — 异步版 ✅ 已完成
@@ -1206,6 +1209,6 @@ zhenduanqi/
 - **分阶段交付**：P0 安全基础设施 → P1 场景基础版（一次性命令）→ P2 场景异步版（连续命令 + 会话管控），三阶段递进
 - **向后兼容**：现有 `/api/servers` 和 `/api/execute` 接口路径不变，仅增加认证校验
 - **两套执行模式并存**：自由命令用一次性 exec，场景诊断用会话 API，互不影响
-- **初始管理员账号**：`import.sql` 中创建默认管理员 `admin / Abcd1234`（系统导入后应提示修改密码）
+- **初始管理员账号**：`data.sql` 中创建默认管理员 `admin / Abcd1234`（系统导入后应提示修改密码）
 - **渲染器可扩展**：前端渲染器用策略模式注册，新增 type 只需添加一个渲染组件
 - **Arthas 会话持久化**：会话信息存数据库，诊断器重启后可扫描并清理孤儿会话
