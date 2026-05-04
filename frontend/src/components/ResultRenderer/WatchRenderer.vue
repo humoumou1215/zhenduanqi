@@ -70,8 +70,8 @@
             :class="{ 'has-error': scope.row.throwExp, 'has-success': scope.row.returnObj }"
             @click="copyContent(getReturnOrErrorContent(scope.row))"
           >
-            <span v-if="scope.row.returnObj" class="success-prefix">↩ 返回: </span>
-            <span v-if="scope.row.throwExp" class="error-prefix">⚠️ 异常: </span>
+            <span v-if="scope.row.returnObj" class="success-prefix">↩ 返回:</span>
+            <span v-if="scope.row.throwExp" class="error-prefix">⚠️ 异常:</span>
             {{ truncateContent(formatReturnValue(scope.row)) }}
           </div>
         </template>
@@ -113,8 +113,20 @@ const defaultData = {
 
 const exampleDataList = [
   { ...defaultData, index: 3, ts: Date.now() - 1000 },
-  { ...defaultData, index: 2, ts: Date.now() - 2000, params: [{ type: 'Integer', value: 50 }], returnObj: { type: 'List', value: [2, 5, 13, 17] } },
-  { ...defaultData, index: 1, ts: Date.now() - 3000, params: [{ type: 'Integer', value: 2 }], returnObj: { type: 'List', value: [2] } },
+  {
+    ...defaultData,
+    index: 2,
+    ts: Date.now() - 2000,
+    params: [{ type: 'Integer', value: 50 }],
+    returnObj: { type: 'List', value: [2, 5, 13, 17] },
+  },
+  {
+    ...defaultData,
+    index: 1,
+    ts: Date.now() - 3000,
+    params: [{ type: 'Integer', value: 2 }],
+    returnObj: { type: 'List', value: [2] },
+  },
 ];
 
 const watchList = ref([]);
@@ -206,8 +218,16 @@ function generateExampleData() {
     examples.push({ index: 2, ts: Date.now() - 2000, params: [{ type: 'Integer', value: 50 }] });
     examples.push({ index: 1, ts: Date.now() - 3000, params: [{ type: 'Integer', value: 2 }] });
   } else if (watchPoint.value === '-s') {
-    examples.push({ index: 3, ts: Date.now() - 1000, returnObj: { type: 'List', value: [2, 5, 13, 17, 23] } });
-    examples.push({ index: 2, ts: Date.now() - 2000, returnObj: { type: 'List', value: [2, 5, 13, 17] } });
+    examples.push({
+      index: 3,
+      ts: Date.now() - 1000,
+      returnObj: { type: 'List', value: [2, 5, 13, 17, 23] },
+    });
+    examples.push({
+      index: 2,
+      ts: Date.now() - 2000,
+      returnObj: { type: 'List', value: [2, 5, 13, 17] },
+    });
     examples.push({ index: 1, ts: Date.now() - 3000, returnObj: { type: 'List', value: [2] } });
   } else if (watchPoint.value === '-e') {
     examples.push({
@@ -255,7 +275,8 @@ const overviewData = computed(() => {
 
   const total = data.length;
   const costs = data.filter((d) => d.cost != null).map((d) => d.cost);
-  const avgCost = costs.length > 0 ? (costs.reduce((a, b) => a + b, 0) / costs.length).toFixed(2) + 'ms' : null;
+  const avgCost =
+    costs.length > 0 ? (costs.reduce((a, b) => a + b, 0) / costs.length).toFixed(2) + 'ms' : null;
   const success = data.filter((d) => d.returnObj && !d.throwExp).length;
   const fail = data.filter((d) => d.throwExp).length;
 
