@@ -46,7 +46,7 @@ INSERT INTO scene_step (scene_id, step_order, title, description, command, expec
 -- 场景 2 步骤
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (2, 1, '找出 CPU 最高的线程', '查看 CPU 占用最高的 5 个线程', 'thread -n 5', '记录 CPU 最高的线程 ID，填入下一步', FALSE, 10000, '[{"variable":"threadId","jsonPath":"$[?(@.type==\"thread\")][0].data.id","description":"从 thread -n 5 结果中提取第一个线程的 ID"},{"variable":"threadId","jsonPath":"$[?(@.type==\"thread\")][0].data.threadId","description":"备用路径，从 thread -n 5 结果中提取第一个线程的 ID (使用 threadId 字段)"}]', NOW(), NOW());
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (2, 2, '查看线程栈', '查看指定线程的完整堆栈信息', 'thread {threadId}', '', FALSE, 10000, NULL, NOW(), NOW());
-INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (2, 3, '查看 JVM 概览', '查看 JVM 运行概览', 'dashboard -n 1', '', FALSE, 15000, NULL, NOW(), NOW());
+INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (2, 3, '检查死锁线程', '检查 JVM 中是否存在死锁线程', 'thread -b', '', FALSE, 10000, NULL, NOW(), NOW());
 
 -- 场景 3 步骤
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (3, 1, '查看内存区使用情况', '查看各内存区使用情况', 'memory', '', FALSE, 10000, NULL, NOW(), NOW());
@@ -57,10 +57,10 @@ INSERT INTO scene_step (scene_id, step_order, title, description, command, expec
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (4, 1, '查看内存区', '查看各内存区使用情况', 'memory', '', FALSE, 10000, NULL, NOW(), NOW());
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (4, 2, '查看各内存池详情', '使用 vmtool 查看各内存池的详细信息', 'vmtool --action getInstances --className java.lang.management.MemoryPoolMXBean', '', FALSE, 15000, NULL, NOW(), NOW());
 
--- 场景 5 步骤
-INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (5, 1, 'JVM 概览', '查看 JVM 运行概览', 'dashboard -n 1', '', FALSE, 15000, NULL, NOW(), NOW());
-INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (5, 2, 'JVM 参数', '查看 JVM 参数配置', 'vmoption', '', FALSE, 10000, NULL, NOW(), NOW());
-INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (5, 3, '系统环境变量', '查看系统环境变量', 'sysenv', '', FALSE, 10000, NULL, NOW(), NOW());
+-- 场景 5 步骤 (移除 dashboard -n 1)
+INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (5, 1, 'JVM 参数', '查看 JVM 参数配置', 'vmoption', '', FALSE, 10000, NULL, NOW(), NOW());
+INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (5, 2, '系统环境变量', '查看系统环境变量', 'sysenv', '', FALSE, 10000, NULL, NOW(), NOW());
+INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (5, 3, '查看类加载信息', '查看指定类的加载信息', 'sc -d {className}', '', FALSE, 10000, NULL, NOW(), NOW());
 
 -- 场景 6 步骤
 INSERT INTO scene_step (scene_id, step_order, title, description, command, expected_hint, continuous, max_exec_time, extract_rules, created_at, updated_at) VALUES (6, 1, '确认类已加载', '确认指定类已加载', 'sc -d {className}', '', FALSE, 10000, NULL, NOW(), NOW());
