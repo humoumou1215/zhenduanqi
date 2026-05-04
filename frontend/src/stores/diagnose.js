@@ -64,8 +64,15 @@ export const useDiagnoseStore = defineStore('diagnose', () => {
           resultType: 'value',
         });
 
-        if (values && values.length > 0) {
-          variables.value.set(rule.variable, String(values[0]));
+        let value;
+        if (Array.isArray(values)) {
+          value = values.length > 0 ? values[0] : null;
+        } else {
+          value = values;
+        }
+
+        if (value != null && value !== '') {
+          variables.value.set(rule.variable, String(value));
         }
       } catch (error) {
         console.warn(
