@@ -197,9 +197,7 @@ describe('useDiagnoseStore', () => {
 
       store.initScene(scene, 'server-1');
 
-      const results = [
-        { type: 'thread', data: { threadId: 987, name: 'Thread-1' } },
-      ];
+      const results = [{ type: 'thread', data: { threadId: 987, name: 'Thread-1' } }];
 
       store.extractVariables(101, results);
 
@@ -234,9 +232,7 @@ describe('useDiagnoseStore', () => {
 
       store.initScene(scene, 'server-1');
 
-      const results = [
-        { type: 'thread', data: { id: 456, threadId: 789, name: 'Thread-1' } },
-      ];
+      const results = [{ type: 'thread', data: { id: 456, threadId: 789, name: 'Thread-1' } }];
 
       store.extractVariables(101, results);
 
