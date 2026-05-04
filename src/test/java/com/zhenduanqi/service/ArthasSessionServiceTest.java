@@ -157,7 +157,7 @@ class ArthasSessionServiceTest {
         when(sessionRepository.findByServerIdAndStatusOrderByCreatedAtDesc("server1", "ACTIVE"))
                 .thenReturn(List.of(session1));
 
-        List<ArthasSessionDTO> result = sessionService.getActiveSessions("server1");
+        List<ArthasSessionDTO> result = sessionService.getActiveSessions("server1", null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
@@ -178,9 +178,42 @@ class ArthasSessionServiceTest {
         when(sessionRepository.findByStatusOrderByCreatedAtDesc("ACTIVE"))
                 .thenReturn(List.of(session1, session2));
 
-        List<ArthasSessionDTO> result = sessionService.getActiveSessions(null);
+        List<ArthasSessionDTO> result = sessionService.getActiveSessions(null, null);
 
         assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void getActiveSessions_withUsername_returnsActiveSessions() {
+        ArthasSession session1 = new ArthasSession();
+        session1.setId(1L);
+        session1.setUsername("user1");
+        session1.setStatus("ACTIVE");
+
+        when(sessionRepository.findByUsernameAndStatusOrderByCreatedAtDesc("user1", "ACTIVE"))
+                .thenReturn(List.of(session1));
+
+        List<ArthasSessionDTO> result = sessionService.getActiveSessions(null, "user1");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getActiveSessions_withServerIdAndUsername_returnsActiveSessions() {
+        ArthasSession session1 = new ArthasSession();
+        session1.setId(1L);
+        session1.setServerId("server1");
+        session1.setUsername("user1");
+        session1.setStatus("ACTIVE");
+
+        when(sessionRepository.findByServerIdAndUsernameAndStatusOrderByCreatedAtDesc("server1", "user1", "ACTIVE"))
+                .thenReturn(List.of(session1));
+
+        List<ArthasSessionDTO> result = sessionService.getActiveSessions("server1", "user1");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(1L);
     }
 
     @Test

@@ -9,7 +9,31 @@
       "
     >
       <h3>会话管理</h3>
-      <el-button type="primary" @click="fetchSessions">刷新</el-button>
+      <div style="display: flex; gap: 12px; align-items: center">
+        <el-select
+          v-model="filterServerId"
+          placeholder="选择服务器"
+          clearable
+          style="width: 200px"
+          @change="fetchSessions"
+        >
+          <el-option
+            v-for="server in servers"
+            :key="server.id"
+            :label="server.name"
+            :value="server.id"
+          />
+        </el-select>
+        <el-input
+          v-model="filterUsername"
+          placeholder="输入用户名筛选"
+          clearable
+          style="width: 200px"
+          @clear="fetchSessions"
+          @keyup.enter="fetchSessions"
+        />
+        <el-button type="primary" @click="fetchSessions">刷新</el-button>
+      </div>
     </div>
 
     <el-table :data="sessions" v-loading="loading" stripe style="width: 100%">
@@ -84,12 +108,15 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { getActiveSessions, interruptSessionJob, closeSession } from '../api';
+import { getActiveSessions, interruptSessionJob, closeSession, getServers } from '../api';
 
 const sessions = ref([]);
+const servers = ref([]);
 const loading = ref(false);
 const interruptingId = ref(null);
 const closingId = ref(null);
+const filterServerId = ref('');
+const filterUsername = ref('');
 let refreshInterval = null;
 
 const statusTextMap = {
@@ -99,6 +126,7 @@ const statusTextMap = {
 };
 
 onMounted(() => {
+  fetchServers();
   fetchSessions();
   refreshInterval = setInterval(fetchSessions, 30000);
 });
@@ -109,10 +137,26 @@ onUnmounted(() => {
   }
 });
 
+async function fetchServers() {
+  try {
+    const res = await getServers();
+    servers.value = res.data || [];
+  } catch (e) {
+    console.error('获取服务器列表失败', e);
+  }
+}
+
 async function fetchSessions() {
   loading.value = true;
   try {
-    const res = await getActiveSessions();
+    const params = {};
+    if (filterServerId.value) {
+      params.serverId = filterServerId.value;
+    }
+    if (filterUsername.value) {
+      params.username = filterUsername.value;
+    }
+    const res = await getActiveSessions(params);
     sessions.value = res.data || [];
   } catch (e) {
     ElMessage.error('获取会话列表失败: ' + (e.response?.data?.error || e.message));

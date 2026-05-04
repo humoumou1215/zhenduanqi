@@ -161,7 +161,7 @@ class ArthasSessionControllerTest {
         session2.setId(2L);
         session2.setStatus("ACTIVE");
 
-        when(sessionService.getActiveSessions(anyString())).thenReturn(List.of(session1, session2));
+        when(sessionService.getActiveSessions(any(), any())).thenReturn(List.of(session1, session2));
 
         mockMvc.perform(get("/api/arthas-sessions")
                         .cookie(adminCookie)
@@ -171,29 +171,17 @@ class ArthasSessionControllerTest {
     }
 
     @Test
-    void getActiveSessions_withOperatorAuth_returns200() throws Exception {
-        ArthasSessionDTO session = new ArthasSessionDTO();
-        session.setId(1L);
-        session.setStatus("ACTIVE");
-
-        when(sessionService.getActiveSessions(anyString())).thenReturn(List.of(session));
-
+    void getActiveSessions_withOperatorAuth_returns403() throws Exception {
         mockMvc.perform(get("/api/arthas-sessions")
                         .cookie(operatorCookie))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void getActiveSessions_withReadonlyAuth_returns200() throws Exception {
-        ArthasSessionDTO session = new ArthasSessionDTO();
-        session.setId(1L);
-        session.setStatus("ACTIVE");
-
-        when(sessionService.getActiveSessions(anyString())).thenReturn(List.of(session));
-
+    void getActiveSessions_withReadonlyAuth_returns403() throws Exception {
         mockMvc.perform(get("/api/arthas-sessions")
                         .cookie(readonlyCookie))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
     }
 
     @Test

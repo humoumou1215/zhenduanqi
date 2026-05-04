@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
+import { ElMessage } from 'element-plus';
 
 const routes = [
   {
@@ -20,7 +21,7 @@ const routes = [
     path: '/scenes/manage',
     name: 'SceneManage',
     component: () => import('../views/SceneManage.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
   },
   {
     path: '/scenes/:id/diagnose',
@@ -38,31 +39,31 @@ const routes = [
     path: '/servers',
     name: 'ServerList',
     component: () => import('../views/ServerList.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
   },
   {
     path: '/users',
     name: 'UserManage',
     component: () => import('../views/UserManage.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
   },
   {
     path: '/audit-logs',
     name: 'AuditLog',
     component: () => import('../views/AuditLog.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
   },
   {
     path: '/command-guard',
     name: 'CommandGuard',
     component: () => import('../views/CommandGuard.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
   },
   {
     path: '/sessions',
     name: 'SessionManage',
     component: () => import('../views/SessionManage.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
   },
   {
     path: '/my-history',
@@ -101,6 +102,9 @@ router.beforeEach(async (to, from, next) => {
 
   if (!userStore.isLoggedIn) {
     next('/login');
+  } else if (to.meta.requiresRole && userStore.role !== to.meta.requiresRole) {
+    ElMessage.error('权限不足，无权访问此页面');
+    next('/scenes');
   } else {
     next();
   }

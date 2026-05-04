@@ -34,8 +34,10 @@ public class ArthasSessionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ArthasSessionDTO>> getActiveSessions(@RequestParam(required = false) String serverId) {
-        List<ArthasSessionDTO> sessions = sessionService.getActiveSessions(serverId);
+    @RequireRole("ADMIN")
+    public ResponseEntity<List<ArthasSessionDTO>> getActiveSessions(@RequestParam(required = false) String serverId,
+                                                                 @RequestParam(required = false) String username) {
+        List<ArthasSessionDTO> sessions = sessionService.getActiveSessions(serverId, username);
         return ResponseEntity.ok(sessions);
     }
 
