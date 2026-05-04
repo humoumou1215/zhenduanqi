@@ -91,10 +91,17 @@ public class ArthasSessionService {
         return ArthasSessionDTO.fromEntity(savedSession);
     }
 
-    public List<ArthasSessionDTO> getActiveSessions(String serverId) {
+    public List<ArthasSessionDTO> getActiveSessions(String serverId, String username) {
         List<ArthasSession> sessions;
-        if (serverId != null && !serverId.isEmpty()) {
+        boolean hasServerId = serverId != null && !serverId.isEmpty();
+        boolean hasUsername = username != null && !username.isEmpty();
+        
+        if (hasServerId && hasUsername) {
+            sessions = sessionRepository.findByServerIdAndUsernameAndStatusOrderByCreatedAtDesc(serverId, username, "ACTIVE");
+        } else if (hasServerId) {
             sessions = sessionRepository.findByServerIdAndStatusOrderByCreatedAtDesc(serverId, "ACTIVE");
+        } else if (hasUsername) {
+            sessions = sessionRepository.findByUsernameAndStatusOrderByCreatedAtDesc(username, "ACTIVE");
         } else {
             sessions = sessionRepository.findByStatusOrderByCreatedAtDesc("ACTIVE");
         }
