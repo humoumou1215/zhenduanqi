@@ -15,6 +15,8 @@ import TraceRenderer from './TraceRenderer.vue';
 import WatchRenderer from './WatchRenderer.vue';
 import HeapRenderer from './HeapRenderer.vue';
 import CallStackRenderer from './CallStackRenderer.vue';
+import SmRenderer from './SmRenderer.vue';
+import KeyValueTable from './KeyValueTable.vue';
 
 const rendererMap = {
   thread: ThreadRenderer,
@@ -34,6 +36,7 @@ const rendererMap = {
   trace: TraceRenderer,
   watch: WatchRenderer,
   heap: HeapRenderer,
+  sm: SmRenderer,
 };
 
 export function getRenderer(type) {
@@ -58,4 +61,6 @@ export {
   WatchRenderer,
   HeapRenderer,
   CallStackRenderer,
+  SmRenderer,
+  KeyValueTable,
 };
