@@ -130,7 +130,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useDashboardBaselineStore } from '@/stores/dashboardBaseline';
+import { useDashboardBaselineStore } from '../../stores/dashboardBaseline';
 
 const props = defineProps({
   data: {
