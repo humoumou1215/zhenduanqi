@@ -45,7 +45,9 @@
         v-for="(thread, index) in tableData"
         :key="index"
         class="thread-item"
-        :class="{ 'thread-blocked': thread.status === 'BLOCKED' || thread.status === 'BLOCKED (lock alert)'' }"
+        :class="{
+          'thread-blocked': thread.status === 'BLOCKED' || thread.status === 'BLOCKED (lock alert)',
+        }"
       >
         <div class="thread-main-row" @click="toggleExpand(thread)">
           <div class="thread-core">
