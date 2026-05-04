@@ -15,9 +15,7 @@
       <pre class="watch-code-block">{{ formatValue(returnObj) }}</pre>
     </div>
     <div v-if="throwExp" style="margin-bottom: 12px">
-      <div style="font-weight: 500; margin-bottom: 4px; font-size: 13px; color: #f56c6c">
-        异常:
-      </div>
+      <div style="font-weight: 500; margin-bottom: 4px; font-size: 13px; color: #f56c6c">异常:</div>
       <pre class="watch-code-block" style="color: #f56c6c">{{ formatValue(throwExp) }}</pre>
     </div>
     <div v-if="object" style="margin-bottom: 12px">
