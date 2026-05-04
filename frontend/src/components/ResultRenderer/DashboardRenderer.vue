@@ -56,12 +56,58 @@
         </el-tab-pane>
 
         <el-tab-pane label="GC">
-          <el-table :data="gcData" stripe size="small">
+          <div class="gc-header">
+            <el-button v-if="hasBaseline" type="warning" size="small" @click="refreshBaseline">
+              刷新基线
+            </el-button>
+            <span v-if="baselineTimestamp" class="baseline-info">
+              基线时间: {{ formatBaselineTime(baselineTimestamp) }}
+            </span>
+          </div>
+          <el-table :data="gcDataWithDelta" stripe size="small">
             <el-table-column prop="name" label="GC收集器" min-width="150" />
-            <el-table-column prop="count" label="次数" width="80" align="center" />
-            <el-table-column prop="time" label="耗时(ms)" width="100" align="right">
+            <el-table-column label="累积次数" width="100" align="center">
+              <template #header>
+                <el-tooltip content="从 JVM 启动到当前的总 GC 次数" placement="top">
+                  <span>累积次数</span>
+                </el-tooltip>
+              </template>
+              <template #default="{ row }">
+                {{ row.count }}
+              </template>
+            </el-table-column>
+            <el-table-column label="本次增量" width="100" align="center">
+              <template #header>
+                <el-tooltip content='与上次采集的差值（首次采集显示"首次"）' placement="top">
+                  <span>本次增量</span>
+                </el-tooltip>
+              </template>
+              <template #default="{ row }">
+                <span v-if="row.countDelta === null" class="first-tag">首次</span>
+                <span v-else-if="row.countDelta === 0" class="delta-zero">+0</span>
+                <span v-else class="delta-positive">+{{ row.countDelta }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="累积耗时(ms)" width="120" align="right">
+              <template #header>
+                <el-tooltip content="从 JVM 启动到当前的总 GC 耗时" placement="top">
+                  <span>累积耗时(ms)</span>
+                </el-tooltip>
+              </template>
               <template #default="{ row }">
                 {{ row.time != null ? row.time : '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column label="本次增量" width="100" align="center">
+              <template #header>
+                <el-tooltip content='与上次采集的差值（首次采集显示"首次"）' placement="top">
+                  <span>本次增量</span>
+                </el-tooltip>
+              </template>
+              <template #default="{ row }">
+                <span v-if="row.timeDelta === null" class="first-tag">首次</span>
+                <span v-else-if="row.timeDelta === 0" class="delta-zero">+0</span>
+                <span v-else class="delta-positive">+{{ row.timeDelta }}</span>
               </template>
             </el-table-column>
           </el-table>
@@ -84,13 +130,20 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useDashboardBaselineStore } from '../../stores/dashboardBaseline';
 
 const props = defineProps({
   data: {
     type: Object,
     default: () => ({}),
   },
+  serverId: {
+    type: String,
+    default: null,
+  },
 });
+
+const baselineStore = useDashboardBaselineStore();
 
 const defaultData = {
   threads: [
@@ -116,6 +169,11 @@ const defaultData = {
   ],
 };
 
+const defaultGcData = [
+  { name: 'PS Scavenge', count: 15, time: 120 },
+  { name: 'PS MarkSweep', count: 3, time: 80 },
+];
+
 const currentData = computed(() => {
   if (!props.data || Object.keys(props.data).length === 0) {
     return defaultData;
@@ -138,6 +196,52 @@ const isExample = computed(() => {
   return !props.data || Object.keys(props.data).length === 0;
 });
 
+const hasBaseline = computed(() => {
+  return baselineStore.getBaseline(props.serverId) !== null;
+});
+
+const baselineTimestamp = computed(() => {
+  const baseline = baselineStore.getBaseline(props.serverId);
+  return baseline?.timestamp || null;
+});
+
+const currentGcData = computed(() => {
+  const data = currentData.value;
+  if (data?.gcInfos) {
+    return normalizeGcInfos(data.gcInfos);
+  }
+  if (data?.gc) {
+    return normalizeGcData(data.gc);
+  }
+  return [];
+});
+
+const gcDataWithDelta = computed(() => {
+  const currentGc = currentGcData.value;
+  if (!currentGc.length) return [];
+
+  const baseline = baselineStore.getBaseline(props.serverId);
+  if (!baseline || !baseline.gc) {
+    baselineStore.setBaseline(props.serverId, currentGc);
+    return currentGc.map((item) => ({
+      ...item,
+      countDelta: null,
+      timeDelta: null,
+    }));
+  }
+
+  const deltaData = baselineStore.calculateDelta(currentGc, baseline.gc);
+  if (!deltaData) {
+    return currentGc.map((item) => ({
+      ...item,
+      countDelta: null,
+      timeDelta: null,
+    }));
+  }
+
+  return deltaData;
+});
+
 const threadData = computed(() => {
   if (currentData.value?.threads) {
     return currentData.value.threads.map(normalizeThread);
@@ -156,16 +260,12 @@ const memoryData = computed(() => {
   return [];
 });
 
-const gcData = computed(() => {
-  const data = currentData.value;
-  if (data?.gcInfos) {
-    return normalizeGcInfos(data.gcInfos);
+function refreshBaseline() {
+  const currentGc = currentGcData.value;
+  if (currentGc.length) {
+    baselineStore.setBaseline(props.serverId, currentGc);
   }
-  if (data?.gc) {
-    return normalizeGcData(data.gc);
-  }
-  return [];
-});
+}
 
 function normalizeThread(thread) {
   return {
@@ -286,6 +386,19 @@ function getStatusType(status) {
   if (status === 'WAITING' || status === 'TIMED_WAITING') return 'warning';
   return 'info';
 }
+
+function formatBaselineTime(timestamp) {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
 </script>
 
 <style scoped>
@@ -299,5 +412,30 @@ function getStatusType(status) {
 
 .dashboard-empty {
   padding: 20px;
+}
+
+.gc-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.baseline-info {
+  font-size: 12px;
+  color: #909399;
+}
+
+.first-tag {
+  color: #909399;
+  font-style: italic;
+}
+
+.delta-zero {
+  color: #67c23a;
+}
+
+.delta-positive {
+  color: #e6a23c;
 }
 </style>

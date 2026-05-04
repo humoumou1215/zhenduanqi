@@ -62,7 +62,7 @@
         </div>
       </div>
       <el-card v-loading="dashboardLoading" class="dashboard-card">
-        <DashboardRenderer :data="dashboardData" />
+        <DashboardRenderer :data="dashboardData" :server-id="selectedServerId" />
         <div
           v-if="!dashboardData"
           style="margin-top: 8px; font-size: 11px; color: #909399; font-style: italic"
