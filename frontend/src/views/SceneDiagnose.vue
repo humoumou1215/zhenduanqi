@@ -152,7 +152,13 @@
             </div>
 
             <div v-for="(r, i) in stepStates[index]?.result.structuredResults" :key="i">
-              <component :is="getRenderer(r.type)" :data="r.data" />
+              <component
+                v-if="r.type === 'dashboard'"
+                :is="getRenderer(r.type)"
+                :data="r.data"
+                :server-id="diagnoseStore.selectedServerId"
+              />
+              <component v-else :is="getRenderer(r.type)" :data="r.data" />
             </div>
 
             <div
