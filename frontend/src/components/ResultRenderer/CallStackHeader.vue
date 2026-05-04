@@ -9,6 +9,20 @@
       <span class="stat-item">{{ statLabel }}: {{ sampleCount }} 次</span>
       <span v-if="mode === 'trace'" class="stat-item">耗时阈值: {{ costThreshold || '-' }}</span>
     </div>
+    <div v-if="mode === 'trace' && sampleCount > 0" class="header-overview">
+      <div class="overview-item">
+        <span class="overview-label">已追踪</span>
+        <span class="overview-value">{{ sampleCount }} 次</span>
+      </div>
+      <div class="overview-item">
+        <span class="overview-label">平均耗时</span>
+        <span class="overview-value">{{ formatCost(avgCost) }}</span>
+      </div>
+      <div class="overview-item">
+        <span class="overview-label">最大耗时</span>
+        <span class="overview-value">{{ formatCost(maxCost) }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -37,6 +51,14 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  avgCost: {
+    type: Number,
+    default: 0,
+  },
+  maxCost: {
+    type: Number,
+    default: 0,
+  },
 });
 
 defineEmits(['stop']);
@@ -48,6 +70,12 @@ const titleLabel = computed(() => {
 const statLabel = computed(() => {
   return props.mode === 'trace' ? '已追踪' : '已捕获';
 });
+
+function formatCost(cost) {
+  if (cost == null || cost === 0) return '-';
+  if (cost < 1) return `${(cost * 1000).toFixed(0)}μs`;
+  return `${cost.toFixed(2)}ms`;
+}
 </script>
 
 <style scoped>
@@ -91,5 +119,32 @@ const statLabel = computed(() => {
 .stat-item {
   display: flex;
   align-items: center;
+}
+
+.header-overview {
+  display: flex;
+  gap: 24px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+}
+
+.overview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.overview-label {
+  font-size: 12px;
+  color: #909399;
+}
+
+.overview-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
 }
 </style>

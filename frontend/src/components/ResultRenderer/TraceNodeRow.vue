@@ -65,8 +65,8 @@ function formatCost(cost) {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 8px;
-  border-radius: 2px;
+  padding: 4px 8px;
+  border-radius: 4px;
   transition: background 0.2s;
 }
 
@@ -77,27 +77,34 @@ function formatCost(cost) {
 .prefix {
   color: #909399;
   font-weight: bold;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 
 .method-name {
   color: #303133;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 13px;
 }
 
 .line-number {
   color: #909399;
   font-size: 11px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 
 .cost-bar {
   display: inline-flex;
   align-items: center;
   margin-left: 8px;
-  min-width: 120px;
-  height: 16px;
-  background: #ebeef5;
-  border-radius: 2px;
+  flex: 1;
+  min-width: 150px;
+  max-width: 400px;
+  height: 20px;
+  background: linear-gradient(90deg, #f5f7fa 0%, #ebeef5 100%);
+  border-radius: 4px;
   overflow: hidden;
   position: relative;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .cost-bar-fill {
@@ -105,39 +112,47 @@ function formatCost(cost) {
   left: 0;
   top: 0;
   height: 100%;
-  border-radius: 2px;
-  transition: width 0.3s;
+  border-radius: 4px;
+  transition: width 0.5s ease-out;
 }
 
 .cost-bar-fill.cost-high {
-  background: #f56c6c;
+  background: linear-gradient(90deg, #f56c6c 0%, #f78989 100%);
+  box-shadow: 0 0 8px rgba(245, 108, 108, 0.3);
 }
 
 .cost-bar-fill.cost-medium {
-  background: #e6a23c;
+  background: linear-gradient(90deg, #e6a23c 0%, #ebb563 100%);
+  box-shadow: 0 0 8px rgba(230, 162, 60, 0.3);
 }
 
 .cost-bar-fill.cost-low {
-  background: #67c23a;
+  background: linear-gradient(90deg, #67c23a 0%, #85ce61 100%);
+  box-shadow: 0 0 8px rgba(103, 194, 58, 0.3);
 }
 
 .cost-value {
   position: relative;
   z-index: 1;
-  padding-left: 6px;
-  font-size: 11px;
-  color: #606266;
+  padding-left: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #303133;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .throws-indicator {
   color: #f56c6c;
   font-size: 11px;
   margin-left: 8px;
+  font-weight: 600;
 }
 
 .aggregated-info {
   color: #909399;
   font-size: 10px;
   margin-left: 8px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 </style>
