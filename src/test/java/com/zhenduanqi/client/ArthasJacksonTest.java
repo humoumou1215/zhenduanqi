@@ -170,4 +170,53 @@ public class ArthasJacksonTest {
         assertThat(result.getData()).containsKey("memory");
         assertThat(result.getData()).containsKey("gc");
     }
+
+    @Test
+    void serializeArthasResult_producesCorrectJsonFormat() throws Exception {
+        ArthasResult statusResult = new ArthasResult();
+        statusResult.setType("status");
+        statusResult.addExtraField("statusCode", 0);
+        statusResult.addExtraField("jobId", 123);
+
+        String json = objectMapper.writeValueAsString(statusResult);
+        System.out.println("Serialized ArthasResult: " + json);
+
+        // 验证序列化后有 type 和 data 字段
+        assertThat(json).contains("\"type\":\"status\"");
+        assertThat(json).contains("\"data\":{");
+        assertThat(json).contains("\"statusCode\":0");
+        assertThat(json).contains("\"jobId\":123");
+
+        // 验证反序列化回来也正确
+        ArthasResult parsed = objectMapper.readValue(json, ArthasResult.class);
+        assertThat(parsed.getType()).isEqualTo("status");
+        assertThat(parsed.getData()).containsEntry("statusCode", 0);
+        assertThat(parsed.getData()).containsEntry("jobId", 123);
+    }
+
+    @Test
+    void parseStatusResult_fromArthasApiFormat() throws Exception {
+        // 这是 Arthas API 实际可能返回的格式 - statusCode 在根级别
+        String statusJson = """
+            {
+              "type": "status",
+              "statusCode": 0,
+              "jobId": 456,
+              "message": "Command executed successfully"
+            }
+            """;
+
+        ArthasResult result = objectMapper.readValue(statusJson, ArthasResult.class);
+
+        assertThat(result.getType()).isEqualTo("status");
+        assertThat(result.getData()).containsEntry("statusCode", 0);
+        assertThat(result.getData()).containsEntry("jobId", 456);
+        assertThat(result.getData()).containsEntry("message", "Command executed successfully");
+
+        // 序列化回去
+        String serialized = objectMapper.writeValueAsString(result);
+        System.out.println("Serialized back: " + serialized);
+        // 验证序列化后的格式有 data 字段
+        assertThat(serialized).contains("\"data\":{");
+    }
 }
