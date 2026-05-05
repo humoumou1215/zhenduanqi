@@ -127,6 +127,11 @@ import {
   InfoFilled,
   Clock,
   TrendCharts,
+  Odometer,
+  DataAnalysis,
+  Box,
+  Connection,
+  Monitor,
 } from '@element-plus/icons-vue';
 import { getScenes, getSceneSteps } from '../api';
 import { useServerStore } from '../stores/servers';
@@ -148,36 +153,36 @@ const categoryDefinitions = [
     code: 'THREAD',
     name: '线程问题',
     description: '死锁、CPU 飙高等',
-    color: '#F56C6C',
-    icon: Lock,
+    color: '#409EFF',
+    icon: Odometer,
   },
   {
     code: 'MEMORY',
     name: '内存问题',
     description: 'OOM、内存泄漏、GC 频繁等',
-    color: '#9B59B6',
-    icon: DataBoard,
+    color: '#67C23A',
+    icon: DataAnalysis,
   },
   {
     code: 'JVM',
     name: 'JVM 基础',
     description: '配置确认、环境信息等',
-    color: '#409EFF',
-    icon: InfoFilled,
+    color: '#E6A23C',
+    icon: Box,
   },
   {
     code: 'METHOD',
     name: '方法调试',
     description: '耗时追踪、调用监控等',
-    color: '#67C23A',
-    icon: Clock,
+    color: '#9B59B6',
+    icon: Monitor,
   },
   {
     code: 'CLASSLOADER',
     name: '类加载问题',
     description: '类冲突、ClassNotFoundException等',
-    color: '#909399',
-    icon: Search,
+    color: '#F56C6C',
+    icon: Connection,
   },
 ];
 
