@@ -123,10 +123,10 @@ import {
   Folder,
   Location,
   Lock,
-  Database,
-  Info,
+  DataBoard,
+  InfoFilled,
   Clock,
-  BarChart,
+  TrendCharts,
 } from '@element-plus/icons-vue';
 import { getScenes, getSceneSteps } from '../api';
 import { useServerStore } from '../stores/servers';
@@ -156,14 +156,14 @@ const categoryDefinitions = [
     name: '内存问题',
     description: 'OOM、内存泄漏、GC 频繁等',
     color: '#9B59B6',
-    icon: Database,
+    icon: DataBoard,
   },
   {
     code: 'JVM',
     name: 'JVM 基础',
     description: '配置确认、环境信息等',
     color: '#409EFF',
-    icon: Info,
+    icon: InfoFilled,
   },
   {
     code: 'METHOD',
