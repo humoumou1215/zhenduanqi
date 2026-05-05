@@ -468,7 +468,7 @@ CREATE TABLE diagnose_scene (
     id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
     name               VARCHAR(200) NOT NULL,
     description        TEXT,
-    category           VARCHAR(50),               -- THREAD / MEMORY / JVM / METHOD / CLASSLOADER
+    category           VARCHAR(50),               -- SLOW_RESPONSE / CPU_HIGH / MEMORY_HIGH / GC_FREQUENT / THREAD_POOL_HIGH / CLASS_LOAD_ERROR
     business_scenario  VARCHAR(200),              -- 业务场景描述，用于检索
     icon               VARCHAR(50),               -- Element Plus icon name
     sort_order         INT DEFAULT 0,
@@ -494,43 +494,35 @@ CREATE TABLE scene_step (
 );
 ```
 
-**预置场景（8 个）：**
+**预置场景（6 个）：**
 
-1. **线程死锁检测** (THREAD, 应用卡死无响应、请求超时)
-   - 步骤1: `thread -b` → 检查死锁线程 (continuous=false, maxExecTime=10000)
-   - 步骤2: `thread -n 5` → TOP 5 CPU活跃线程 (continuous=false, maxExecTime=10000, extract_rules: 提取 threadId)
-   - 步骤3: `thread {threadId}` → 查看具体线程栈 (continuous=false, maxExecTime=10000)
-
-2. **CPU 飙高排查** (THREAD, CPU使用率飙升、服务器负载高)
-   - 步骤1: `thread -n 5` → 找出CPU最高的线程 (continuous=false, maxExecTime=10000, extract_rules: 提取 threadId)
-   - 步骤2: `thread {threadId}` → 查看线程栈 (continuous=false, maxExecTime=10000)
-   - 步骤3: `dashboard -n 1` → 查看JVM概览 (continuous=false, maxExecTime=15000)
-
-3. **内存泄漏初步检查** (MEMORY, OOM告警、堆内存持续增长)
-   - 步骤1: `memory` → 查看内存区使用情况 (continuous=false, maxExecTime=10000)
-   - 步骤2: `heap -h 10` → 查看堆中大对象 (continuous=false, maxExecTime=15000)
-   - 步骤3: `sc -d {className}` → 查看类加载信息 (continuous=false, maxExecTime=10000)
-
-4. **GC 概况诊断** (MEMORY, GC频繁、应用卡顿停顿)
-   - 步骤1: `memory` → 查看内存区 (continuous=false, maxExecTime=10000)
-   - 步骤2: `vmtool --action getInstances --className java.lang.management.MemoryPoolMXBean` → 查看各内存池详情 (continuous=false, maxExecTime=15000)
-
-5. **JVM 基础信息** (JVM, 应用行为异常、配置确认)
-   - 步骤1: `dashboard -n 1` → JVM概览 (continuous=false, maxExecTime=15000)
-   - 步骤2: `vmoption` → JVM参数 (continuous=false, maxExecTime=10000)
-   - 步骤3: `sysenv` → 系统环境变量 (continuous=false, maxExecTime=10000)
-
-6. **方法耗时追踪** (METHOD, 接口响应慢、方法耗时异常)
+1. **接口响应慢排查** (SLOW_RESPONSE, 接口超时、响应时间长)
    - 步骤1: `sc -d {className}` → 确认类已加载 (continuous=false, maxExecTime=10000)
    - 步骤2: `trace {className} {methodName} -n 5` → 追踪方法调用路径和耗时 (continuous=true, maxExecTime=30000)
    - 步骤3: `watch {className} {methodName} '{params, returnObj, throwExp}' -n 5 -x 2` → 观察方法入参和返回值 (continuous=true, maxExecTime=30000)
 
-7. **方法调用监控** (METHOD, 方法调用频次异常、失败率高)
-   - 步骤1: `sc -d {className}` → 确认类已加载 (continuous=false, maxExecTime=10000)
-   - 步骤2: `monitor {className} {methodName} -n 10` → 监控方法调用统计 (continuous=true, maxExecTime=60000)
-   - 步骤3: `stack {className} {methodName} -n 5` → 查看方法调用路径 (continuous=true, maxExecTime=30000)
+2. **CPU 飙高排查** (CPU_HIGH, CPU使用率飙升、服务器负载高)
+   - 步骤1: `thread -n 5` → 找出CPU最高的线程 (continuous=false, maxExecTime=10000, extract_rules: 提取 threadId)
+   - 步骤2: `thread {threadId}` → 查看线程栈 (continuous=false, maxExecTime=10000)
+   - 步骤3: `thread -b` → 检查死锁线程 (continuous=false, maxExecTime=10000)
 
-8. **类冲突排查** (CLASSLOADER, ClassNotFoundException、NoSuchMethodError)
+3. **内存使用率高排查** (MEMORY_HIGH, OOM告警、堆内存持续增长)
+   - 步骤1: `memory` → 查看内存区使用情况 (continuous=false, maxExecTime=10000)
+   - 步骤2: `heap -h 10` → 查看堆中大对象 (continuous=false, maxExecTime=15000)
+   - 步骤3: `sc -d {className}` → 查看类加载信息 (continuous=false, maxExecTime=10000)
+
+4. **GC 频繁排查** (GC_FREQUENT, GC频繁、应用卡顿停顿)
+   - 步骤1: `memory` → 查看内存区 (continuous=false, maxExecTime=10000)
+   - 步骤2: `vmtool --action getInstances --className java.lang.management.MemoryPoolMXBean` → 查看各内存池详情 (continuous=false, maxExecTime=15000)
+   - 步骤3: `vmoption` → 查看JVM参数 (continuous=false, maxExecTime=10000)
+
+5. **线程池使用率高排查** (THREAD_POOL_HIGH, 请求积压、任务排队)
+   - 步骤1: `thread` → 查看所有线程状态 (continuous=false, maxExecTime=10000)
+   - 步骤2: `thread -b` → 检查死锁线程 (continuous=false, maxExecTime=10000)
+   - 步骤3: `thread -n 5` → 查看CPU最高的线程 (continuous=false, maxExecTime=10000)
+   - 步骤4: `thread {threadId}` → 查看具体线程栈 (continuous=false, maxExecTime=10000)
+
+6. **类加载异常排查** (CLASS_LOAD_ERROR, ClassNotFoundException、NoSuchMethodError)
    - 步骤1: `sc -d {className}` → 查看类加载信息 (continuous=false, maxExecTime=10000)
    - 步骤2: `classloader -t` → 查看ClassLoader继承树 (continuous=false, maxExecTime=10000)
    - 步骤3: `jad {className}` → 反编译查看源码 (continuous=false, maxExecTime=15000)
@@ -895,7 +887,7 @@ CREATE TABLE diagnose_scene (
     id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
     name               VARCHAR(200) NOT NULL,
     description        TEXT,
-    category           VARCHAR(50),               -- THREAD / MEMORY / JVM / METHOD / CLASSLOADER
+    category           VARCHAR(50),               -- SLOW_RESPONSE / CPU_HIGH / MEMORY_HIGH / GC_FREQUENT / THREAD_POOL_HIGH / CLASS_LOAD_ERROR
     business_scenario  VARCHAR(200),              -- 业务场景描述，用于检索
     icon               VARCHAR(50),               -- Element Plus icon name
     sort_order         INT DEFAULT 0,
