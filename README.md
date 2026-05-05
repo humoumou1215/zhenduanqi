@@ -79,3 +79,33 @@ npm run dev
 - `test`: 测试相关
 - `chore`: 构建/工具相关
 
+## 快速参考
+
+### 常用 Git 命令
+```bash
+# 创建新分支
+git checkout -b feature/issue-{编号}-{描述}
+
+# 提交更改
+git add .
+git commit -m "feat(scope): description (#issue-number)"
+
+# 推送到远程
+git push origin feature/issue-{编号}-{描述}
+```
+
+### 常用 GitHub CLI 命令
+```bash
+# 查看PR列表
+gh pr list
+
+# 查看PR详情
+gh pr view <PR编号>
+
+# 审核PR
+gh pr review <PR编号> --approve --body "LGTM!"
+
+# 合并PR
+gh pr merge <PR编号>
+```
+
