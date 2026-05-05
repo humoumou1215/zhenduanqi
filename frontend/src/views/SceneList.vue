@@ -123,9 +123,10 @@ import {
   Folder,
   Location,
   Lock,
-  DataAnalysis,
+  DataBoard,
   InfoFilled,
   Clock,
+  TrendCharts,
 } from '@element-plus/icons-vue';
 import { getScenes, getSceneSteps } from '../api';
 import { useServerStore } from '../stores/servers';
@@ -155,7 +156,7 @@ const categoryDefinitions = [
     name: '内存问题',
     description: 'OOM、内存泄漏、GC 频繁等',
     color: '#9B59B6',
-    icon: DataAnalysis,
+    icon: DataBoard,
   },
   {
     code: 'JVM',

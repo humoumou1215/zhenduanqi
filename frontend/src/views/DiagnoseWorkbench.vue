@@ -344,11 +344,12 @@ const sceneAsyncSessions = ref({});
 const pollIntervals = ref({});
 
 const categoryDefinitions = [
-  { code: 'THREAD', name: '线程问题', color: '#F56C6C' },
-  { code: 'MEMORY', name: '内存问题', color: '#9B59B6' },
-  { code: 'JVM', name: 'JVM 基础', color: '#409EFF' },
-  { code: 'METHOD', name: '方法调试', color: '#67C23A' },
-  { code: 'CLASSLOADER', name: '类加载问题', color: '#909399' },
+  { code: 'SLOW_RESPONSE', name: '接口响应慢', color: '#F56C6C' },
+  { code: 'CPU_HIGH', name: 'CPU 高', color: '#E6A23C' },
+  { code: 'MEMORY_HIGH', name: '内存高', color: '#9B59B6' },
+  { code: 'GC_FREQUENT', name: 'GC 频繁', color: '#409EFF' },
+  { code: 'THREAD_POOL_HIGH', name: '线程池高', color: '#67C23A' },
+  { code: 'CLASS_LOAD_ERROR', name: '类加载', color: '#909399' },
 ];
 
 const filteredScenes = computed(() => {
@@ -561,7 +562,7 @@ async function handleExecuteStepAsync(scene, stepIndex) {
 
         if (results && results.length > 0) {
           const statusResult = results.find((r) => r.type === 'status');
-          const isTaskCompleted = statusResult?.data?.status === 'terminated';
+          const isTaskCompleted = statusResult?.data?.statusCode === 0;
 
           if (!sceneStepStates.value[key].result) {
             sceneStepStates.value[key].result = { structuredResults: [], results: [] };
