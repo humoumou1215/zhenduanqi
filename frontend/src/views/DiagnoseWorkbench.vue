@@ -562,7 +562,7 @@ async function handleExecuteStepAsync(scene, stepIndex) {
 
         if (results && results.length > 0) {
           const statusResult = results.find((r) => r.type === 'status');
-          const isTaskCompleted = statusResult?.statusCode === 0;
+          const isTaskCompleted = statusResult?.data?.statusCode === 0;
 
           if (!sceneStepStates.value[key].result) {
             sceneStepStates.value[key].result = { structuredResults: [], results: [] };
