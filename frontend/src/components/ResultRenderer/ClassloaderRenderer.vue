@@ -205,7 +205,7 @@ const exampleUrlClasses = [
   { url: 'file:/path/to/lib/spring-core-5.3.0.jar', loadedClassCount: 100 },
 ];
 
-// 判断数据模式
+// 自动判断Arthas命令返回的数据模式
 const mode = computed(() => {
   const d = props.data;
   if (!d || Object.keys(d).length === 0) return 'example';
@@ -507,7 +507,7 @@ function extractHash(str) {
   color: #909399;
   font-size: 13px;
   padding: 12px;
-  background: #fef0f0;
+  background: #f5f7fa;
   border-radius: 4px;
 }
 </style>
