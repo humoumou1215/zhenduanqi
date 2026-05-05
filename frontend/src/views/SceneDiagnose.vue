@@ -391,7 +391,7 @@ async function handleExecuteAsync(index) {
         if (results && results.length > 0) {
           // Check if task is completed (look for status result)
           const statusResult = results.find((r) => r.type === 'status');
-          const isTaskCompleted = statusResult?.data?.status === 'terminated';
+          const isTaskCompleted = statusResult?.statusCode === 0;
 
           // Append new results
           if (!stepStates.value[index].result) {
@@ -558,7 +558,7 @@ async function recoverSessions() {
 
                 if (results && results.length > 0) {
                   const statusResult = results.find((r) => r.type === 'status');
-                  const isTaskCompleted = statusResult?.data?.status === 'terminated';
+                  const isTaskCompleted = statusResult?.statusCode === 0;
 
                   if (!stepStates.value[i].result) {
                     stepStates.value[i].result = { structuredResults: [], results: [] };
