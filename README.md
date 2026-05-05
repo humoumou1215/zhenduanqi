@@ -34,3 +34,27 @@ npm install
 npm run dev
 ```
 
+## 贡献指南
+我们欢迎任何形式的贡献！
+
+### 开发流程
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/issue-{编号}-{描述}`)
+3. 提交更改 (`git commit -m 'feat(scope): description (#issue-number)'`)
+4. 推送到分支 (`git push origin feature/issue-{编号}-{描述}`)
+5. 创建 Pull Request
+
+### 代码规范
+- 后端遵循 Java 代码规范
+- 前端使用 Prettier 格式化代码
+- 每个提交对应一个 Issue
+- PR 需要通过 CI 检查
+
+### 提交类型
+- `feat`: 新功能
+- `fix`: Bug 修复
+- `refactor`: 重构
+- `docs`: 文档更新
+- `test`: 测试相关
+- `chore`: 构建/工具相关
+
