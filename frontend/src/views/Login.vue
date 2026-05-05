@@ -5,32 +5,33 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f0f2f5;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     "
   >
-    <el-card style="width: 400px">
+    <el-card style="width: 400px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2)">
       <template #header>
-        <h2 style="text-align: center; margin: 0">Arthas 远程诊断工具</h2>
+        <h2 style="text-align: center; margin: 0; color: #303133">Arthas 远程诊断工具</h2>
       </template>
       <el-form ref="formRef" :model="form" :rules="rules" @keyup.enter="handleLogin">
         <el-form-item prop="username">
-          <el-input v-model="form.username" placeholder="用户名" :prefix-icon="User" size="large" />
+          <el-input v-model="form.username" placeholder="请输入用户名" :prefix-icon="User" size="large" clearable />
         </el-form-item>
         <el-form-item prop="password">
           <el-input
             v-model="form.password"
             type="password"
-            placeholder="密码"
+            placeholder="请输入密码"
             :prefix-icon="Lock"
             size="large"
             show-password
+            clearable
           />
         </el-form-item>
         <el-form-item>
           <el-button
             type="primary"
             size="large"
-            style="width: 100%"
+            style="width: 100%; border-radius: 8px"
             :loading="loading"
             @click="handleLogin"
           >
