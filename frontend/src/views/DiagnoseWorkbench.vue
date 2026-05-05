@@ -304,10 +304,6 @@ import {
   CircleCheck,
   Loading,
   InfoFilled,
-  Clock,
-  Odometer,
-  DataAnalysis,
-  Connection,
 } from '@element-plus/icons-vue';
 import {
   getScenes,
