@@ -42,6 +42,16 @@ public class AuthService {
         final String trimmedUsername = username != null ? username.trim() : null;
         final String trimmedPassword = password != null ? password.trim() : null;
 
+        // 验证输入参数
+        if (trimmedUsername == null || trimmedUsername.isEmpty()) {
+            log.info("登录失败: 用户名为空, ip={}", ip);
+            throw new RuntimeException("用户名不能为空");
+        }
+        if (trimmedPassword == null || trimmedPassword.isEmpty()) {
+            log.info("登录失败: 密码为空, username={}, ip={}", trimmedUsername, ip);
+            throw new RuntimeException("密码不能为空");
+        }
+
         if (rateLimiter.isBlocked(ip)) {
             log.info("登录失败: IP限流, username={}, ip={}", trimmedUsername, ip);
             throw new RuntimeException("登录尝试过于频繁，请稍后再试");
