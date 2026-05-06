@@ -1,20 +1,14 @@
 # 合并决策记录
 
 ## 最新决策信息
-- **当前 main 分支**: 领先 origin/main 1 个提交
-- **最新提交**: dd773df (docs: add PR audit reports)
+- **当前 main 分支**: 领先 origin/main 2 个提交
+- **最新提交**: Merge commit (merge: feature/issue-99-login-trim-fix (#99))
 - **决策时间**: 2026-05-06
 
 ## 待合并/已审核变更汇总
 
-### 1. 已在 main 分支的变更（需推送）
-**提交**: dd773df - docs: add PR audit reports and merge decision documentation
-- 新增 3 个 PR 审核报告文件
-- 更新审核流程文档
-- **决策**: ✅ 批准推送到 origin/main
-
-### 2. PR #99 - 登录验证 trim 处理
-**分支**: feature/issue-99-login-validation
+### 1. 已成功合并：PR #99 - 登录验证 trim 处理 ✅
+**分支**: feature/issue-99-login-trim-fix
 **变更类型**: Bug 修复 + 用户体验优化
 **关键变更**:
 - 在 [AuthService.java](file:///Users/huyongsheng/project/zhenduanqi/src/main/java/com/zhenduanqi/service/AuthService.java#L42-L43) 中添加对用户名和密码的 trim 处理
@@ -27,7 +21,13 @@
 - ✅ 无安全风险
 - ✅ 向后兼容
 
-**合并决策**: ✅ **批准合并**
+**合并决策**: ✅ **已成功合并到 main**
+
+### 2. 已在 main 分支的变更（需推送）
+**提交**: dd773df - docs: add PR audit reports and merge decision documentation
+- 新增 3 个 PR 审核报告文件
+- 更新审核流程文档
+- **决策**: ✅ 批准推送到 origin/main
 
 ### 3. PR #227 - 登录页面视觉效果优化
 **分支**: feature/pr-review-demo
