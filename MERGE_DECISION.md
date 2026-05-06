@@ -7,13 +7,23 @@
 
 ## 决策结论
 
-✅ **批准当前 main 分支状态，无需额外合并操作**
+✓ **批准当前 main 分支状态，无需额外合并操作**
 
 ## 决策理由
 
 ### 1. GitHub PR 状态
 - 无待审核的开放 PR
-- 所有历史 PR 已妥善处理（最近的 PR #229 已合并）
+- 最近 10 个历史 PR 都已妥善处理
+  - #229 [P2] docs(readme): 添加Git和GitHub CLI快速参考部分 - MERGED
+  - #228 [P2] docs: 添加项目README文档 - MERGED
+  - #227 [P0] 优化登录页面的视觉效果 - MERGED
+  - #226 [P1] 场景列表优化和ArthasResult序列化测试 - MERGED
+  - #225 [P0] 修复诊断页面执行 trace/monitor 命令时结果无法实时显示 - MERGED
+  - #223 [P1] feat(scene): 更新预置场景数据为6个现象分类场景 - MERGED
+  - #220 [P1] feat(ui): SmRenderer 方法信息展示 - MERGED
+  - #219 [P2] data(commands): add complete arthas commands data - MERGED
+  - #218 [P1] ClassloaderRenderer 类加载器展示 - MERGED
+  - #217 [P2] data(commands): 补充完整的 Arthas 命令清单数据 - CLOSED
 
 ### 2. 本地代码质量
 - 代码风格一致，遵循项目规范
@@ -36,11 +46,11 @@
 
 | 项目 | 状态 |
 |------|------|
-| 远程同步 | ✅ 与 origin/main 同步 |
-| 代码质量 | ✅ 良好 |
-| 测试通过 | ✅ 全部通过 |
-| 功能完整 | ✅ 完整可用 |
-| 安全性 | ✅ 无漏洞 |
+| 远程同步 | 领先 origin/main 1 个提交 |
+| 代码质量 | ✓ 良好 |
+| 测试通过 | ✓ 全部通过 |
+| 功能完整 | ✓ 完整可用 |
+| 安全性 | ✓ 无漏洞 |
 
 ## 后续建议
 
@@ -48,3 +58,4 @@
 2. **PR 流程**: 遵循项目 PR 审核流程
 3. **测试覆盖**: 保持测试覆盖率
 4. **定期清理**: 定期清理过时的本地分支
+5. **推送同步**: 建议将本地领先的提交推送到远程仓库
