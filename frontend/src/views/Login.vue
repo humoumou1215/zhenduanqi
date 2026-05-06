@@ -77,9 +77,17 @@ async function handleLogin() {
 
   loading.value = true;
   try {
-    await userStore.login(form.username, form.password);
+    // 对用户名和密码进行 trim 处理
+    const trimmedUsername = form.username.trim();
+    const trimmedPassword = form.password.trim();
+    
+    // 更新表单值为 trim 后的值
+    form.username = trimmedUsername;
+    form.password = trimmedPassword;
+    
+    await userStore.login(trimmedUsername, trimmedPassword);
     if (rememberMe.value) {
-      localStorage.setItem('rememberedUsername', form.username);
+      localStorage.setItem('rememberedUsername', trimmedUsername);
     } else {
       localStorage.removeItem('rememberedUsername');
     }
