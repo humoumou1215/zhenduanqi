@@ -25,12 +25,15 @@ export default defineConfig({
     },
   ],
   webServer: isCI ? {
-    command: 'npx serve -s dist -l 4173',
+    command: 'fuser -k 4173/tcp 2>/dev/null || true; npx serve -s dist -l 4173',
     port: 4173,
     reuseExistingServer: false,
     timeout: 300 * 1000,
     stdout: 'pipe',
     stderr: 'pipe',
+    env: {
+      FORCE_COLOR: '0',
+    },
   } : {
     command: 'npm run dev',
     url: 'http://localhost:5173',
