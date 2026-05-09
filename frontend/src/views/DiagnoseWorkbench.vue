@@ -344,11 +344,11 @@ const sceneAsyncSessions = ref({});
 const pollIntervals = ref({});
 
 const categoryDefinitions = [
-  { code: 'THREAD', name: '线程问题', color: '#E6A23C' },
-  { code: 'MEMORY', name: '内存问题', color: '#9B59B6' },
-  { code: 'JVM', name: 'JVM 基础', color: '#409EFF' },
-  { code: 'METHOD', name: '方法调试', color: '#67C23A' },
-  { code: 'CLASSLOADER', name: '类加载', color: '#909399' },
+  { code: 'THREAD', name: '线程问题', color: '#409EFF' },
+  { code: 'MEMORY', name: '内存问题', color: '#67C23A' },
+  { code: 'JVM', name: 'JVM 基础', color: '#E6A23C' },
+  { code: 'METHOD', name: '方法调试', color: '#9B59B6' },
+  { code: 'CLASSLOADER', name: '类加载问题', color: '#F56C6C' },
 ];
 
 const filteredScenes = computed(() => {
