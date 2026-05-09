@@ -36,17 +36,17 @@ const props = defineProps({
 
 const defaultData = {
   properties: {
-    java.version: '17.0.8',
-    java.home: '/usr/lib/jvm/java-17',
-    java.vendor: 'Oracle Corporation',
-    os.name: 'Linux',
-    os.version: '5.4.0-generic',
-    os.arch: 'amd64',
-    user.name: 'admin',
-    user.home: '/home/admin',
-    user.dir: '/opt/app',
-    java.class.path: '/opt/app/lib/*',
-    java.library.path: '/usr/java/packages/lib',
+    'java.version': '17.0.8',
+    'java.home': '/usr/lib/jvm/java-17',
+    'java.vendor': 'Oracle Corporation',
+    'os.name': 'Linux',
+    'os.version': '5.4.0-generic',
+    'os.arch': 'amd64',
+    'user.name': 'admin',
+    'user.home': '/home/admin',
+    'user.dir': '/opt/app',
+    'java.class.path': '/opt/app/lib/*',
+    'java.library.path': '/usr/java/packages/lib',
   },
 };
 
