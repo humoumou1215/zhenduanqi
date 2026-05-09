@@ -12,3 +12,7 @@ test_*.py
 
 # Multi-Agent worktrees
 .worktrees/
+
+# PR Review & Merge Decision reports
+PR_REVIEW_REPORT*.md
+MERGE_DECISION*.md
