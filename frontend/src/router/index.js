@@ -9,7 +9,7 @@ const routes = [
   },
   {
     path: '/',
-    redirect: '/scenes',
+    redirect: '/workbench',
   },
   {
     path: '/scenes',
@@ -99,7 +99,7 @@ router.beforeEach(async (to, from, next) => {
 
   if (to.path === '/login') {
     if (userStore.isLoggedIn) {
-      next('/scenes');
+      next('/workbench');
     } else {
       next();
     }
@@ -110,7 +110,7 @@ router.beforeEach(async (to, from, next) => {
     next('/login');
   } else if (to.meta.requiresRole && userStore.role !== to.meta.requiresRole) {
     ElMessage.error('权限不足，无权访问此页面');
-    next('/scenes');
+    next('/workbench');
   } else {
     next();
   }
