@@ -31,7 +31,6 @@
     <springProfile name="default | dev">
         <root level="${ROOT_LEVEL}">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
         </root>
         <logger name="com.zhenduanqi" level="${APP_LEVEL}"/>
     </springProfile>
