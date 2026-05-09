@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   plugins: [vue()],
@@ -8,12 +8,12 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
-        changeOrigin: true
-      }
-    }
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: 'dist',
-    assetsDir: 'assets'
-  }
-})
+    assetsDir: 'assets',
+  },
+});

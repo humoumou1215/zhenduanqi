@@ -6,6 +6,7 @@ import FallbackRenderer from './FallbackRenderer.vue';
 import DashboardRenderer from './DashboardRenderer.vue';
 import VmoptionRenderer from './VmoptionRenderer.vue';
 import SysenvRenderer from './SysenvRenderer.vue';
+import SyspropRenderer from './SyspropRenderer.vue';
 import ClassInfoRenderer from './ClassInfoRenderer.vue';
 import ClassloaderRenderer from './ClassloaderRenderer.vue';
 import JadRenderer from './JadRenderer.vue';
@@ -26,6 +27,7 @@ const rendererMap = {
   dashboard: DashboardRenderer,
   vmoption: VmoptionRenderer,
   sysenv: SysenvRenderer,
+  sysprop: SyspropRenderer,
   classinfo: ClassInfoRenderer,
   sc: ClassInfoRenderer,
   classloader: ClassloaderRenderer,
@@ -52,6 +54,7 @@ export {
   DashboardRenderer,
   VmoptionRenderer,
   SysenvRenderer,
+  SyspropRenderer,
   ClassInfoRenderer,
   ClassloaderRenderer,
   JadRenderer,
