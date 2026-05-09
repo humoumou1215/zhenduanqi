@@ -36,6 +36,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/workbench',
+    name: 'DiagnoseWorkbench',
+    component: () => import('../views/DiagnoseWorkbench.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/servers',
     name: 'ServerList',
     component: () => import('../views/ServerList.vue'),

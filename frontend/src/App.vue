@@ -14,6 +14,7 @@
         active-text-color="#fff"
       >
         <el-menu-item index="/scenes" style="color: white">场景列表</el-menu-item>
+        <el-menu-item index="/workbench" style="color: white">诊断工作台</el-menu-item>
         <el-menu-item index="/scenes/manage" v-if="userStore.role === 'ADMIN'" style="color: white">
           场景管理
         </el-menu-item>
