@@ -53,7 +53,13 @@
       <router-view />
     </el-main>
     <el-footer
-      style="background: #f5f7fa; text-align: center; padding: 20px; color: #909399; border-top: 1px solid #e4e7ed"
+      style="
+        background: #f5f7fa;
+        text-align: center;
+        padding: 20px;
+        color: #909399;
+        border-top: 1px solid #e4e7ed;
+      "
     >
       <div style="font-size: 14px">
         <span>Arthas 远程诊断工具</span>
