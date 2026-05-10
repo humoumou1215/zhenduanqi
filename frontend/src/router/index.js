@@ -6,6 +6,7 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue'),
+    meta: { title: '登录' },
   },
   {
     path: '/',
@@ -15,7 +16,7 @@ const routes = [
     path: '/scenes',
     name: 'SceneList',
     component: () => import('../views/SceneList.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, title: '场景列表' },
   },
   {
     path: '/scenes/manage',

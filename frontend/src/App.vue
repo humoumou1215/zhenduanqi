@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from './stores/user';
 
@@ -70,6 +70,18 @@ const roleTagType = computed(() => {
   if (userStore.role === 'OPERATOR') return 'warning';
   return 'info';
 });
+
+watch(
+  () => route.meta.title,
+  (newTitle) => {
+    if (newTitle) {
+      document.title = `${newTitle} - Arthas 远程诊断工具`;
+    } else {
+      document.title = 'Arthas 远程诊断工具';
+    }
+  },
+  { immediate: true }
+);
 
 async function handleLogout() {
   await userStore.logout();
