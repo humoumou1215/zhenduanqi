@@ -58,19 +58,19 @@ class ArthasServerControllerTest {
     void setUp() {
         SysRole adminRole = new SysRole();
         adminRole.setRoleCode("ADMIN");
-        adminUser = new SysUser();
+        SysUser adminUser = new SysUser();
         adminUser.setUsername("admin");
         adminUser.setRoles(Set.of(adminRole));
 
         SysRole operatorRole = new SysRole();
         operatorRole.setRoleCode("OPERATOR");
-        operatorUser = new SysUser();
+        SysUser operatorUser = new SysUser();
         operatorUser.setUsername("operator");
         operatorUser.setRoles(Set.of(operatorRole));
 
         SysRole readonlyRole = new SysRole();
         readonlyRole.setRoleCode("READONLY");
-        readonlyUser = new SysUser();
+        SysUser readonlyUser = new SysUser();
         readonlyUser.setUsername("readonly");
         readonlyUser.setRoles(Set.of(readonlyRole));
 
@@ -82,10 +82,6 @@ class ArthasServerControllerTest {
         when(userRepository.findByUsername("operator")).thenReturn(Optional.of(operatorUser));
         when(userRepository.findByUsername("readonly")).thenReturn(Optional.of(readonlyUser));
     }
-
-    private SysUser adminUser;
-    private SysUser operatorUser;
-    private SysUser readonlyUser;
 
     @Test
     void listServers_withAdminAuth_returns200() throws Exception {
