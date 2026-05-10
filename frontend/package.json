@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "format": "prettier --write \"src/**/*.{js,vue,json,css,html}\"",
-    "format:check": "prettier --check \"src/**/*.{js,vue,json,css,html}\"",
+    "format": "prettier --write \"{src,e2e}/**/*.{js,vue,json,css,html,ts}\"",
+    "format:check": "prettier --check \"{src,e2e}/**/*.{js,vue,json,css,html,ts}\"",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed"
