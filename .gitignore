@@ -17,3 +17,7 @@ test_*.py
 PR_REVIEW*.md
 PR_FINAL*.md
 MERGE_DECISION*.md
+PR_AUDIT_REPORT*.md
+
+# Test results
+frontend/test-results/
