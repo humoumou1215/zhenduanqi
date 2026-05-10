@@ -11,10 +11,28 @@ test.describe('快捷命令收藏功能测试', () => {
   });
 
   async function login(page) {
+    // 清除现有状态
+    await page.context().clearCookies();
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+    
+    // 直接调用登录API (使用相对路径，这样会通过vite的代理
+    const response = await page.request.post('/api/auth/login', {
+      form: {
+        username: 'admin',
+        password: 'admin123'
+      }
+    });
+    
+    if (!response.ok()) {
+      const text = await response.text();
+      throw new Error(`Login failed: ${text}`);
+    }
+    
+    // 登录后访问页面
     await page.goto('/#/');
-    await page.fill('input[type="text"]', 'admin');
-    await page.fill('input[type="password"]', 'admin123');
-    await page.click('button:has-text("登录")');
     await page.waitForLoadState('networkidle');
   }
 
@@ -54,10 +72,7 @@ test.describe('快捷命令收藏功能测试', () => {
     await page.waitForLoadState('networkidle');
 
     // 重新登录
-    await page.fill('input[type="text"]', 'admin');
-    await page.fill('input[type="password"]', 'admin123');
-    await page.click('button:has-text("登录")');
-    await page.waitForLoadState('networkidle');
+    await login(page);
 
     await page.goto('/#/diagnose');
     await page.waitForLoadState('networkidle');
