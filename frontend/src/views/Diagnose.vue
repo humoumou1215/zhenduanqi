@@ -314,7 +314,7 @@ function loadQuickCommands() {
 
 function saveQuickCommand() {
   if (!previewCommand.value) return;
-  
+
   if (!quickCommands.value.includes(previewCommand.value)) {
     quickCommands.value.push(previewCommand.value);
     localStorage.setItem('diagnose-quick-commands', JSON.stringify(quickCommands.value));
