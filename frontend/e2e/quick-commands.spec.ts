@@ -17,20 +17,20 @@ test.describe('快捷命令收藏功能测试', () => {
       localStorage.clear();
       sessionStorage.clear();
     });
-    
+
     // 直接调用登录API (使用相对路径，这样会通过vite的代理
     const response = await page.request.post('/api/auth/login', {
       form: {
         username: 'admin',
-        password: 'admin123'
-      }
+        password: 'admin123',
+      },
     });
-    
+
     if (!response.ok()) {
       const text = await response.text();
       throw new Error(`Login failed: ${text}`);
     }
-    
+
     // 登录后访问页面
     await page.goto('/#/');
     await page.waitForLoadState('networkidle');

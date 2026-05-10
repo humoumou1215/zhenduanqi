@@ -15,11 +15,15 @@ test.describe('诊断工作台页面组件存在性验证', () => {
   });
 
   test.skip('页面标题应正确', async ({ page }) => {
-    await expect(page.locator('.workbench-header h2')).toContainText('诊断工作台', { timeout: 10000 });
+    await expect(page.locator('.workbench-header h2')).toContainText('诊断工作台', {
+      timeout: 10000,
+    });
   });
 
   test.skip('Dashboard 区域应包含正确标题', async ({ page }) => {
-    await expect(page.locator('.dashboard-section h3')).toContainText('实时监控', { timeout: 10000 });
+    await expect(page.locator('.dashboard-section h3')).toContainText('实时监控', {
+      timeout: 10000,
+    });
   });
 
   test.skip('服务器选择器应存在', async ({ page }) => {
@@ -65,7 +69,9 @@ test.describe('Dashboard 控件', () => {
   });
 
   test.skip('刷新间隔输入框应存在', async ({ page }) => {
-    await expect(page.locator('.dashboard-controls .el-input-number')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.dashboard-controls .el-input-number')).toBeVisible({
+      timeout: 10000,
+    });
   });
 
   test.skip('开始刷新按钮应存在', async ({ page }) => {

@@ -144,7 +144,7 @@ async function handleLogin() {
     form.password = trimmedPassword;
 
     await userStore.login(trimmedUsername, trimmedPassword);
-    
+
     // 保存登录状态，包括记住我功能
     if (rememberMe.value) {
       localStorage.setItem('rememberedUsername', trimmedUsername);
@@ -153,10 +153,10 @@ async function handleLogin() {
       localStorage.removeItem('rememberedUsername');
       localStorage.removeItem('loginRemembered');
     }
-    
+
     // 保存登录时间以便后续分析
     localStorage.setItem('lastLoginTime', new Date().toISOString());
-    
+
     ElMessage.success('登录成功');
     router.push('/scenes');
   } catch (e) {
