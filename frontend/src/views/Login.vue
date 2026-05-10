@@ -144,11 +144,19 @@ async function handleLogin() {
     form.password = trimmedPassword;
 
     await userStore.login(trimmedUsername, trimmedPassword);
+    
+    // 保存登录状态，包括记住我功能
     if (rememberMe.value) {
       localStorage.setItem('rememberedUsername', trimmedUsername);
+      localStorage.setItem('loginRemembered', 'true');
     } else {
       localStorage.removeItem('rememberedUsername');
+      localStorage.removeItem('loginRemembered');
     }
+    
+    // 保存登录时间以便后续分析
+    localStorage.setItem('lastLoginTime', new Date().toISOString());
+    
     ElMessage.success('登录成功');
     router.push('/scenes');
   } catch (e) {
@@ -259,5 +267,31 @@ async function handleLogin() {
 
 .strength-3 .strength-text {
   color: #67c23a;
+}
+
+/* 添加淡入动画效果 */
+.login-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 添加按钮悬停效果 */
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+}
+
+.login-button:active {
+  transform: translateY(0);
 }
 </style>
