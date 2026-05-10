@@ -3,6 +3,7 @@
     <el-card class="login-card">
       <template #header>
         <h2 class="login-title">Arthas 远程诊断工具</h2>
+        <p class="login-subtitle">v1.0.0</p>
       </template>
       <el-form ref="formRef" :model="form" :rules="rules" @keyup.enter="handleLogin">
         <el-form-item prop="username">
@@ -120,6 +121,13 @@ async function handleLogin() {
   text-align: center;
   margin: 0;
   color: #303133;
+}
+
+.login-subtitle {
+  text-align: center;
+  margin: 8px 0 0 0;
+  color: #909399;
+  font-size: 14px;
 }
 
 .login-button {
