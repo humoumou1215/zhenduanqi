@@ -15,7 +15,7 @@ public class SceneStep {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scene_id", nullable = false)
-    @JsonIgnore
+    @JsonBackReference
     private DiagnoseScene scene;
 
     @Column(name = "step_order", nullable = false)
