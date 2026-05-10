@@ -239,6 +239,78 @@ describe('useDiagnoseStore', () => {
       // Should use the value from the first successful rule, not the second one
       expect(store.getVariable('threadId')).toBe('456');
     });
+
+    it('should handle non-array values from jsonpath', () => {
+      const store = useDiagnoseStore();
+
+      const scene = {
+        id: 1,
+        name: 'Test Scene',
+        steps: [
+          {
+            id: 101,
+            command: 'sysprop',
+            extract_rules: JSON.stringify([
+              {
+                variable: 'javaVersion',
+                jsonPath: '$.java.version',
+                description: 'Extract single value from object',
+              },
+            ]),
+          },
+        ],
+      };
+
+      store.initScene(scene, 'server-1');
+
+      const results = { java: { version: '17.0.11' }, os: { name: 'Linux' } };
+
+      store.extractVariables(101, results);
+
+      expect(store.getVariable('javaVersion')).toBe('17.0.11');
+    });
+
+    it('should skip empty strings and null values', () => {
+      const store = useDiagnoseStore();
+
+      const scene = {
+        id: 1,
+        name: 'Test Scene',
+        steps: [
+          {
+            id: 101,
+            command: 'test',
+            extract_rules: JSON.stringify([
+              {
+                variable: 'shouldNotSet1',
+                jsonPath: '$.empty',
+                description: 'Empty string should not be set',
+              },
+              {
+                variable: 'shouldNotSet2',
+                jsonPath: '$.nullValue',
+                description: 'Null value should not be set',
+              },
+              {
+                variable: 'shouldSet',
+                jsonPath: '$.valid',
+                description: 'Valid value should be set',
+              },
+            ]),
+          },
+        ],
+      };
+
+      store.initScene(scene, 'server-1');
+
+      const results = { empty: '', nullValue: null, valid: 'hello' };
+
+      store.extractVariables(101, results);
+
+      expect(store.getVariable('shouldNotSet1')).toBeUndefined();
+      expect(store.getVariable('shouldNotSet2')).toBeUndefined();
+      expect(store.getVariable('shouldSet')).toBe('hello');
+    });
   });
 
   describe('fillCommand', () => {
