@@ -26,7 +26,18 @@
             show-password
             clearable
             autocomplete="current-password"
+            @input="checkPasswordStrength"
           />
+          <div
+            v-if="form.password"
+            class="password-strength"
+            :class="'strength-' + passwordStrength.level"
+          >
+            <div class="strength-bar">
+              <div class="strength-level" :style="{ width: passwordStrength.width + '%' }"></div>
+            </div>
+            <span class="strength-text">{{ passwordStrength.text }}</span>
+          </div>
         </el-form-item>
         <el-form-item>
           <el-checkbox v-model="rememberMe">记住我</el-checkbox>
@@ -71,10 +82,44 @@ const loading = ref(false);
 const rememberMe = ref(false);
 
 const form = reactive({ username: '', password: '' });
+const passwordStrength = reactive({ level: 0, text: '', width: 0 });
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 };
+
+function checkPasswordStrength() {
+  const password = form.password;
+  let strength = 0;
+  let text = '';
+  let level = 0;
+  let width = 0;
+
+  if (password.length >= 6) strength += 1;
+  if (password.length >= 10) strength += 1;
+  if (/[A-Z]/.test(password)) strength += 1;
+  if (/[a-z]/.test(password)) strength += 1;
+  if (/[0-9]/.test(password)) strength += 1;
+  if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+
+  if (strength <= 2) {
+    text = '弱';
+    level = 1;
+    width = 33;
+  } else if (strength <= 4) {
+    text = '中';
+    level = 2;
+    width = 66;
+  } else {
+    text = '强';
+    level = 3;
+    width = 100;
+  }
+
+  passwordStrength.level = level;
+  passwordStrength.text = text;
+  passwordStrength.width = width;
+}
 
 onMounted(() => {
   const savedUsername = localStorage.getItem('rememberedUsername');
@@ -164,5 +209,55 @@ async function handleLogin() {
 
 .login-tips .el-icon {
   color: #409eff;
+}
+
+.password-strength {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.strength-bar {
+  flex: 1;
+  height: 6px;
+  background-color: #ebeef5;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.strength-level {
+  height: 100%;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.strength-1 .strength-level {
+  background-color: #f56c6c;
+}
+
+.strength-2 .strength-level {
+  background-color: #e6a23c;
+}
+
+.strength-3 .strength-level {
+  background-color: #67c23a;
+}
+
+.strength-text {
+  font-size: 12px;
+  min-width: 24px;
+}
+
+.strength-1 .strength-text {
+  color: #f56c6c;
+}
+
+.strength-2 .strength-text {
+  color: #e6a23c;
+}
+
+.strength-3 .strength-text {
+  color: #67c23a;
 }
 </style>
