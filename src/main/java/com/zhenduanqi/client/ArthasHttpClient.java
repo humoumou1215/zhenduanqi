@@ -53,7 +53,8 @@ public class ArthasHttpClient {
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
             
             addAuthorizationHeader(requestBuilder, server);
-            
+            String authType = getAuthType(server);
+
             HttpRequest request = requestBuilder.build();
 
             log.debug("ArthasClient: 正在发送命令到 Arthas, server={}, command={}", server.getName(), summarizeCommand(command));
@@ -65,9 +66,9 @@ public class ArthasHttpClient {
 
             if (httpResponse.statusCode() != 200) {
                 response.setState("failed");
-                String errorMessage = body != null && !body.isEmpty() 
-                        ? body 
-                        : getHttpErrorMessage(httpResponse.statusCode());
+                String errorMessage = body != null && !body.isEmpty()
+                        ? body
+                        : getHttpErrorMessage(httpResponse.statusCode(), authType);
                 response.setError("HTTP " + httpResponse.statusCode() + ": " + errorMessage);
                 log.error("Arthas API returned status {}: {}", httpResponse.statusCode(), body);
                 return response;
@@ -109,6 +110,36 @@ public class ArthasHttpClient {
         } else if (server.getToken() != null) {
             requestBuilder.header("Authorization", "Bearer " + server.getToken());
         }
+    }
+
+    private String getAuthType(ServerInfo server) {
+        if (server.getUsername() != null && server.getPassword() != null) {
+            return "basic";
+        } else if (server.getToken() != null) {
+            return "token";
+        }
+        return "none";
+    }
+
+    private String getHttpErrorMessage(int statusCode, String authType) {
+        if (statusCode == 401) {
+            if ("basic".equals(authType)) {
+                return "未授权，用户名或密码错误";
+            } else if ("token".equals(authType)) {
+                return "未授权，Token 无效";
+            }
+        }
+        return switch (statusCode) {
+            case 400 -> "请求格式错误";
+            case 401 -> "未授权，请检查认证信息";
+            case 403 -> "权限不足";
+            case 404 -> "API 地址不存在";
+            case 500 -> "Arthas 服务内部错误";
+            case 502 -> "Arthas 服务不可用或未启动";
+            case 503 -> "Arthas 服务暂时不可用";
+            case 504 -> "Arthas 服务响应超时";
+            default -> "未知错误";
+        };
     }
 
     private void parseResponseWithJackson(String body, ArthasResponse response) {
@@ -203,15 +234,16 @@ public class ArthasHttpClient {
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
             
             addAuthorizationHeader(requestBuilder, server);
-            
+            String authType = getAuthType(server);
+
             HttpRequest request = requestBuilder.build();
 
             HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            
+
             if (httpResponse.statusCode() == 200) {
                 return ServerStatusResult.success("连接成功");
             } else {
-                return ServerStatusResult.failure("HTTP " + httpResponse.statusCode() + ": " + getHttpErrorMessage(httpResponse.statusCode()));
+                return ServerStatusResult.failure("HTTP " + httpResponse.statusCode() + ": " + getHttpErrorMessage(httpResponse.statusCode(), authType));
             }
         } catch (java.net.ConnectException e) {
             log.warn("Connection failed for {}: {}", server.getName(), e.getMessage());
@@ -302,20 +334,6 @@ public class ArthasHttpClient {
 
     public ArthasResponse executeSystemCommand(ServerInfo server, String sessionId, String command) {
         return executeCommand(server, sessionId, command);
-    }
-
-    private String getHttpErrorMessage(int statusCode) {
-        return switch (statusCode) {
-            case 400 -> "请求格式错误";
-            case 401 -> "未授权，请检查 Token";
-            case 403 -> "权限不足";
-            case 404 -> "API 地址不存在";
-            case 500 -> "Arthas 服务内部错误";
-            case 502 -> "Arthas 服务不可用或未启动";
-            case 503 -> "Arthas 服务暂时不可用";
-            case 504 -> "Arthas 服务响应超时";
-            default -> "未知错误";
-        };
     }
 
     public SessionInfo initSession(ServerInfo server) {
