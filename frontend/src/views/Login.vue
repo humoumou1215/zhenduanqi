@@ -44,8 +44,14 @@
         </el-form-item>
       </el-form>
       <div class="login-tips">
-        <p><el-icon><InfoFilled /></el-icon> 默认账号：admin / admin123</p>
-        <p><el-icon><Key /></el-icon> 按 Enter 键快速登录</p>
+        <p>
+          <el-icon><InfoFilled /></el-icon>
+          默认账号：admin / admin123
+        </p>
+        <p>
+          <el-icon><Key /></el-icon>
+          按 Enter 键快速登录
+        </p>
       </div>
     </el-card>
   </div>
