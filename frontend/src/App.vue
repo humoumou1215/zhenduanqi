@@ -71,14 +71,19 @@ const roleTagType = computed(() => {
   return 'info';
 });
 
+function updateDocumentTitle() {
+  const title = route.meta.title;
+  if (title) {
+    document.title = `${title} - Arthas 远程诊断工具`;
+  } else {
+    document.title = 'Arthas 远程诊断工具';
+  }
+}
+
 watch(
-  () => route.meta.title,
-  (newTitle) => {
-    if (newTitle) {
-      document.title = `${newTitle} - Arthas 远程诊断工具`;
-    } else {
-      document.title = 'Arthas 远程诊断工具';
-    }
+  () => route.path,
+  () => {
+    updateDocumentTitle();
   },
   { immediate: true }
 );
