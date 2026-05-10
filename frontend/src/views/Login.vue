@@ -13,6 +13,7 @@
             :prefix-icon="User"
             size="large"
             clearable
+            autocomplete="username"
           />
         </el-form-item>
         <el-form-item prop="password">
@@ -24,6 +25,7 @@
             size="large"
             show-password
             clearable
+            autocomplete="current-password"
           />
         </el-form-item>
         <el-form-item>
@@ -41,6 +43,10 @@
           </el-button>
         </el-form-item>
       </el-form>
+      <div class="login-tips">
+        <p><el-icon><InfoFilled /></el-icon> 默认账号：admin / admin123</p>
+        <p><el-icon><Key /></el-icon> 按 Enter 键快速登录</p>
+      </div>
     </el-card>
   </div>
 </template>
@@ -48,7 +54,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { User, Lock } from '@element-plus/icons-vue';
+import { User, Lock, InfoFilled, Key } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { useUserStore } from '../stores/user';
 
@@ -133,5 +139,24 @@ async function handleLogin() {
 .login-button {
   width: 100%;
   border-radius: 8px;
+}
+
+.login-tips {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #ebeef5;
+  font-size: 13px;
+  color: #909399;
+}
+
+.login-tips p {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.login-tips .el-icon {
+  color: #409eff;
 }
 </style>
