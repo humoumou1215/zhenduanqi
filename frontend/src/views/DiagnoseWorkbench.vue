@@ -230,6 +230,17 @@
                         <el-tag v-else type="info" size="small">只读</el-tag>
                       </template>
                     </el-input>
+                    <div
+                      v-if="
+                        hasPlaceholder(step.command) &&
+                        getStepState(scene.id, index)?.state !== 'completed'
+                      "
+                      class="placeholder-hint"
+                    >
+                      <el-icon><Warning /></el-icon>
+                      命令包含占位符 {
+                      {{ getUnfilledPlaceholders(step.command) }} }，将从前序步骤结果自动提取
+                    </div>
                   </div>
 
                   <div v-if="getStepState(scene.id, index)?.result" class="step-result">
@@ -278,6 +289,26 @@
                     </div>
                   </div>
 
+                  <div
+                    v-if="
+                      getStepState(scene.id, index)?.state === 'completed' && step.extract_rules
+                    "
+                    class="variables-extracted"
+                  >
+                    <span style="color: #67c23a; font-size: 13px">
+                      <el-icon><Check /></el-icon>
+                      已提取变量:
+                    </span>
+                    <el-tag
+                      v-for="[key, value] in getExtractedVariables()"
+                      :key="key"
+                      size="small"
+                      style="margin-left: 8px"
+                    >
+                      {{ key }} = {{ value }}
+                    </el-tag>
+                  </div>
+
                   <div v-if="step.expectedHint" class="step-hint">
                     <el-icon><InfoFilled /></el-icon>
                     {{ step.expectedHint }}
@@ -304,6 +335,8 @@ import {
   CircleCheck,
   Loading,
   InfoFilled,
+  Warning,
+  Check,
 } from '@element-plus/icons-vue';
 import {
   getScenes,
@@ -316,11 +349,13 @@ import {
 } from '../api';
 import { useServerStore } from '../stores/servers';
 import { useUserStore } from '../stores/user';
+import { useDiagnoseStore } from '../stores/diagnose';
 import { getRenderer } from '../components/ResultRenderer';
 import DashboardRenderer from '../components/ResultRenderer/DashboardRenderer.vue';
 
 const serverStore = useServerStore();
 const userStore = useUserStore();
+const diagnoseStore = useDiagnoseStore();
 
 const STORAGE_KEY = 'selectedServerId';
 
@@ -468,7 +503,7 @@ function getStepCommandValue(sceneId, stepIndex) {
   if (!sceneStepCommands.value[key]) {
     const scene = scenes.value.find((s) => s.id === sceneId);
     if (scene && scene.steps && scene.steps[stepIndex]) {
-      sceneStepCommands.value[key] = scene.steps[stepIndex].command || '';
+      sceneStepCommands.value[key] = fillCommandFromVariables(scene.steps[stepIndex]);
     }
   }
   return sceneStepCommands.value[key] || '';
@@ -484,6 +519,42 @@ function getStepTagType(state) {
   if (state === 'executing') return 'warning';
   if (state === 'error') return 'danger';
   return 'info';
+}
+
+function hasPlaceholder(command) {
+  if (!command) return false;
+  const matches = command.match(/\{(\w+)\}/g);
+  return matches && matches.length > 0;
+}
+
+function getUnfilledPlaceholders(command) {
+  if (!command) return '';
+  const matches = command.match(/\{(\w+)\}/g) || [];
+  const unfilled = matches
+    .map((m) => m.slice(1, -1))
+    .filter((key) => !diagnoseStore.variables.has(key));
+  return [...new Set(unfilled)].join(', ');
+}
+
+function getExtractedVariables() {
+  const variables = [];
+  for (const [key, value] of diagnoseStore.variables.entries()) {
+    variables.push([key, value]);
+  }
+  return variables;
+}
+
+function fillCommandFromVariables(step) {
+  let command = step.command || '';
+
+  for (const [key, value] of diagnoseStore.variables.entries()) {
+    const placeholder = `{${key}}`;
+    if (command.includes(placeholder)) {
+      command = command.replaceAll(placeholder, value);
+    }
+  }
+
+  return command;
 }
 
 async function handleExecuteStep(scene, stepIndex) {
@@ -507,6 +578,21 @@ async function handleExecuteStep(scene, stepIndex) {
     const res = await executeCommand(selectedServerId.value, command);
     const result = res.data;
     sceneStepStates.value[key] = { state: 'completed', result };
+
+    // 提取变量
+    if (step.extract_rules) {
+      // 先初始化 diagnose store 的场景和步骤，以便使用 extractVariables
+      if (!diagnoseStore.steps.length || diagnoseStore.currentSceneId !== scene.id) {
+        diagnoseStore.initScene(scene, selectedServerId.value);
+      }
+      diagnoseStore.extractVariables(step.id, result.structuredResults);
+
+      // 更新后续步骤的命令
+      for (let i = stepIndex + 1; i < scene.steps.length; i++) {
+        const nextKey = `${scene.id}-${i}`;
+        sceneStepCommands.value[nextKey] = fillCommandFromVariables(scene.steps[i]);
+      }
+    }
   } catch (e) {
     sceneStepStates.value[key] = {
       state: 'error',
@@ -533,6 +619,11 @@ async function handleExecuteStepAsync(scene, stepIndex) {
   if (!selectedServerId.value) {
     ElMessage.warning('请先选择服务器');
     return;
+  }
+
+  // 初始化 diagnose store
+  if (!diagnoseStore.steps.length || diagnoseStore.currentSceneId !== scene.id) {
+    diagnoseStore.initScene(scene, selectedServerId.value);
   }
 
   sceneStepStates.value[key] = {
@@ -588,6 +679,20 @@ async function handleExecuteStepAsync(scene, stepIndex) {
 
             delete sceneAsyncSessions.value[key];
             sceneStepStates.value[key].state = 'completed';
+
+            // 提取变量并更新后续步骤
+            if (step.extract_rules) {
+              diagnoseStore.extractVariables(
+                step.id,
+                sceneStepStates.value[key].result.structuredResults
+              );
+
+              // 更新后续步骤的命令
+              for (let i = stepIndex + 1; i < scene.steps.length; i++) {
+                const nextKey = `${scene.id}-${i}`;
+                sceneStepCommands.value[nextKey] = fillCommandFromVariables(scene.steps[i]);
+              }
+            }
           }
         }
       } catch (e) {
@@ -885,6 +990,15 @@ onUnmounted(() => {
   margin-bottom: 8px;
 }
 
+.placeholder-hint {
+  color: #e6a23c;
+  font-size: 12px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .step-result {
   background: #f5f7fa;
   padding: 12px;
@@ -913,6 +1027,13 @@ onUnmounted(() => {
   line-height: 1.6;
   overflow-x: auto;
   margin: 8px 0 0 0;
+}
+
+.variables-extracted {
+  background: #f0f9eb;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 12px;
 }
 
 .step-hint {
