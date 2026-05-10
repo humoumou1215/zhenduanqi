@@ -74,6 +74,32 @@
                   <el-icon><CopyDocument /></el-icon>
                   复制
                 </el-button>
+                <el-button
+                  v-if="previewCommand"
+                  size="small"
+                  type="success"
+                  link
+                  @click="saveQuickCommand"
+                >
+                  <el-icon><Star /></el-icon>
+                  收藏
+                </el-button>
+              </div>
+            </el-form-item>
+
+            <el-form-item v-if="quickCommands.length > 0" label="快捷命令">
+              <div class="quick-commands">
+                <el-tag
+                  v-for="(cmd, idx) in quickCommands"
+                  :key="idx"
+                  class="quick-command-tag"
+                  @click="applyQuickCommand(cmd)"
+                >
+                  {{ cmd }}
+                  <el-icon class="remove-icon" @click.stop="removeQuickCommand(idx)">
+                    <Close />
+                  </el-icon>
+                </el-tag>
               </div>
             </el-form-item>
 
@@ -231,7 +257,7 @@ import { useCommandCacheStore } from '../stores/commandCache';
 import { executeCommand } from '../api';
 import { getRenderer } from '../components/ResultRenderer';
 import { ElMessage } from 'element-plus';
-import { CopyDocument, ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
+import { CopyDocument, ArrowLeft, ArrowRight, Star, Close } from '@element-plus/icons-vue';
 import arthasCommands from '../data/arthas-commands.json';
 
 const serverStore = useServerStore();
@@ -249,6 +275,7 @@ const commandInputRef = ref(null);
 const paramInputRef = ref(null);
 const commandHistoryIndex = ref(-1);
 const paramHistoryIndex = ref(-1);
+const quickCommands = ref([]);
 
 const isSuccess = computed(() => result.value?.state === 'succeeded');
 
@@ -275,7 +302,42 @@ const filteredCommands = computed(() => {
 onMounted(() => {
   serverStore.fetchServers();
   restoreSelectedServer();
+  loadQuickCommands();
 });
+
+function loadQuickCommands() {
+  const saved = localStorage.getItem('diagnose-quick-commands');
+  if (saved) {
+    quickCommands.value = JSON.parse(saved);
+  }
+}
+
+function saveQuickCommand() {
+  if (!previewCommand.value) return;
+  
+  if (!quickCommands.value.includes(previewCommand.value)) {
+    quickCommands.value.push(previewCommand.value);
+    localStorage.setItem('diagnose-quick-commands', JSON.stringify(quickCommands.value));
+    ElMessage.success('已收藏快捷命令');
+  } else {
+    ElMessage.warning('该命令已存在');
+  }
+}
+
+function removeQuickCommand(index) {
+  quickCommands.value.splice(index, 1);
+  localStorage.setItem('diagnose-quick-commands', JSON.stringify(quickCommands.value));
+  ElMessage.success('已移除快捷命令');
+}
+
+function applyQuickCommand(cmd) {
+  const parts = cmd.split(/\s+/);
+  if (parts.length > 0) {
+    form.value.command = parts[0];
+    form.value.params = parts.slice(1).join(' ');
+  }
+  paramInputRef.value?.focus();
+}
 
 watch(
   () => form.value.command,
@@ -621,5 +683,37 @@ h4 {
   margin: 0 0 12px 0;
   font-size: 14px;
   color: #303133;
+}
+
+.quick-commands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-command-tag {
+  cursor: pointer;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.quick-command-tag:hover {
+  border-color: #409eff;
+  color: #409eff;
+}
+
+.remove-icon {
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.remove-icon:hover {
+  color: #f56c6c;
 }
 </style>
