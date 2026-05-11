@@ -18,6 +18,7 @@ PR_REVIEW*.md
 PR_FINAL*.md
 MERGE_DECISION*.md
 PR_AUDIT_REPORT*.md
+PR_CODE_REVIEW*.md
 
 # Test results
 frontend/test-results/
