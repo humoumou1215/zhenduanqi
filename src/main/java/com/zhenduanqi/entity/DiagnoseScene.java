@@ -1,6 +1,5 @@
 package com.zhenduanqi.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,7 +41,6 @@ public class DiagnoseScene {
 
     @OneToMany(mappedBy = "scene", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("stepOrder ASC")
-    @JsonManagedReference
     private List<SceneStep> steps;
 
     @PrePersist
